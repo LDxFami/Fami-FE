@@ -28,6 +28,10 @@ const showErrors = (field, valueLen, min) => {
   }
 }
 
+const setError = () =>{
+  
+}
+
 const defaultValues = {
   newPassword: '',
   currentPassword: '',

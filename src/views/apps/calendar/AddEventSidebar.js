@@ -260,7 +260,8 @@ const AddEventSidebar = props => {
     dispatch(removeEvent(selectedEvent.id))
     removeEventInCalendar(selectedEvent.id)
     handleAddEventSidebar()
-    toast.error(<ToastComponent title='Event Removed' color='danger' icon={<Trash />} />, {
+    toast.error(<ToastComponent title='Event Removed' color='danger' icon={<Check />} />, {
+      // toast.error(<ToastComponent title='Event Removed' color='danger' icon={<Trash />} />, {
       icon: false,
       autoClose: 2000,
       hideProgressBar: true,

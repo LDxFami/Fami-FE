@@ -82,6 +82,7 @@ export const removeChildren = (children, openGroup, currentActiveGroup) => {
 }
 
 export const canViewMenuGroup = item => {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const ability = useContext(AbilityContext)
   // ! This same logic is used in canViewHorizontalNavMenuGroup and canViewHorizontalNavMenuHeaderGroup. So make sure to update logic in them as well
   const hasAnyVisibleChild = item.children && item.children.some(i => ability.can(i.action, i.resource))
@@ -95,6 +96,7 @@ export const canViewMenuGroup = item => {
 }
 
 export const canViewMenuItem = item => {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const ability = useContext(AbilityContext)
   return ability.can(item.action, item.resource)
 }

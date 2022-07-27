@@ -21,7 +21,7 @@ const HorizontalNavMenuLink = ({ item, isChild, activeItem, setActiveItem, setOp
     if (currentActiveItem !== null) {
       setActiveItem(currentActiveItem)
     }
-  }, [location])
+  }, [currentActiveItem, setActiveItem])
 
   return (
     <li
