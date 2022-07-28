@@ -19,6 +19,19 @@ $auth-1-inner-max-width: 400px !default;
     justify-content: center;
     overflow: hidden; // For v1 scroll for long auth form
     .auth-inner {
+      .brand-logo{
+        display: flex;
+        align-items: center;
+        img{
+          height: 50px;
+        }
+       .brand-text{
+        margin-bottom: 0px !important;
+        height: fit-content;
+       }
+      }
+     
+
       position: relative;
       &:before {
         width: 244px;

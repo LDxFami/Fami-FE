@@ -48,6 +48,8 @@ import { AbilityContext } from "@src/utility/context/Can";
 // ** Custom Components
 import Avatar from "@components/avatar";
 
+import famiLogo from "@src/assets/images/logo/fami.png";
+
 // ** Utils
 import { getHomeRouteForLoggedInUser } from "@utils";
 
@@ -61,13 +63,12 @@ const ToastContent = ({ name, role }) => (
     <div className="toastify-header">
       <div className="title-wrapper">
         <Avatar size="sm" color="success" icon={<Coffee size={12} />} />
-        <h6 className="toast-title fw-bold">Welcome, {name}</h6>
+        <h6 className="toast-title fw-bold">Xin chào, {name}</h6>
       </div>
     </div>
     <div className="toastify-body">
       <span>
-        You have successfully logged in as an {role} user to Vuexy. Now you can
-        start to explore. Enjoy!
+      Bạn đã đăng nhập thành công.
       </span>
     </div>
   </Fragment>
@@ -188,10 +189,11 @@ const LoginBasic = () => {
                   </g>
                 </g>
               </svg> */}
-              <h2 className="brand-text text-primary ms-1">Fami</h2>
+              <img src={famiLogo} alt="fami-logo" />
+              <h2 className="brand-text text-primary ms-1">Fami dental</h2>
             </Link>
             <CardTitle tag="h4" className="mb-1">
-              Fami Xin chào! 👋
+              Nha Khoa Fami xin chào! 👋
             </CardTitle>
             <CardText className="mb-2">Hãy đăng nhập để bắt đầu</CardText>
             <Form
@@ -203,14 +205,14 @@ const LoginBasic = () => {
                   Email
                 </Label>
                 <Controller
-                  id='loginEmail'
-                  name='loginEmail'
+                  id="loginEmail"
+                  name="loginEmail"
                   control={control}
                   render={({ field }) => (
                     <Input
                       autoFocus
-                      type='email'
-                      placeholder='ld123456@example.com'
+                      type="email"
+                      placeholder="ld123456@example.com"
                       invalid={errors.loginEmail && true}
                       {...field}
                     />
