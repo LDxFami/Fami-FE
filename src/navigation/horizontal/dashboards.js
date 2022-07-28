@@ -9,7 +9,7 @@ export default [
     children: [
       {
         id: 'analyticsDash',
-        title: 'Analytics',
+        title: 'Phân tích',
         icon: <Activity />,
         navLink: '/dashboard/analytics'
       },

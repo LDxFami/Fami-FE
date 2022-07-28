@@ -79,12 +79,12 @@ const AddEventSidebar = props => {
   const [location, setLocation] = useState('')
   const [endPicker, setEndPicker] = useState(new Date())
   const [startPicker, setStartPicker] = useState(new Date())
-  const [calendarLabel, setCalendarLabel] = useState([{ value: 'Business', label: 'Business', color: 'primary' }])
+  const [calendarLabel, setCalendarLabel] = useState([{ value: 'Cá nhân', label: 'Cá nhân', color: 'primary' }])
 
   // ** Select Options
   const options = [
-    { value: 'Business', label: 'Business', color: 'primary' },
-    { value: 'Personal', label: 'Personal', color: 'danger' },
+    { value: 'Cá nhân', label: 'Cá nhân', color: 'primary' },
+    { value: 'Quan trọng', label: 'Quan trọng', color: 'danger' },
     { value: 'Family', label: 'Family', color: 'warning' },
     { value: 'Holiday', label: 'Holiday', color: 'success' },
     { value: 'ETC', label: 'ETC', color: 'info' }
@@ -139,7 +139,7 @@ const AddEventSidebar = props => {
     dispatch(addEvent(obj))
     refetchEvents()
     handleAddEventSidebar()
-    toast.success(<ToastComponent title='Event Added' color='success' icon={<Check />} />, {
+    toast.success(<ToastComponent title='Đã thêm sự kiện' color='success' icon={<Check />} />, {
       icon: false,
       autoClose: 2000,
       hideProgressBar: true,
@@ -156,7 +156,7 @@ const AddEventSidebar = props => {
     setLocation('')
     setDesc('')
     setGuests({})
-    setCalendarLabel([{ value: 'Business', label: 'Business', color: 'primary' }])
+    setCalendarLabel([{ value: 'Cá nhân', label: 'Cá nhân', color: 'primary' }])
     setStartPicker(new Date())
     setEndPicker(new Date())
   }
@@ -170,7 +170,7 @@ const AddEventSidebar = props => {
         if (calendar.length) {
           return { label: calendar, value: calendar, color: calendarsColor[calendar] }
         } else {
-          return { value: 'Business', label: 'Business', color: 'primary' }
+          return { value: 'Cá nhân', label: 'Cá nhân', color: 'primary' }
         }
       }
       setValue('title', selectedEvent.title || getValues('title'))
@@ -275,10 +275,10 @@ const AddEventSidebar = props => {
       return (
         <Fragment>
           <Button className='me-1' type='submit' color='primary'>
-            Add
+            Thêm
           </Button>
           <Button color='secondary' type='reset' onClick={handleAddEventSidebar} outline>
-            Cancel
+            Huỷ
           </Button>
         </Fragment>
       )
@@ -286,10 +286,10 @@ const AddEventSidebar = props => {
       return (
         <Fragment>
           <Button className='me-1' color='primary' onClick={handleUpdateEvent}>
-            Update
+            Cập nhật
           </Button>
           <Button color='danger' onClick={handleDeleteEvent} outline>
-            Delete
+            Xoá
           </Button>
         </Fragment>
       )
@@ -336,7 +336,7 @@ const AddEventSidebar = props => {
           >
             <div className='mb-1'>
               <Label className='form-label' for='title'>
-                Title <span className='text-danger'>*</span>
+                Tên sự kiện <span className='text-danger'>*</span>
               </Label>
               <Controller
                 name='title'
@@ -349,7 +349,7 @@ const AddEventSidebar = props => {
 
             <div className='mb-1'>
               <Label className='form-label' for='label'>
-                Label
+                Nhãn
               </Label>
               <Select
                 id='label'
@@ -368,7 +368,7 @@ const AddEventSidebar = props => {
 
             <div className='mb-1'>
               <Label className='form-label' for='startDate'>
-                Start Date
+                Ngày bắt đầu
               </Label>
               <Flatpickr
                 required
@@ -386,7 +386,7 @@ const AddEventSidebar = props => {
 
             <div className='mb-1'>
               <Label className='form-label' for='endDate'>
-                End Date
+                Ngày kết thúc
               </Label>
               <Flatpickr
                 required
@@ -413,13 +413,13 @@ const AddEventSidebar = props => {
                 onChange={e => setAllDay(e.target.checked)}
               />
               <Label className='form-label' for='allDay'>
-                All Day
+                Cả ngày
               </Label>
             </div>
 
             <div className='mb-1'>
               <Label className='form-label' for='eventURL'>
-                Event URL
+                Link sự kiện
               </Label>
               <Input
                 type='url'
@@ -432,7 +432,7 @@ const AddEventSidebar = props => {
 
             <div className='mb-1'>
               <Label className='form-label' for='guests'>
-                Guests
+                Khách tham dự
               </Label>
               <Select
                 isMulti

@@ -1,7 +1,7 @@
 // ** Icons Import
 import { PieChart, Circle } from 'react-feather'
 
-export default [
+const chartNavigationItem = [
   {
     header: 'Charts'
   },
@@ -32,4 +32,6 @@ export default [
       }
     ]
   }
-]
+];
+
+export default chartNavigationItem;

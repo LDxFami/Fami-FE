@@ -23,7 +23,6 @@ import {
 // ** Store & Actions
 import { useDispatch, useSelector } from 'react-redux'
 import { getBookmarks, updateBookmarked, handleSearchQuery } from '@store/navbar'
-
 const NavbarBookmarks = props => {
   // ** Props
   const { setMenuVisibility } = props
@@ -61,7 +60,6 @@ const NavbarBookmarks = props => {
       return null
     }
   }
-
   // ** If user has more than 10 bookmarks then add the extra Bookmarks to a dropdown
   const renderExtraBookmarksDropdown = () => {
     if (store.bookmarks.length && store.bookmarks.length >= 11) {

@@ -1,7 +1,7 @@
 // ** Icons Import
 import { Home, Circle } from 'react-feather'
 
-export default [
+const dashboardNavigationItem = [
   {
     id: 'dashboards',
     title: 'Dashboards',
@@ -11,7 +11,7 @@ export default [
     children: [
       {
         id: 'analyticsDash',
-        title: 'Analytics',
+        title: 'Phân tích',
         icon: <Circle size={12} />,
         navLink: '/dashboard/analytics'
       },
@@ -24,3 +24,4 @@ export default [
     ]
   }
 ]
+export default dashboardNavigationItem;

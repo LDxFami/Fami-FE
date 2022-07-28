@@ -24,26 +24,26 @@ export const searchArr = [
       {
         id: 3,
         target: 'email',
-        isBookmarked: true,
+        isBookmarked: false,
         title: 'Email',
         icon: 'Mail',
-        link: '/apps/email'
+        link: '/email'
       },
       {
         id: 4,
         target: 'chat',
-        isBookmarked: true,
+        isBookmarked: false,
         title: 'Chat',
         icon: 'MessageSquare',
-        link: '/apps/chat'
+        link: '/chat'
       },
       {
         id: 5,
         target: 'todo',
-        isBookmarked: true,
+        isBookmarked: false,
         title: 'Todo',
         icon: 'CheckSquare',
-        link: '/apps/todo'
+        link: '/todo'
       },
       {
         id: 6,
@@ -51,7 +51,7 @@ export const searchArr = [
         isBookmarked: true,
         title: 'Calendar',
         icon: 'Calendar',
-        link: '/apps/calendar'
+        link: '/calendar'
       },
       {
         id: 7,
@@ -59,7 +59,7 @@ export const searchArr = [
         isBookmarked: false,
         title: 'Invoice List',
         icon: 'List',
-        link: '/apps/invoice/list'
+        link: '/invoice/list'
       },
       {
         id: 8,
@@ -67,7 +67,7 @@ export const searchArr = [
         isBookmarked: false,
         title: 'Invoice Preview',
         icon: 'FileText',
-        link: '/apps/invoice/preview'
+        link: '/invoice/preview'
       },
       {
         id: 9,
@@ -75,7 +75,7 @@ export const searchArr = [
         isBookmarked: false,
         title: 'Invoice Edit',
         icon: 'Edit',
-        link: '/apps/invoice/edit'
+        link: '/invoice/edit'
       },
       {
         id: 10,
@@ -83,7 +83,7 @@ export const searchArr = [
         isBookmarked: false,
         title: 'Invoice Add',
         icon: 'Plus',
-        link: '/apps/invoice/add'
+        link: '/invoice/add'
       },
       {
         id: 11,
@@ -91,7 +91,7 @@ export const searchArr = [
         isBookmarked: false,
         title: 'Shop Ecommerce',
         icon: 'ShoppingCart',
-        link: '/apps/ecommerce/shop'
+        link: '/ecommerce/shop'
       },
       {
         id: 12,
@@ -99,7 +99,7 @@ export const searchArr = [
         isBookmarked: false,
         title: 'Product Detail',
         icon: 'Circle',
-        link: '/apps/ecommerce/product-detail'
+        link: '/ecommerce/product-detail'
       },
       {
         id: 13,
@@ -107,7 +107,7 @@ export const searchArr = [
         isBookmarked: false,
         title: 'Wish List',
         icon: 'Heart',
-        link: '/apps/ecommerce/wishlist'
+        link: '/ecommerce/wishlist'
       },
       {
         id: 14,
@@ -115,7 +115,7 @@ export const searchArr = [
         isBookmarked: false,
         title: 'Checkout',
         icon: 'CreditCard',
-        link: '/apps/ecommerce/checkout'
+        link: '/ecommerce/checkout'
       },
       {
         id: 15,
@@ -123,7 +123,7 @@ export const searchArr = [
         isBookmarked: false,
         title: 'User List',
         icon: 'User',
-        link: '/apps/user/list'
+        link: '/user/list'
       },
       {
         id: 16,
@@ -131,7 +131,7 @@ export const searchArr = [
         isBookmarked: false,
         title: 'User View',
         icon: 'User',
-        link: '/apps/user/view'
+        link: '/user/view'
       },
       {
         id: 18,
@@ -904,7 +904,7 @@ export const searchArr = [
         isBookmarked: false,
         title: 'Roles',
         icon: 'Shield',
-        link: '/apps/roles'
+        link: '/roles'
       },
       {
         id: 119,
@@ -912,7 +912,7 @@ export const searchArr = [
         isBookmarked: false,
         title: 'Permissions',
         icon: 'Shield',
-        link: '/apps/permissions'
+        link: '/permissions'
       },
       {
         id: 120,

@@ -49,7 +49,7 @@ export const appCalendarSlice = createSlice({
   initialState: {
     events: [],
     selectedEvent: {},
-    selectedCalendars: ['Personal', 'Business', 'Family', 'Holiday', 'ETC']
+    selectedCalendars: ['Cá nhân', 'Quan trọng', 'Family', 'Holiday', 'ETC']
   },
   reducers: {
     selectEvent: (state, action) => {
@@ -72,7 +72,7 @@ export const appCalendarSlice = createSlice({
         const value = action.payload
         let selected = []
         if (value === true) {
-          selected = ['Personal', 'Business', 'Family', 'Holiday', 'ETC']
+          selected = ['Cá nhân', 'Quan trọng', 'Family', 'Holiday', 'ETC']
         } else {
           selected = []
         }

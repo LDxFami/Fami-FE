@@ -4,7 +4,7 @@ import { Redirect } from 'react-router-dom'
 const PagesRoutes = [
   {
     path: '/login',
-    component: lazy(() => import('../../views/pages/authentication/Login')),
+    component: lazy(() => import('../../views/pages/authentication/LoginBasic')),
     layout: 'BlankLayout',
     meta: {
       authRoute: true

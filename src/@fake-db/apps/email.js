@@ -688,7 +688,7 @@ const data = {
           from: {
             email: 'johndoe@mail.com',
             name: 'John Doe',
-            avatar: require('@src/assets/images/avatars/11.png').default
+            avatar: require('@src/assets/images/avatars/avatar-blank.png').default
           },
           to: [
             {

@@ -8,7 +8,7 @@ const data = {
       fullName: 'John Doe',
       username: 'johndoe',
       password: 'admin',
-      avatar: require('@src/assets/images/portrait/small/avatar-s-11.jpg').default,
+      avatar: require('@src/assets/images/avatars/avatar-blank.png').default,
       email: 'admin@demo.com',
       role: 'admin',
       ability: [
