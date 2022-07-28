@@ -48,7 +48,7 @@ import { AbilityContext } from "@src/utility/context/Can";
 // ** Custom Components
 import Avatar from "@components/avatar";
 
-import famiLogo from "@src/assets/images/logo/fami.png";
+import log from "@src/assets/images/logo/logo.png";
 
 // ** Utils
 import { getHomeRouteForLoggedInUser } from "@utils";
@@ -189,7 +189,7 @@ const LoginBasic = () => {
                   </g>
                 </g>
               </svg> */}
-              <img src={famiLogo} alt="fami-logo" />
+              <img src={log} alt="fami-logo" />
               <h2 className="brand-text text-primary ms-1">Fami dental</h2>
             </Link>
             <CardTitle tag="h4" className="mb-1">

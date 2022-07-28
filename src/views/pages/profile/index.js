@@ -42,7 +42,7 @@ const Profile = () => {
   return (
     <Fragment>
       <Breadcrumbs breadCrumbTitle='Profile' breadCrumbParent='Pages' breadCrumbActive='Profile' />
-      {data !== null ? (
+      {false ? (
         <div id='user-profile'>
           <Row>
             <Col sm='12'>
