@@ -7,8 +7,8 @@
 // 	Author URL: http://www.themeforest.net/user/pixinvent
 // ================================================================================================
 
-@import '../bootstrap-extended/include'; // Bootstrap includes
-@import '../components/include'; // Components includes
+@import "../bootstrap-extended/include"; // Bootstrap includes
+@import "../components/include"; // Components includes
 
 // User profile Scss
 #user-profile {
@@ -102,6 +102,13 @@
     .spinner-border {
       border-width: 0.14rem;
     }
+  }
+
+  .coming-soon {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, 0);
   }
 }
 

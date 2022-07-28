@@ -76,7 +76,7 @@ const Profile = () => {
             </Row>
           </section>
         </div>
-      ) : null}
+      ) : <div id="user-profile"><h2 className="coming-soon">Chức năng đang thực hiện...</h2></div>}
     </Fragment>
   )
 }
