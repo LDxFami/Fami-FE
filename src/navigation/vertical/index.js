@@ -9,6 +9,6 @@ import dashboards from './dashboards'
 import uiElements from './ui-elements'
 
 // ** Merge & Export
-const verticalNavigationItem = [...dashboards,...apps];
+const verticalNavigationItem = [...apps];
 // export default [...dashboards, ...apps, ...pages, ...uiElements, ...forms, ...tables, ...charts, ...others]
  export default verticalNavigationItem;

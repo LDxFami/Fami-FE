@@ -249,12 +249,12 @@ const LoginBasic = () => {
                 Đăng nhập
               </Button>
             </Form>
-            <p className="text-center mt-2">
+            {/* <p className="text-center mt-2">
               <span className="me-25">Bạn chưa có tài khoản?</span>
               <Link to="/pages/register-basic">
                 <span>Tạo tài khoản</span>
               </Link>
-            </p>
+            </p> */}
             {/* <div className='divider my-2'>
               <div className='divider-text'>or</div>
             </div>
