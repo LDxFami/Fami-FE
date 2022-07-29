@@ -160,10 +160,8 @@ const LoginBasic = () => {
             );
           })
           .catch((err) => {
-            console.log(err)
             delay(300);
             const { response } = err;
-            console.log(response.data.message);
             setIsLogin(false);
             toast.error(
               <ToastContent
