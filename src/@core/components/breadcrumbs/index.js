@@ -76,7 +76,7 @@ const BreadCrumbs = props => {
               </DropdownItem>
               <DropdownItem tag={Link} to='/calendar'>
                 <Calendar className='me-1' size={14} />
-                <span className='align-middle'>Calendar</span>
+                <span className='align-middle'>Lịch hẹn</span>
               </DropdownItem>
             </DropdownMenu>
           </UncontrolledButtonDropdown>

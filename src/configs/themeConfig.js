@@ -3,7 +3,7 @@
 //Template config options
 const themeConfig = {
   app: {
-    appName: 'Fami dental',
+    appName: 'Fami Dental',
     appLogoImage: require('@src/assets/images/logo/logo.png').default
   },
   layout: {

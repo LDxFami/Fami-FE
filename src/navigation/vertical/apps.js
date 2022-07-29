@@ -35,7 +35,7 @@ const navigationItem = [
   // },
   {
     id: "calendar",
-    title: "Calendar",
+    title: "Lịch hẹn",
     icon: <Calendar size={20} />,
     navLink: "/calendar",
   },

@@ -2,7 +2,14 @@
 import { Link, useHistory } from "react-router-dom";
 
 // ** Icons Imports
-import { useContext, Fragment } from "react";
+import {
+  useContext,
+  useState,
+  Fragment,
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
 
 // ** Custom Components
 import InputPasswordToggle from "@components/input-password-toggle";
@@ -25,7 +32,7 @@ import "@styles/react/pages/page-authentication.scss";
 // ** Custom Hooks
 import { useSkin } from "@hooks/useSkin";
 import useJwt from "@src/auth/jwt/useJwt";
-
+import useDelay from "@src/utility/hooks/useDelay.js";
 // ** Third Party Components
 import { useDispatch } from "react-redux";
 import { toast, Slide } from "react-toastify";
@@ -58,25 +65,25 @@ import { getHomeRouteForLoggedInUser } from "@utils";
 // ** Styles
 import "@styles/react/pages/page-authentication.scss";
 
-const ToastContent = ({ name, role }) => (
+const ToastContent = ({ name, role, message, isIcon = true, type }) => (
   <Fragment>
     <div className="toastify-header">
       <div className="title-wrapper">
-        <Avatar size="sm" color="success" icon={<Coffee size={12} />} />
-        <h6 className="toast-title fw-bold">Xin chào, {name}</h6>
+        {isIcon ? (
+          <Avatar size="sm" color={type} icon={<Coffee size={12} />} />
+        ) : null}{" "}
+        <h6 className="toast-title fw-bold">{name}</h6>
       </div>
     </div>
     <div className="toastify-body">
-      <span>
-      Bạn đã đăng nhập thành công.
-      </span>
+      <span>{message}</span>
     </div>
   </Fragment>
 );
 
 const defaultValues = {
-  password: "admin",
-  loginEmail: "admin@demo.com",
+  password: "password",
+  loginEmail: "admin@admin.com",
 };
 
 const LoginBasic = () => {
@@ -85,7 +92,7 @@ const LoginBasic = () => {
   const dispatch = useDispatch();
   const history = useHistory();
   const ability = useContext(AbilityContext);
-
+  const { delay } = useDelay();
   const {
     control,
     setError,
@@ -93,43 +100,98 @@ const LoginBasic = () => {
     formState: { errors },
   } = useForm({ defaultValues });
 
-  const onSubmit = (data) => {
-    if (Object.values(data).every((field) => field.length > 0)) {
-      useJwt
-        .login({ email: data.loginEmail, password: data.password })
-        .then((res) => {
-          const data = {
-            ...res.data.userData,
-            accessToken: res.data.accessToken,
-            refreshToken: res.data.refreshToken,
-          };
-          dispatch(handleLogin(data));
-          ability.update(res.data.userData.ability);
-          history.push(getHomeRouteForLoggedInUser(data.role));
-          toast.success(
-            <ToastContent
-              name={data.fullName || data.username || "John Doe"}
-              role={data.role || "admin"}
-            />,
-            {
-              icon: false,
-              transition: Slide,
-              hideProgressBar: true,
-              autoClose: 2000,
-            }
-          );
-        })
-        .catch((err) => console.log(err));
+  const [isLogin, setIsLogin] = useState(false);
+
+  const toastId = useRef(null);
+
+  useEffect(() => {
+    if (isLogin) {
+      toastId.current = toast.info(
+        <ToastContent
+          name={`Thông báo`}
+          message="Đang đăng nhập..."
+          type="primary"
+        />,
+        {
+          icon: false,
+          transition: Slide,
+          hideProgressBar: true,
+          autoClose: 2000,
+        }
+      );
     } else {
-      for (const key in data) {
-        if (data[key].length === 0) {
-          setError(key, {
-            type: "manual",
+      toast.dismiss(toastId.current);
+    }
+  }, [isLogin]);
+
+  const onSubmit = useCallback(
+    (data) => {
+      toast.dismiss();
+      if (Object.values(data).every((field) => field.length > 0) && !isLogin) {
+        setIsLogin(true);
+        useJwt
+          .login({ email: data.loginEmail, password: data.password })
+          .then((res) => {
+            const data = {
+              ...res.data.userData,
+              accessToken: res.data.accessToken,
+              refreshToken: res.data.refreshToken,
+            };
+            dispatch(handleLogin(data));
+            setIsLogin(false);
+            delay(300); 
+            // ability.update(res.data.userData.ability);
+            history.push(getHomeRouteForLoggedInUser(data.role));
+            toast.success(
+              <ToastContent
+                name={`Xin chào, ${
+                  data.fullName || data.username || "John Doe"
+                }`}
+                role={data.role || "admin"}
+                message="Bạn đã đăng nhập thành công."
+                type="success"
+              />,
+              {
+                icon: false,
+                transition: Slide,
+                hideProgressBar: true,
+                autoClose: 2000,
+              }
+            );
+          })
+          .catch((err) => {
+            console.log(err)
+            delay(300);
+            const { response } = err;
+            console.log(response.data.message);
+            setIsLogin(false);
+            toast.error(
+              <ToastContent
+                name={"Uh oh"}
+                // role={data.role || "admin"}
+                message={response.data.message}
+                type="warning"
+              />,
+              {
+                icon: false,
+                transition: Slide,
+                hideProgressBar: true,
+                autoClose: 2000,
+              }
+            );
           });
+      } else {
+        for (const key in data) {
+          if (data[key].length === 0) {
+            setError(key, {
+              type: "manual",
+            });
+          }
         }
       }
-    }
-  };
+    },
+    [dispatch, history, isLogin, setError]
+  );
 
   return (
     <div className="auth-wrapper auth-basic px-2">
@@ -190,7 +252,7 @@ const LoginBasic = () => {
                 </g>
               </svg> */}
               <img src={log} alt="fami-logo" />
-              <h2 className="brand-text text-primary ms-1">Fami dental</h2>
+              <h2 className="brand-text text-primary ms-1">Fami Dental</h2>
             </Link>
             <CardTitle tag="h4" className="mb-1">
               Nha Khoa Fami xin chào! 👋

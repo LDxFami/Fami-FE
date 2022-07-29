@@ -15,12 +15,12 @@ i18n
   // Enables the hook initialization module
   .use(initReactI18next)
   .init({
-    lng: 'en',
+    lng: 'vi',
     backend: {
       /* translation file path */
       loadPath: '/assets/data/locales/{{lng}}.json'
     },
-    fallbackLng: 'en',
+    fallbackLng: 'vi',
     debug: false,
     keySeparator: false,
     react: {

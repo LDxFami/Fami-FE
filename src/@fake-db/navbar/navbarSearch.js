@@ -49,7 +49,7 @@ export const searchArr = [
         id: 6,
         target: 'calendar',
         isBookmarked: true,
-        title: 'Calendar',
+        title: 'Lịch hẹn',
         icon: 'Calendar',
         link: '/calendar'
       },
