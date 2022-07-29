@@ -35,7 +35,7 @@ import useJwt from "@src/auth/jwt/useJwt";
 import useDelay from "@src/utility/hooks/useDelay.js";
 // ** Third Party Components
 import { useDispatch } from "react-redux";
-import { toast, Slide } from "react-toastify";
+import { toast, Slide, Flip } from "react-toastify";
 import { useForm, Controller } from "react-hook-form";
 import {
   Facebook,
@@ -106,27 +106,39 @@ const LoginBasic = () => {
 
   useEffect(() => {
     if (isLogin) {
-      toastId.current = toast.info(
-        <ToastContent
-          name={`Thông báo`}
-          message="Đang đăng nhập..."
-          type="primary"
-        />,
-        {
+      if (toastId.current != null && toast.isActive(toastId.current)) {
+        toast.update(toastId.current, {
+          render: (
+            <ToastContent
+              name={`Thông báo`}
+              message="Đang đăng nhập..."
+              type="primary"
+            />
+          ),
+          type: toast.TYPE.INFO,
           icon: false,
           transition: Slide,
           hideProgressBar: true,
-          autoClose: 2000,
-        }
-      );
-    } else {
-      toast.dismiss(toastId.current);
+        });
+      } else {
+        toastId.current = toast.info(
+          <ToastContent
+            name={`Thông báo`}
+            message="Đang đăng nhập..."
+            type="primary"
+          />,
+          {
+            icon: false,
+            transition: Slide,
+            hideProgressBar: true,
+          }
+        );
+      }
     }
   }, [isLogin]);
 
   const onSubmit = useCallback(
     (data) => {
-      toast.dismiss();
       if (Object.values(data).every((field) => field.length > 0) && !isLogin) {
         setIsLogin(true);
         useJwt
@@ -138,45 +150,48 @@ const LoginBasic = () => {
               refreshToken: res.data.refreshToken,
             };
             dispatch(handleLogin(data));
-            setIsLogin(false);
-            delay(300); 
+            delay(300);
             // ability.update(res.data.userData.ability);
             history.push(getHomeRouteForLoggedInUser(data.role));
-            toast.success(
-              <ToastContent
-                name={`Xin chào, ${
-                  data.fullName || data.username || "John Doe"
-                }`}
-                role={data.role || "admin"}
-                message="Bạn đã đăng nhập thành công."
-                type="success"
-              />,
-              {
-                icon: false,
-                transition: Slide,
-                hideProgressBar: true,
-                autoClose: 2000,
-              }
-            );
+            toast.update(toastId.current, {
+              render: (
+                <ToastContent
+                  name={`Xin chào, ${
+                    data.fullName || data.username || "John Doe"
+                  }`}
+                  role={data.role || "admin"}
+                  message="Bạn đã đăng nhập thành công."
+                  type="success"
+                />
+              ),
+              type: toast.TYPE.SUCCESS,
+              icon: false,
+              transition: Flip,
+              hideProgressBar: true,
+              autoClose: 1000,
+            });
+            setIsLogin(false);
+
           })
           .catch((err) => {
             delay(300);
             const { response } = err;
+            toast.update(toastId.current, {
+              render: (
+                <ToastContent
+                  name={"Uh oh"}
+                  message={response.data.message}
+                  type="warning"
+                />
+              ),
+              type: toast.TYPE.ERROR,
+              icon: false,
+              transition: Flip,
+              hideProgressBar: true,
+              autoClose: 1000,
+            });
             setIsLogin(false);
-            toast.error(
-              <ToastContent
-                name={"Uh oh"}
-                // role={data.role || "admin"}
-                message={response.data.message}
-                type="warning"
-              />,
-              {
-                icon: false,
-                transition: Slide,
-                hideProgressBar: true,
-                autoClose: 2000,
-              }
-            );
+
           });
       } else {
         for (const key in data) {

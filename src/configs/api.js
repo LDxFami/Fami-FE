@@ -1,7 +1,7 @@
 import axios from "axios";
 import cookie from "react-cookies";
 
-const apiUrl = "http://fami-be.herokuapp.com";
+const apiUrl = "https://fami-be.herokuapp.com";
 const app = axios.create({
   baseURL: apiUrl,
   headers: {
