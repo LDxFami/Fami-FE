@@ -1,12 +1,12 @@
 // ** Redux Imports
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 
-import { app } from '../configs/api'
+import instance from '../configs/api'
 
 // ** app Imports
 
-export const getUser = createAsyncThunk('api/user', async calendars => {
-  const response = await app.get('/apps/calendar/events', { calendars })
+export const getUser = createAsyncThunk('api/user', async () => {
+  const response = await instance.get('/apps/calendar/events')
   return response.data
 })
 

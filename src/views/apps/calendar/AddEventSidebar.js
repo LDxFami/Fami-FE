@@ -1,484 +1,671 @@
 // ** React Imports
-import { Fragment, useState } from 'react'
+import { Fragment, useState, useEffect, useCallback } from "react";
+import { unwrapResult } from "@reduxjs/toolkit";
 
 // ** Custom Components
-import Avatar from '@components/avatar'
+import Avatar from "@components/avatar";
 
 // ** Third Party Components
-import { toast } from 'react-toastify'
-import Flatpickr from 'react-flatpickr'
-import { X, Check } from 'react-feather'
-import Select, { components } from 'react-select'
-import PerfectScrollbar from 'react-perfect-scrollbar'
-import { useForm, Controller } from 'react-hook-form'
+import { toast } from "react-toastify";
+import Flatpickr from "react-flatpickr";
+import { X, Check } from "react-feather";
+import Select, { components } from "react-select";
+import AsyncCreatableSelect from "react-select/async-creatable";
+import AsyncSelect from "react-select/async";
 
+import { useSelector } from "react-redux";
+import PerfectScrollbar from "react-perfect-scrollbar";
+import { useForm, Controller } from "react-hook-form";
+import _ from "lodash";
+import moment from "moment";
+import { addCustomer, getCustomer } from "../../../redux/customer";
 // ** Reactstrap Imports
-import { Button, Modal, ModalHeader, ModalBody, Label, Input, Form } from 'reactstrap'
+import {
+  Button,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  Label,
+  Input,
+  Form,
+} from "reactstrap";
 
 // ** Utils
-import { selectThemeColors, isObjEmpty } from '@utils'
-
-// ** Avatar Images
-import img1 from '@src/assets/images/avatars/1-small.png'
-import img2 from '@src/assets/images/avatars/3-small.png'
-import img3 from '@src/assets/images/avatars/5-small.png'
-import img4 from '@src/assets/images/avatars/7-small.png'
-import img5 from '@src/assets/images/avatars/9-small.png'
-import img6 from '@src/assets/images/avatars/11-small.png'
+import { selectThemeColors, isObjEmpty } from "@utils";
 
 // ** Styles Imports
-import '@styles/react/libs/react-select/_react-select.scss'
-import '@styles/react/libs/flatpickr/flatpickr.scss'
+import "@styles/react/libs/react-select/_react-select.scss";
+import "@styles/react/libs/flatpickr/flatpickr.scss";
+import AddCustomerModal from "../../components/addCustomerModal";
+import { getDoctor } from "../../../redux/doctor";
+import { addAppointment } from "../../../redux/\bappointment";
 
 // ** Toast Component
-const ToastComponent = ({ title, icon, color }) => (
+const ToastComponent = ({ title, icon, color, message }) => (
   <Fragment>
-    <div className='toastify-header pb-0'>
-      <div className='title-wrapper'>
-        <Avatar size='sm' color={color} icon={icon} />
-        <h6 className='toast-title'>{title}</h6>
+    <div className="toastify-header pb-0">
+      <div className="title-wrapper">
+        <Avatar size="sm" color={color} icon={icon} />
+        <h6 className="toast-title">{title}</h6>
       </div>
     </div>
+    <div className="toastify-body">
+      <span>{message}</span>
+    </div>
   </Fragment>
-)
+);
 
-const AddEventSidebar = props => {
+const AddEventSidebar = (props) => {
   // ** Props
   const {
     open,
-    store,
     dispatch,
-    addEvent,
     calendarApi,
-    selectEvent,
     updateEvent,
     removeEvent,
     refetchEvents,
-    calendarsColor,
-    handleAddEventSidebar
-  } = props
+    handleAddEventSidebar,
+  } = props;
 
   // ** Vars & Hooks
-  const selectedEvent = store.selectedEvent,
+  const
     {
-      control,
       setError,
       setValue,
       getValues,
       handleSubmit,
-      formState: { errors }
     } = useForm({
-      defaultValues: { title: '' }
-    })
+      defaultValues: { title: "" },
+    });
+
+  const customerStore = useSelector((state) => state.customer);
+  const doctorStore = useSelector((state) => state.doctor);
+  const appointmentStore = useSelector((state) => state.appointment);
+
+  const { customers, customer: customerStoreVal } = customerStore;
+  const { doctors } = doctorStore;
+  const {appointment} = appointmentStore;
 
   // ** States
-  const [url, setUrl] = useState('')
-  const [desc, setDesc] = useState('')
-  const [guests, setGuests] = useState({})
-  const [allDay, setAllDay] = useState(false)
-  const [location, setLocation] = useState('')
-  const [endPicker, setEndPicker] = useState(new Date())
-  const [startPicker, setStartPicker] = useState(new Date())
-  const [calendarLabel, setCalendarLabel] = useState([{ value: 'Cá nhân', label: 'Cá nhân', color: 'primary' }])
+  const [url, setUrl] = useState("");
+  const [desc, setDesc] = useState("");
+  const [guests, setGuests] = useState({});
+  const [allDay, setAllDay] = useState(false);
+  const [status, setStatus] = useState(null);
+  const [startTime, setStartTime] = useState();
+  const [endTime, setEndTime] = useState();
+  const [startPicker, setStartPicker] = useState(new Date());
+  const [customer, setCustomer] = useState(null);
+  const [doctor, setDoctor] = useState(null);
+  const [customerModal, setCustomerModal] = useState(false);
+  const [customerInput, setCustomerInput] = useState({ phone: "", name: "" });
+  //** Effects
+  useEffect(() => {
+    dispatch(getCustomer({}));
+  }, [dispatch]);
 
-  // ** Select Options
-  const options = [
-    { value: 'Cá nhân', label: 'Cá nhân', color: 'primary' },
-    { value: 'Quan trọng', label: 'Quan trọng', color: 'danger' },
-    { value: 'Family', label: 'Family', color: 'warning' },
-    { value: 'Holiday', label: 'Holiday', color: 'success' },
-    { value: 'ETC', label: 'ETC', color: 'info' }
-  ]
-
-  const guestsOptions = [
-    { value: 'Donna Frank', label: 'Donna Frank', avatar: img1 },
-    { value: 'Jane Foster', label: 'Jane Foster', avatar: img2 },
-    { value: 'Gabrielle Robertson', label: 'Gabrielle Robertson', avatar: img3 },
-    { value: 'Lori Spears', label: 'Lori Spears', avatar: img4 },
-    { value: 'Sandy Vega', label: 'Sandy Vega', avatar: img5 },
-    { value: 'Cheryl May', label: 'Cheryl May', avatar: img6 }
-  ]
+  const statusOptions = [
+    { value: 0, label: "Donna Frank" },
+    { value: 1, label: "Jane Foster" },
+  ];
 
   // ** Custom select components
   const OptionComponent = ({ data, ...props }) => {
     return (
       <components.Option {...props}>
         <span className={`bullet bullet-${data.color} bullet-sm me-50`}></span>
-        {data.label}
+        {data.name}
       </components.Option>
-    )
-  }
+    );
+  };
 
-  const GuestsComponent = ({ data, ...props }) => {
-    return (
-      <components.Option {...props}>
-        <div className='d-flex flex-wrap align-items-center'>
-          <Avatar className='my-0 me-1' size='sm' img={data.avatar} />
-          <div>{data.label}</div>
-        </div>
-      </components.Option>
-    )
-  }
 
   // ** Adds New Event
   const handleAddEvent = () => {
-    const obj = {
-      title: getValues('title'),
-      start: startPicker,
-      end: endPicker,
-      allDay,
-      display: 'block',
-      extendedProps: {
-        calendar: calendarLabel[0].label,
-        url: url.length ? url : undefined,
-        guests: guests.length ? guests : undefined,
-        location: location.length ? location : undefined,
-        desc: desc.length ? desc : undefined
-      }
-    }
-    dispatch(addEvent(obj))
-    refetchEvents()
-    handleAddEventSidebar()
-    toast.success(<ToastComponent title='Đã thêm sự kiện' color='success' icon={<Check />} />, {
-      icon: false,
-      autoClose: 2000,
-      hideProgressBar: true,
-      closeButton: false
+    
+
+    const appointmentInfo = {
+      doctor_id: doctor[0].id,
+      customer_id: customer[0].id,
+      date: moment(startPicker).format('YYYY-MM-DD'),
+      time_start: moment(startTime).format('HH:MM:00'),
+      time_end: moment(endTime).format('HH:MM:00'),
+      description: desc,
+    };
+    dispatch(addAppointment(appointmentInfo))
+    .unwrap()
+    .then(() => {
+      toast.success(
+        <ToastComponent
+          title="Đã thêm lịch hẹn"
+          color="success"
+          icon={<Check />}
+        />,
+        {
+          icon: false,
+          autoClose: 2000,
+          hideProgressBar: true,
+          closeButton: false,
+        }
+      );
     })
-  }
+    .catch(() => {
+      toast.error(
+        <ToastComponent
+          title="Có lỗi xảy ra"
+          color="warning"
+          icon={<Check />}
+        />,
+        {
+          icon: false,
+          autoClose: 2000,
+          hideProgressBar: true,
+          closeButton: false,
+        }
+      );
+    });
+    refetchEvents();
+    handleAddEventSidebar();
+  };
 
   // ** Reset Input Values on Close
   const handleResetInputValues = () => {
-    dispatch(selectEvent({}))
-    setValue('title', '')
-    setAllDay(false)
-    setUrl('')
-    setLocation('')
-    setDesc('')
-    setGuests({})
-    setCalendarLabel([{ value: 'Cá nhân', label: 'Cá nhân', color: 'primary' }])
-    setStartPicker(new Date())
-    setEndPicker(new Date())
-  }
+    // dispatch(selectEvent({}));
+    setDesc("");
+    setCustomer(null);
+    setDoctor(null);
+    setStartPicker(new Date());
+    setStartTime(new Date());
+    setEndTime(new Date());
+  };
 
   // ** Set sidebar fields
   const handleSelectedEvent = () => {
-    if (!isObjEmpty(selectedEvent)) {
-      const calendar = selectedEvent.extendedProps.calendar
+    // if (!isObjEmpty(selectedEvent)) {
+    //   const calendar = selectedEvent.extendedProps.calendar;
 
-      const resolveLabel = () => {
-        if (calendar.length) {
-          return { label: calendar, value: calendar, color: calendarsColor[calendar] }
-        } else {
-          return { value: 'Cá nhân', label: 'Cá nhân', color: 'primary' }
-        }
-      }
-      setValue('title', selectedEvent.title || getValues('title'))
-      setAllDay(selectedEvent.allDay || allDay)
-      setUrl(selectedEvent.url || url)
-      setLocation(selectedEvent.extendedProps.location || location)
-      setDesc(selectedEvent.extendedProps.description || desc)
-      setGuests(selectedEvent.extendedProps.guests || guests)
-      setStartPicker(new Date(selectedEvent.start))
-      setEndPicker(selectedEvent.allDay ? new Date(selectedEvent.start) : new Date(selectedEvent.end))
-      setCalendarLabel([resolveLabel()])
-    }
-  }
+    //   const resolveLabel = () => {
+    //     if (calendar.length) {
+    //       return {
+    //         label: calendar,
+    //         value: calendar,
+    //         color: calendarsColor[calendar],
+    //       };
+    //     } else {
+    //       return { value: "Cá nhân", label: "Cá nhân", color: "primary" };
+    //     }
+    //   };
+    //   setValue("title", appointment.title || getValues("title"));
+    //   setAllDay(appointment.allDay || allDay);
+    //   setUrl(appointment.url || url);
+    //   setStatus(appointment.extendedProps.status || status);
+    //   setDesc(appointment.extendedProps.description || desc);
+    //   setGuests(appointment.extendedProps.guests || guests);
+    //   setStartPicker(new Date(appointment.start));
+    //   setStartTime(
+    //     appointment.allDay
+    //       ? new Date(appointment.start)
+    //       : new Date(appointment.end)
+    //   );
+    //   setEndTime(
+    //     appointment.allDay
+    //       ? new Date(appointment.start)
+    //       : new Date(appointment.end)
+    //   );
+    //   setCustomer([resolveLabel()]);
+    // }
+  };
 
   // ** (UI) updateEventInCalendar
-  const updateEventInCalendar = (updatedEventData, propsToUpdate, extendedPropsToUpdate) => {
-    const existingEvent = calendarApi.getEventById(updatedEventData.id)
+  const updateEventInCalendar = (
+    updatedEventData,
+    propsToUpdate,
+    extendedPropsToUpdate
+  ) => {
+    const existingEvent = calendarApi.getEventById(updatedEventData.id);
 
     // ** Set event properties except date related
     // ? Docs: https://fullcalendar.io/docs/Event-setProp
     // ** dateRelatedProps => ['start', 'end', 'allDay']
     // ** eslint-disable-next-line no-plusplus
     for (let index = 0; index < propsToUpdate.length; index++) {
-      const propName = propsToUpdate[index]
-      existingEvent.setProp(propName, updatedEventData[propName])
+      const propName = propsToUpdate[index];
+      existingEvent.setProp(propName, updatedEventData[propName]);
     }
 
     // ** Set date related props
     // ? Docs: https://fullcalendar.io/docs/Event-setDates
-    existingEvent.setDates(new Date(updatedEventData.start), new Date(updatedEventData.end), {
-      allDay: updatedEventData.allDay
-    })
+    existingEvent.setDates(
+      new Date(updatedEventData.start),
+      new Date(updatedEventData.end),
+      {
+        allDay: updatedEventData.allDay,
+      }
+    );
 
     // ** Set event's extendedProps
     // ? Docs: https://fullcalendar.io/docs/Event-setExtendedProp
     // ** eslint-disable-next-line no-plusplus
     for (let index = 0; index < extendedPropsToUpdate.length; index++) {
-      const propName = extendedPropsToUpdate[index]
-      existingEvent.setExtendedProp(propName, updatedEventData.extendedProps[propName])
+      const propName = extendedPropsToUpdate[index];
+      existingEvent.setExtendedProp(
+        propName,
+        updatedEventData.extendedProps[propName]
+      );
     }
-  }
+  };
 
   // ** Updates Event in Store
   const handleUpdateEvent = () => {
-    if (getValues('title').length) {
+    if (getValues("title").length) {
       const eventToUpdate = {
-        id: selectedEvent.id,
-        title: getValues('title'),
+        // id: selectedEvent.id,
+        title: getValues("title"),
         allDay,
         start: startPicker,
-        end: endPicker,
+        startTime,
+        endTime,
         url,
-        display: allDay === false ? 'block' : undefined,
+        display: allDay === false ? "block" : undefined,
         extendedProps: {
-          location,
+          status,
           description: desc,
           guests,
-          calendar: calendarLabel[0].label
+          customer: customer[0].label,
+        },
+      };
+
+      const propsToUpdate = ["id", "title", "url"];
+      const extendedPropsToUpdate = [
+        "calendar",
+        "guests",
+        "location",
+        "description",
+      ];
+      dispatch(updateEvent(eventToUpdate));
+      updateEventInCalendar(
+        eventToUpdate,
+        propsToUpdate,
+        extendedPropsToUpdate
+      );
+
+      handleAddEventSidebar();
+      toast.success(
+        <ToastComponent
+          title="Event Updated"
+          color="success"
+          icon={<Check />}
+        />,
+        {
+          icon: false,
+          autoClose: 2000,
+          hideProgressBar: true,
+          closeButton: false,
         }
-      }
+      );
+    } else {
+      setError("title", {
+        type: "manual",
+      });
+    }
+  };
 
-      const propsToUpdate = ['id', 'title', 'url']
-      const extendedPropsToUpdate = ['calendar', 'guests', 'location', 'description']
-      dispatch(updateEvent(eventToUpdate))
-      updateEventInCalendar(eventToUpdate, propsToUpdate, extendedPropsToUpdate)
+  // ** (UI) removeEventInCalendar
+  const removeEventInCalendar = (eventId) => {
+    calendarApi.getEventById(eventId).remove();
+  };
 
-      handleAddEventSidebar()
-      toast.success(<ToastComponent title='Event Updated' color='success' icon={<Check />} />, {
+  const handleDeleteEvent = () => {
+    // dispatch(removeEvent(selectedEvent.id));
+    // removeEventInCalendar(selectedEvent.id);
+    handleAddEventSidebar();
+    toast.error(
+      <ToastComponent title="Event Removed" color="danger" icon={<Check />} />,
+      {
+        // toast.error(<ToastComponent title='Event Removed' color='danger' icon={<Trash />} />, {
         icon: false,
         autoClose: 2000,
         hideProgressBar: true,
-        closeButton: false
-      })
-    } else {
-      setError('title', {
-        type: 'manual'
-      })
-    }
-  }
-
-  // ** (UI) removeEventInCalendar
-  const removeEventInCalendar = eventId => {
-    calendarApi.getEventById(eventId).remove()
-  }
-
-  const handleDeleteEvent = () => {
-    dispatch(removeEvent(selectedEvent.id))
-    removeEventInCalendar(selectedEvent.id)
-    handleAddEventSidebar()
-    toast.error(<ToastComponent title='Event Removed' color='danger' icon={<Check />} />, {
-      // toast.error(<ToastComponent title='Event Removed' color='danger' icon={<Trash />} />, {
-      icon: false,
-      autoClose: 2000,
-      hideProgressBar: true,
-      closeButton: false
-    })
-  }
+        closeButton: false,
+      }
+    );
+  };
 
   // ** Event Action buttons
   const EventActions = () => {
-    if (isObjEmpty(selectedEvent) || (!isObjEmpty(selectedEvent) && !selectedEvent.title.length)) {
+    if (
+      isObjEmpty(appointment) ||
+      (!isObjEmpty(appointment) && !appointment.description.length)
+    ) {
       return (
         <Fragment>
-          <Button className='me-1' type='submit' color='primary'>
+          <Button className="me-1" type="submit" color="primary">
             Thêm
           </Button>
-          <Button color='secondary' type='reset' onClick={handleAddEventSidebar} outline>
+          <Button
+            color="secondary"
+            type="reset"
+            onClick={handleAddEventSidebar}
+            outline
+          >
             Huỷ
           </Button>
         </Fragment>
-      )
+      );
     } else {
       return (
         <Fragment>
-          <Button className='me-1' color='primary' onClick={handleUpdateEvent}>
+          <Button className="me-1" color="primary" onClick={handleUpdateEvent}>
             Cập nhật
           </Button>
-          <Button color='danger' onClick={handleDeleteEvent} outline>
+          <Button color="danger" onClick={handleDeleteEvent} outline>
             Xoá
           </Button>
         </Fragment>
-      )
+      );
     }
-  }
+  };
+
+  const handleToggleModal = () => {
+    setCustomerModal(!customerModal);
+  };
+
+  const handleAddCustomer = async (customerInfo) => {
+    dispatch(addCustomer(customerInfo))
+      .unwrap()
+      .then(() => {
+        toast.success(
+          <ToastComponent
+            title="Đã thêm khách hàng"
+            color="success"
+            icon={<Check />}
+          />,
+          {
+            icon: false,
+            autoClose: 2000,
+            hideProgressBar: true,
+            closeButton: false,
+          }
+        );
+        setCustomerModal(false);
+      })
+      .catch((err) => {
+        ("err", err.error.phone);
+        toast.error(
+          <ToastComponent
+            title="Có lỗi xảy ra"
+            color="warning"
+            message={err.error?.phone[0] | ""}
+            icon={<Check />}
+          />,
+          {
+            icon: false,
+            autoClose: 2000,
+            hideProgressBar: true,
+            closeButton: false,
+          }
+        );
+      });
+  };
 
   // ** Close BTN
-  const CloseBtn = <X className='cursor-pointer' size={15} onClick={handleAddEventSidebar} />
+  const CloseBtn = (
+    <X className="cursor-pointer" size={15} onClick={handleAddEventSidebar} />
+  );
+
+  const setInputChangeHandler = useCallback(
+    _.debounce(async (inputValue) => {
+      const originalPromiseResult = await dispatch(
+        getCustomer({ search_param: inputValue })
+      );
+      const resultAction = unwrapResult(originalPromiseResult);
+      return resultAction.data.items;
+    }, 100),
+    []
+  );
+
+  const promiseOptions = async (inputValue, callback) => {
+    const rs = await setInputChangeHandler(inputValue);
+    callback(
+      rs.map((i) => ({
+        label: i.name + " - " + i.phone,
+        value: i.id,
+        id: i.id,
+      }))
+    );
+  };
+
+  const onDoctorInputChange = useCallback(
+    _.debounce(async (inputValue) => {
+      const originalPromiseResult = await dispatch(
+        getDoctor({ search_param: inputValue })
+      );
+      const resultAction = unwrapResult(originalPromiseResult);
+      return resultAction.data.items;
+    }, 100),
+    []
+  );
+
+  const doctorPromiseOptions = async (inputValue, callback) => {
+    const rs = await onDoctorInputChange(inputValue);
+    callback(
+      rs.map((i) => ({
+        label: i.name,
+        value: i.id,
+        id: i.id,
+      }))
+    );
+  };
+
+  const handleCreate = (inputValue) => {
+    var customerVal = customerInput;
+    var rxNumber = new RegExp("^([0-9])+$");
+    if (rxNumber.test(inputValue)) {
+      customerVal = { ...customerInput, phone: inputValue };
+    } else {
+      customerVal = { ...customerInput, name: inputValue };
+    }
+    setCustomerInput(customerVal);
+    setCustomerModal(true);
+  };
 
   return (
     <Modal
       isOpen={open}
-      className='sidebar-lg'
+      className="sidebar-lg"
       toggle={handleAddEventSidebar}
       onOpened={handleSelectedEvent}
       onClosed={handleResetInputValues}
-      contentClassName='p-0 overflow-hidden'
-      modalClassName='modal-slide-in event-sidebar'
+      contentClassName="p-0 overflow-hidden"
+      modalClassName="modal-slide-in event-sidebar"
     >
-      <ModalHeader className='mb-1' toggle={handleAddEventSidebar} close={CloseBtn} tag='div'>
-        <h5 className='modal-title'>
-          {selectedEvent && selectedEvent.title && selectedEvent.title.length ? 'Update' : 'Add'} Event
+      <ModalHeader
+        className="mb-1"
+        toggle={handleAddEventSidebar}
+        close={CloseBtn}
+        tag="div"
+      >
+        <h5 className="modal-title">
+          {appointment && appointment.description && appointment.description.length
+            ? "Cập nhật"
+            : "Thêm"}{" "}
+          Lịch Hẹn
         </h5>
       </ModalHeader>
       <PerfectScrollbar options={{ wheelPropagation: false }}>
-        <ModalBody className='flex-grow-1 pb-sm-0 pb-3'>
+        <ModalBody className="flex-grow-1 pb-sm-0 pb-3">
           <Form
-            onSubmit={handleSubmit(data => {
-              if (data.title.length) {
-                if (isObjEmpty(errors)) {
-                  if (isObjEmpty(selectedEvent) || (!isObjEmpty(selectedEvent) && !selectedEvent.title.length)) {
-                    handleAddEvent()
-                  } else {
-                    handleUpdateEvent()
-                  }
-                  handleAddEventSidebar()
-                }
-              } else {
-                setError('title', {
-                  type: 'manual'
-                })
-              }
+            onSubmit={handleSubmit(() => {
+               handleAddEvent();
+              // if (data.title.length) {
+              //   if (isObjEmpty(errors)) {
+              //     if (
+              //       isObjEmpty(selectedEvent) ||
+              //       (!isObjEmpty(selectedEvent) && !selectedEvent.title.length)
+              //     ) {
+              //       handleAddEvent();
+              //     } else {
+              //       handleUpdateEvent();
+              //     }
+              //     handleAddEventSidebar();
+              //   }
+              // } else {
+              //   setError("title", {
+              //     type: "manual",
+              //   });
+              // }
             })}
           >
-            <div className='mb-1'>
-              <Label className='form-label' for='title'>
-                Tên sự kiện <span className='text-danger'>*</span>
+            <div className="mb-1">
+              <Label className="form-label" for="customer">
+                Khách hàng
               </Label>
-              <Controller
-                name='title'
-                control={control}
-                render={({ field }) => (
-                  <Input id='title' placeholder='Title' invalid={errors.title && true} {...field} />
-                )}
-              />
-            </div>
-
-            <div className='mb-1'>
-              <Label className='form-label' for='label'>
-                Nhãn
-              </Label>
-              <Select
-                id='label'
-                value={calendarLabel}
-                options={options}
+              <AsyncCreatableSelect
+                placeholder="Khách hàng..."
+                id="customer"
+                value={customer}
                 theme={selectThemeColors}
-                className='react-select'
-                classNamePrefix='select'
+                className="react-select"
+                classNamePrefix="select"
                 isClearable={false}
-                onChange={data => setCalendarLabel([data])}
-                components={{
-                  Option: OptionComponent
-                }}
+                onChange={(data) => setCustomer([data])}
+                // components={{
+                //   Option: GuestsComponent,
+                // }}
+                onCreateOption={handleCreate}
+                loadOptions={promiseOptions}
               />
             </div>
 
-            <div className='mb-1'>
-              <Label className='form-label' for='startDate'>
-                Ngày bắt đầu
+            <div className="mb-1">
+              <Label className="form-label" for="doctor">
+                Bác sĩ
+              </Label>
+              <AsyncSelect
+                placeholder="Bác sĩ..."
+                id="doctor"
+                value={doctor}
+                theme={selectThemeColors}
+                // className="react-select"
+                classNamePrefix="select"
+                isClearable={false}
+                onChange={(data) => setDoctor([data])}
+                // components={{
+                //   Option: OptionComponent,
+                // }}
+                loadOptions={doctorPromiseOptions}
+              />
+            </div>
+
+            <div className="mb-1">
+              <Label className="form-label" for="startDate">
+                Ngày
               </Label>
               <Flatpickr
                 required
-                id='startDate'
-                name='startDate'
-                className='form-control'
-                onChange={date => setStartPicker(date[0])}
+                id="startDate"
+                name="startDate"
+                className="form-control"
+                onChange={(date) => setStartPicker(date[0])}
                 value={startPicker}
                 options={{
-                  enableTime: allDay === false,
-                  dateFormat: 'Y-m-d H:i'
+                  dateFormat: "Y-m-d",
                 }}
               />
             </div>
 
-            <div className='mb-1'>
-              <Label className='form-label' for='endDate'>
-                Ngày kết thúc
+            <div className="mb-1">
+              <Label className="form-label" for="startTime">
+                Giờ bắt đầu
               </Label>
               <Flatpickr
                 required
-                id='endDate'
-                // tag={Flatpickr}
-                name='endDate'
-                className='form-control'
-                onChange={date => setEndPicker(date[0])}
-                value={endPicker}
+                id="startTime"
+                name="startTime"
+                className="form-control"
+                onChange={(date) => setStartTime(date[0])}
+                value={startTime}
                 options={{
-                  enableTime: allDay === false,
-                  dateFormat: 'Y-m-d H:i'
+                  dateFormat: "H:i:00",
+                  enableTime: true,
+                  noCalendar: true,
+                  time_24hr: true,
                 }}
               />
             </div>
 
-            <div className='form-switch mb-1'>
-              <Input
-                id='allDay'
-                type='switch'
-                className='me-1'
-                checked={allDay}
-                name='customSwitch'
-                onChange={e => setAllDay(e.target.checked)}
-              />
-              <Label className='form-label' for='allDay'>
-                Cả ngày
+            <div className="mb-1">
+              <Label className="form-label" for="endTime">
+                Giờ kết thúc
               </Label>
-            </div>
-
-            <div className='mb-1'>
-              <Label className='form-label' for='eventURL'>
-                Link sự kiện
-              </Label>
-              <Input
-                type='url'
-                id='eventURL'
-                value={url}
-                onChange={e => setUrl(e.target.value)}
-                placeholder='https://www.google.com'
+              <Flatpickr
+                required
+                enableTime
+                noCalendar
+                id="endTime"
+                name="endTime"
+                className="form-control"
+                onChange={(date) => setEndTime(date[0])}
+                value={endTime}
+                options={{
+                  dateFormat: "H:i:00",
+                  enableTime: true,
+                  noCalendar: true,
+                  time_24hr: true,
+                }}
               />
             </div>
+            <div className="mb-1">
+              <Label className="form-label" for="description">
+                Mô tả
+              </Label>
+              <Input
+                type="textarea"
+                name="text"
+                id="description"
+                rows="3"
+                value={desc}
+                onChange={(e) => setDesc(e.target.value)}
+                placeholder="Mô tả..."
+              />
+            </div>
 
-            <div className='mb-1'>
-              <Label className='form-label' for='guests'>
-                Khách tham dự
+            <div className="mb-1">
+              <Label className="form-label" for="status">
+                Trạng thái
               </Label>
               <Select
-                isMulti
-                id='guests'
-                className='react-select'
-                classNamePrefix='select'
-                isClearable={false}
-                options={guestsOptions}
+                placeholder="Trạng thái..."
+                id="status"
+                value={status}
+                options={statusOptions}
                 theme={selectThemeColors}
-                value={guests.length ? [...guests] : null}
-                onChange={data => setGuests([...data])}
+                // className="react-select"
+                classNamePrefix="select"
+                isClearable={false}
+                onChange={(data) => setStatus([data])}
                 components={{
-                  Option: GuestsComponent
+                  Option: OptionComponent,
                 }}
               />
             </div>
 
-            <div className='mb-1'>
-              <Label className='form-label' for='location'>
-                Location
-              </Label>
-              <Input id='location' value={location} onChange={e => setLocation(e.target.value)} placeholder='Office' />
-            </div>
-
-            <div className='mb-1'>
-              <Label className='form-label' for='description'>
-                Description
-              </Label>
-              <Input
-                type='textarea'
-                name='text'
-                id='description'
-                rows='3'
-                value={desc}
-                onChange={e => setDesc(e.target.value)}
-                placeholder='Description'
-              />
-            </div>
-            <div className='d-flex mb-1'>
+            <div className="d-flex mb-1">
               <EventActions />
             </div>
           </Form>
         </ModalBody>
+        <AddCustomerModal
+          isShow={customerModal}
+          onShowToggle={handleToggleModal}
+          value={customerInput}
+          handleAddCustomer={(customerInfo) => {
+            handleAddCustomer(customerInfo);
+          }}
+        />
       </PerfectScrollbar>
     </Modal>
-  )
-}
+  );
+};
 
-export default AddEventSidebar
+export default AddEventSidebar;

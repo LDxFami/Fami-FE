@@ -1,8 +1,6 @@
-import axios from "axios";
 import jwtDefaultConfig from "./jwtDefaultConfig";
-import { apiUrl, app } from "../../../configs/api";
-import cookie from 'react-cookies';
-
+import instance from "../../../configs/api";
+import { getStorage } from "../../../utility/storage";
 export default class JwtService {
   // ** jwtConfig <= Will be used by this service
   jwtConfig = { ...jwtDefaultConfig };
@@ -16,10 +14,10 @@ export default class JwtService {
   constructor(jwtOverrideConfig) {
     this.jwtConfig = { ...this.jwtConfig, ...jwtOverrideConfig };
     // ** Request Interceptor
-    app.interceptors.request.use(
+    instance.interceptors.request.use(
       (config) => {
         // ** Get token from localStorage
-        const accessToken = this.getToken();
+        const accessToken =getStorage("accessToken");
 
         // ** If token is present add it to request's Authorization Header
         if (accessToken) {
@@ -32,7 +30,7 @@ export default class JwtService {
     );
 
     // ** Add request/response interceptor
-    app.interceptors.response.use(
+    instance.interceptors.response.use(
       (response) => response,
       (error) => {
         // ** const { config, response: { status } } = error
@@ -65,7 +63,7 @@ export default class JwtService {
           });
           return retryOriginalRequest;
         }
-        
+
         return Promise.reject(error);
       }
     );
@@ -98,16 +96,16 @@ export default class JwtService {
   }
 
   login(...args) {
-    return app.post(this.jwtConfig.loginEndpoint, ...args);
+    return instance.post(this.jwtConfig.loginEndpoint, ...args);
   }
 
   register(...args) {
-    return app.post(this.jwtConfig.registerEndpoint, ...args);
+    return instance.post(this.jwtConfig.registerEndpoint, ...args);
   }
 
   refreshToken() {
-    return app.post(this.jwtConfig.refreshEndpoint, {
+    return instance.post(this.jwtConfig.refreshEndpoint, {
       refreshToken: this.getRefreshToken(),
-    });
+      });
   }
 }

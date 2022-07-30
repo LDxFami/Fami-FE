@@ -2,14 +2,7 @@
 import { Link, useHistory } from "react-router-dom";
 
 // ** Icons Imports
-import {
-  useContext,
-  useState,
-  Fragment,
-  useCallback,
-  useEffect,
-  useRef,
-} from "react";
+import { useState, Fragment, useCallback, useEffect, useRef } from "react";
 
 // ** Custom Components
 import InputPasswordToggle from "@components/input-password-toggle";
@@ -30,27 +23,16 @@ import {
 import "@styles/react/pages/page-authentication.scss";
 
 // ** Custom Hooks
-import { useSkin } from "@hooks/useSkin";
 import useJwt from "@src/auth/jwt/useJwt";
 import useDelay from "@src/utility/hooks/useDelay.js";
 // ** Third Party Components
 import { useDispatch } from "react-redux";
 import { toast, Slide, Flip } from "react-toastify";
 import { useForm, Controller } from "react-hook-form";
-import {
-  Facebook,
-  Twitter,
-  Mail,
-  GitHub,
-  HelpCircle,
-  Coffee,
-} from "react-feather";
+import { Coffee } from "react-feather";
 
 // ** Actions
 import { handleLogin } from "@store/authentication";
-
-// ** Context
-import { AbilityContext } from "@src/utility/context/Can";
 
 // ** Custom Components
 import Avatar from "@components/avatar";
@@ -88,10 +70,8 @@ const defaultValues = {
 
 const LoginBasic = () => {
   // ** Hooks
-  const { skin } = useSkin();
   const dispatch = useDispatch();
   const history = useHistory();
-  const ability = useContext(AbilityContext);
   const { delay } = useDelay();
   const {
     control,
@@ -144,10 +124,10 @@ const LoginBasic = () => {
         useJwt
           .login({ email: data.loginEmail, password: data.password })
           .then((res) => {
+
             const data = {
-              ...res.data.userData,
-              accessToken: res.data.accessToken,
-              refreshToken: res.data.refreshToken,
+              accessToken:res.data.access_token,
+              refreshToken: res.data.refreshToken || "",
             };
             dispatch(handleLogin(data));
             delay(300);
@@ -171,7 +151,6 @@ const LoginBasic = () => {
               autoClose: 1000,
             });
             setIsLogin(false);
-
           })
           .catch((err) => {
             delay(300);
@@ -191,7 +170,6 @@ const LoginBasic = () => {
               autoClose: 1000,
             });
             setIsLogin(false);
-
           });
       } else {
         for (const key in data) {
@@ -203,7 +181,7 @@ const LoginBasic = () => {
         }
       }
     },
-    [dispatch, history, isLogin, setError]
+    [delay, dispatch, history, isLogin, setError]
   );
 
   return (

@@ -1,5 +1,5 @@
 // ** React Import
-import { useEffect, useRef, memo, Fragment } from "react";
+import { useEffect, useRef, memo, Fragment, useMemo } from "react";
 
 // ** Full Calendar & it's Plugins
 import FullCalendar from "@fullcalendar/react";
@@ -42,6 +42,7 @@ const Calendar = (props) => {
     calendarApi,
     setCalendarApi,
     handleAddEventSidebar,
+    handleMonthChange,
     blankEvent,
     toggleSidebar,
     selectEvent,
@@ -55,10 +56,23 @@ const Calendar = (props) => {
     }
   }, [calendarApi, setCalendarApi]);
 
+  const calendarData = useMemo(() => {
+    var data = [];
+    data = store.appointments.data.map((i) => ({
+      id: i.id,
+      url: "",
+      title: i.description,
+      start: new Date(i.date + " " + i.time_start),
+      end: new Date(i.date + " " + i.time_end),
+    }));
+    return data;
+  }, [store.appointments]);
+
+
   // ** calendarOptions(Props)
   const calendarOptions = {
     locale: viLocale,
-    events: store.events.length ? store.events : [],
+    events: calendarData,
     plugins: [interactionPlugin, dayGridPlugin, timeGridPlugin, listPlugin],
     initialView: "dayGridMonth",
     headerToolbar: {
@@ -107,7 +121,7 @@ const Calendar = (props) => {
     },
 
     eventClick({ event: clickedEvent }) {
-      dispatch(selectEvent(clickedEvent));
+      // dispatch(selectEvent(clickedEvent));
       handleAddEventSidebar();
 
       // * Only grab required field otherwise it goes in infinity loop
@@ -131,7 +145,7 @@ const Calendar = (props) => {
       const ev = blankEvent;
       ev.start = info.date;
       ev.end = info.date;
-      dispatch(selectEvent(ev));
+      // dispatch(selectEvent(ev));
       handleAddEventSidebar();
     },
 
@@ -140,6 +154,9 @@ const Calendar = (props) => {
       ? Docs: https://fullcalendar.io/docs/eventDrop
       ? We can use `eventDragStop` but it doesn't return updated event so we have to use `eventDrop` which returns updated event
     */
+      datesSet: handleMonthChange,
+
+
     eventDrop({ event: droppedEvent }) {
       dispatch(updateEvent(droppedEvent));
       toast.success(
@@ -183,6 +200,8 @@ const Calendar = (props) => {
     // Get direction from app state (store)
     direction: isRtl ? "rtl" : "ltr",
   };
+
+  
 
   return (
     <Card className="shadow-none border-0 mb-0 rounded-0">

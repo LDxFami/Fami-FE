@@ -47,7 +47,7 @@ const SidebarLeft = props => {
               type='checkbox'
               label='View All'
               className='select-all'
-              checked={store.selectedCalendars.length === filters.length}
+              // checked={store.selectedCalendars.length === filters.length}
               onChange={e => dispatch(updateAllFilters(e.target.checked))}
             />
             <Label className='form-check-label' for='view-all'>
@@ -70,7 +70,7 @@ const SidebarLeft = props => {
                       label={filter.label}
                       className='input-filter'
                       id={`${filter.label}-event`}
-                      checked={store.selectedCalendars.includes(filter.label)}
+                      // checked={store.selectedCalendars.includes(filter.label)}
                       onChange={() => {
                         dispatch(updateFilter(filter.label))
                       }}

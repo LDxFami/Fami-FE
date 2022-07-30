@@ -161,8 +161,8 @@ $auth-1-inner-max-width: 400px !default;
     }
   }
   .auth-wrapper {
-    min-height: 90vh ;
-    min-height: calc(var(--vh, 1vh) * 90);
+    min-height: 80vh ;
+    min-height: calc(var(--vh, 1vh) * 80);
     .auth-bg {
       padding-top: 3rem;
       margin: auto 0;

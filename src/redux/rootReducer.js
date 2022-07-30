@@ -1,10 +1,14 @@
 // ** Reducers Imports
 import navbar from './navbar'
 import user from './user'
+import customer from './customer'
+import appointment from './appointment'
+import doctor from './doctor'
 import layout from './layout'
 import auth from './authentication'
 import todo from '@src/views/apps/todo/store'
 import chat from '@src/views/apps/chat/store'
+
 // import users from '@src/views/apps/user/store'
 import email from '@src/views/apps/email/store'
 import invoice from '@src/views/apps/invoice/store'
@@ -19,6 +23,9 @@ const rootReducer = {
   todo,
   chat,
   email,
+  customer,
+  doctor,
+  appointment,
   // users,
   navbar,
   layout,
