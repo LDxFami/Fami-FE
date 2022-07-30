@@ -390,7 +390,6 @@ const AddEventSidebar = (props) => {
         setCustomerModal(false);
       })
       .catch((err) => {
-        ("err", err.error.phone);
         toast.error(
           <ToastComponent
             title="Có lỗi xảy ra"
