@@ -136,9 +136,7 @@ const LoginBasic = () => {
             toast.update(toastId.current, {
               render: (
                 <ToastContent
-                  name={`Xin chào, ${
-                    data.fullName || data.username || "John Doe"
-                  }`}
+                  name={`Xin chào`}
                   role={data.role || "admin"}
                   message="Bạn đã đăng nhập thành công."
                   type="success"
