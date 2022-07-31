@@ -33,7 +33,7 @@ export const updateAppointment = createAsyncThunk(
   "appointment/updateAppointment",
   async (params, { rejectWithValue }) => {
     try {
-      const response = await instance.put("api/appointments", { ...params });
+      const response = await instance.put(`api/appointments/${params.id}`, { ...params });
       return response.data;
     } catch (err) {
       return rejectWithValue(err.response.data);
@@ -49,11 +49,13 @@ export const appointmentSlice = createSlice({
       loading: "pending",
       error: "",
     },
-    appointment: {  },
+    appointment: {},
+    selectedAppointment: {},
+
   },
   reducers: {
     selectAppointment: (state, action) => {
-      state.appointment = action.payload
+      state.selectedAppointment = action.payload
     }
   },
   extraReducers: (builder) => {
@@ -75,6 +77,18 @@ export const appointmentSlice = createSlice({
       .addCase(addAppointment.rejected, (state, action) => {
         // state.appointment.loading = "error";
         // state.appointment.error = action.payload;
+      })
+      .addCase(updateAppointment.fulfilled, (state, action) => {
+        state.appointment.loading = "success";
+        state.appointment.data = action.payload;
+      })
+      .addCase(updateAppointment.pending, (state, action) => {
+        state.appointment.loading = "pending";
+      
+      })
+      .addCase(updateAppointment.rejected, (state, action) => {
+        state.appointment.loading = "error";
+        state.appointment.error = action.payload;
       });
   },
 });

@@ -19,7 +19,6 @@ import {
   fetchEvents,
   selectEvent,
   updateEvent,
-  updateFilter,
   updateAllFilters,
   addEvent,
   removeEvent,
@@ -29,14 +28,12 @@ import { selectAppointment } from "../../../redux/\bappointment";
 // ** Styles
 import "@styles/react/apps/app-calendar.scss";
 import { getAppointment } from "../../../redux/\bappointment";
+import { getDoctor } from "../../../redux/doctor";
 
 // ** CalendarColors
 const calendarsColor = {
-  Business: "primary",
-  Holiday: "success",
-  Personal: "danger",
-  Family: "warning",
-  ETC: "info",
+  1: "primary",
+  0: "warning",
 };
 
 const CalendarComponent = () => {
@@ -48,7 +45,8 @@ const CalendarComponent = () => {
   const [calendarApi, setCalendarApi] = useState(null);
   const [addSidebarOpen, setAddSidebarOpen] = useState(false);
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
-  const [month, setMonth] = useState(new Date().getMonth());
+  const [month, setMonth] = useState(new Date().getMonth() + 1);
+  const [doctorId, setDoctorId] = useState("");
   // ** Hooks
   const [isRtl] = useRTL();
 
@@ -75,19 +73,29 @@ const CalendarComponent = () => {
 
   // ** refetchEvents
   const refetchEvents = () => {
+    dispatch(getDoctor());
+    dispatch(getAppointment({ month }));
     if (calendarApi !== null) {
       calendarApi.refetchEvents();
-      dispatch(getAppointment());
     }
   };
 
   // ** Fetch Events On Mount
   useEffect(() => {
-    dispatch(getAppointment());
-  }, [month]);
+    dispatch(getAppointment({ month, doctor_id: doctorId }));
+  }, [month, doctorId]);
 
   const handleMonthChange = (payload) => {
-    // setMonth(new Date(payload.startStr).getMonth())
+    var middate = new Date(
+      (new Date(payload.startStr).getTime() +
+        new Date(payload.endStr).getTime()) /
+        2
+    );
+    setMonth(middate.getMonth() + 1);
+  };
+
+  const updateFilter = (doctorId) => {
+    setDoctorId(doctorId);
   };
 
   return (
@@ -104,16 +112,17 @@ const CalendarComponent = () => {
             )}
           >
             <SidebarLeft
+              doctorId={doctorId}
               store={store}
               dispatch={dispatch}
               updateFilter={updateFilter}
               toggleSidebar={toggleSidebar}
-              updateAllFilters={updateAllFilters}
               handleAddEventSidebar={handleAddEventSidebar}
             />
           </Col>
           <Col className="position-relative">
             <Calendar
+              
               isRtl={isRtl}
               store={store}
               handleMonthChange={handleMonthChange}

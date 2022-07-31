@@ -38,10 +38,14 @@ import "@styles/react/libs/react-select/_react-select.scss";
 import "@styles/react/libs/flatpickr/flatpickr.scss";
 import AddCustomerModal from "../../components/addCustomerModal";
 import { getDoctor } from "../../../redux/doctor";
-import { addAppointment } from "../../../redux/\bappointment";
+import {
+  addAppointment,
+  selectAppointment,
+  updateAppointment,
+} from "../../../redux/\bappointment";
 
 // ** Toast Component
-const ToastComponent = ({ title, icon, color, message }) => (
+const ToastComponent = ({ title, icon, color, message = "" }) => (
   <Fragment>
     <div className="toastify-header pb-0">
       <div className="title-wrapper">
@@ -60,23 +64,14 @@ const AddEventSidebar = (props) => {
   const {
     open,
     dispatch,
-    calendarApi,
-    updateEvent,
-    removeEvent,
     refetchEvents,
     handleAddEventSidebar,
   } = props;
 
   // ** Vars & Hooks
-  const
-    {
-      setError,
-      setValue,
-      getValues,
-      handleSubmit,
-    } = useForm({
-      defaultValues: { title: "" },
-    });
+  const { setError, setValue, getValues, handleSubmit } = useForm({
+    defaultValues: { title: "" },
+  });
 
   const customerStore = useSelector((state) => state.customer);
   const doctorStore = useSelector((state) => state.doctor);
@@ -84,88 +79,85 @@ const AddEventSidebar = (props) => {
 
   const { customers, customer: customerStoreVal } = customerStore;
   const { doctors } = doctorStore;
-  const {appointment} = appointmentStore;
+  const { appointment, selectedAppointment } = appointmentStore;
 
   // ** States
-  const [url, setUrl] = useState("");
   const [desc, setDesc] = useState("");
-  const [guests, setGuests] = useState({});
-  const [allDay, setAllDay] = useState(false);
-  const [status, setStatus] = useState(null);
-  const [startTime, setStartTime] = useState();
-  const [endTime, setEndTime] = useState();
+  const [status, setStatus] = useState({ value: 1, label: "Hiệu lực" });
+  const [startTime, setStartTime] = useState(new Date().setMinutes(0));
+  const [endTime, setEndTime] = useState(new Date().setMinutes(0));
   const [startPicker, setStartPicker] = useState(new Date());
-  const [customer, setCustomer] = useState(null);
-  const [doctor, setDoctor] = useState(null);
+  const [customer, setCustomer] = useState();
+  const [doctor, setDoctor] = useState();
   const [customerModal, setCustomerModal] = useState(false);
   const [customerInput, setCustomerInput] = useState({ phone: "", name: "" });
+  const [isUpdate, setUpdate] = useState(false);
+
   //** Effects
   useEffect(() => {
-    dispatch(getCustomer({}));
-  }, [dispatch]);
+    dispatch(getDoctor());
+    dispatch(getCustomer());
+  }, []);
+
+  useEffect(() => {
+    setUpdate(
+      !(
+        isObjEmpty(selectedAppointment) ||
+        (!isObjEmpty(selectedAppointment) && !selectedAppointment.title.length)
+      )
+    );
+  }, [selectedAppointment]);
 
   const statusOptions = [
-    { value: 0, label: "Donna Frank" },
-    { value: 1, label: "Jane Foster" },
+    { value: 0, label: "Đã huỷ" },
+    { value: 1, label: "Hiệu lực" },
   ];
-
-  // ** Custom select components
-  const OptionComponent = ({ data, ...props }) => {
-    return (
-      <components.Option {...props}>
-        <span className={`bullet bullet-${data.color} bullet-sm me-50`}></span>
-        {data.name}
-      </components.Option>
-    );
-  };
-
 
   // ** Adds New Event
   const handleAddEvent = () => {
-    
-
     const appointmentInfo = {
       doctor_id: doctor[0].id,
       customer_id: customer[0].id,
-      date: moment(startPicker).format('YYYY-MM-DD'),
-      time_start: moment(startTime).format('HH:MM:00'),
-      time_end: moment(endTime).format('HH:MM:00'),
+      date: moment(startPicker).format("YYYY-MM-DD"),
+      time_start: moment(startTime).format("HH:MM:00"),
+      time_end: moment(endTime).format("HH:MM:00"),
+      status,
       description: desc,
     };
     dispatch(addAppointment(appointmentInfo))
-    .unwrap()
-    .then(() => {
-      toast.success(
-        <ToastComponent
-          title="Đã thêm lịch hẹn"
-          color="success"
-          icon={<Check />}
-        />,
-        {
-          icon: false,
-          autoClose: 2000,
-          hideProgressBar: true,
-          closeButton: false,
-        }
-      );
-    })
-    .catch(() => {
-      toast.error(
-        <ToastComponent
-          title="Có lỗi xảy ra"
-          color="warning"
-          icon={<Check />}
-        />,
-        {
-          icon: false,
-          autoClose: 2000,
-          hideProgressBar: true,
-          closeButton: false,
-        }
-      );
-    });
-    refetchEvents();
-    handleAddEventSidebar();
+      .unwrap()
+      .then(() => {
+        toast.success(
+          <ToastComponent
+            title="Đã thêm lịch hẹn"
+            color="success"
+            icon={<Check />}
+          />,
+          {
+            icon: false,
+            autoClose: 2000,
+            hideProgressBar: true,
+            closeButton: false,
+          }
+        );
+        refetchEvents();
+        handleAddEventSidebar();
+      })
+      .catch(() => {
+        toast.error(
+          <ToastComponent
+            title="Có lỗi xảy ra"
+            color="warning"
+            icon={<Check />}
+          />,
+          {
+            icon: false,
+            autoClose: 2000,
+            hideProgressBar: true,
+            closeButton: false,
+          }
+        );
+      });
   };
 
   // ** Reset Input Values on Close
@@ -177,142 +169,111 @@ const AddEventSidebar = (props) => {
     setStartPicker(new Date());
     setStartTime(new Date());
     setEndTime(new Date());
+    dispatch(selectAppointment({}));
+    setStatus(null);
   };
 
   // ** Set sidebar fields
   const handleSelectedEvent = () => {
-    // if (!isObjEmpty(selectedEvent)) {
-    //   const calendar = selectedEvent.extendedProps.calendar;
-
-    //   const resolveLabel = () => {
-    //     if (calendar.length) {
-    //       return {
-    //         label: calendar,
-    //         value: calendar,
-    //         color: calendarsColor[calendar],
-    //       };
-    //     } else {
-    //       return { value: "Cá nhân", label: "Cá nhân", color: "primary" };
-    //     }
-    //   };
-    //   setValue("title", appointment.title || getValues("title"));
-    //   setAllDay(appointment.allDay || allDay);
-    //   setUrl(appointment.url || url);
-    //   setStatus(appointment.extendedProps.status || status);
-    //   setDesc(appointment.extendedProps.description || desc);
-    //   setGuests(appointment.extendedProps.guests || guests);
-    //   setStartPicker(new Date(appointment.start));
-    //   setStartTime(
-    //     appointment.allDay
-    //       ? new Date(appointment.start)
-    //       : new Date(appointment.end)
-    //   );
-    //   setEndTime(
-    //     appointment.allDay
-    //       ? new Date(appointment.start)
-    //       : new Date(appointment.end)
-    //   );
-    //   setCustomer([resolveLabel()]);
-    // }
-  };
-
-  // ** (UI) updateEventInCalendar
-  const updateEventInCalendar = (
-    updatedEventData,
-    propsToUpdate,
-    extendedPropsToUpdate
-  ) => {
-    const existingEvent = calendarApi.getEventById(updatedEventData.id);
-
-    // ** Set event properties except date related
-    // ? Docs: https://fullcalendar.io/docs/Event-setProp
-    // ** dateRelatedProps => ['start', 'end', 'allDay']
-    // ** eslint-disable-next-line no-plusplus
-    for (let index = 0; index < propsToUpdate.length; index++) {
-      const propName = propsToUpdate[index];
-      existingEvent.setProp(propName, updatedEventData[propName]);
-    }
-
-    // ** Set date related props
-    // ? Docs: https://fullcalendar.io/docs/Event-setDates
-    existingEvent.setDates(
-      new Date(updatedEventData.start),
-      new Date(updatedEventData.end),
-      {
-        allDay: updatedEventData.allDay,
-      }
-    );
-
-    // ** Set event's extendedProps
-    // ? Docs: https://fullcalendar.io/docs/Event-setExtendedProp
-    // ** eslint-disable-next-line no-plusplus
-    for (let index = 0; index < extendedPropsToUpdate.length; index++) {
-      const propName = extendedPropsToUpdate[index];
-      existingEvent.setExtendedProp(
-        propName,
-        updatedEventData.extendedProps[propName]
+    if (!isObjEmpty(selectedAppointment)) {
+      setDesc(selectedAppointment.extendedProps?.description || desc);
+      setStartPicker(new Date(selectedAppointment.start) || startPicker);
+      setStatus(
+        statusOptions.filter(
+          (i) => i.value === selectedAppointment.extendedProps.status
+        )
       );
+      setStartTime(
+        new Date(
+          selectedAppointment.extendedProps.date +
+            "T" +
+            selectedAppointment.extendedProps?.startTime
+        ) || startTime
+      );
+      setEndTime(
+        new Date(
+          selectedAppointment.extendedProps.date +
+            "T" +
+            selectedAppointment.extendedProps?.endTime
+        ) || endTime
+      );
+      setCustomer(
+        [
+          {
+            label:
+              selectedAppointment.extendedProps?.customer.name +
+              " - " +
+              selectedAppointment.extendedProps?.customer.phone,
+            value: selectedAppointment.extendedProps?.customer.id,
+            id: selectedAppointment.extendedProps?.customer.id,
+          },
+        ] || null
+      );
+      setDoctor(
+        [
+          {
+            label: selectedAppointment.extendedProps?.doctor.name,
+            value: selectedAppointment.extendedProps?.doctor.id,
+            id: selectedAppointment.extendedProps?.doctor.id,
+          },
+        ] || null
+      );
+      setInputChangeHandler(selectedAppointment.extendedProps?.customer.name);
+      onDoctorInputChange(selectedAppointment.extendedProps?.doctor.name);
     }
   };
 
   // ** Updates Event in Store
   const handleUpdateEvent = () => {
-    if (getValues("title").length) {
-      const eventToUpdate = {
-        // id: selectedEvent.id,
-        title: getValues("title"),
-        allDay,
-        start: startPicker,
-        startTime,
-        endTime,
-        url,
-        display: allDay === false ? "block" : undefined,
-        extendedProps: {
-          status,
-          description: desc,
-          guests,
-          customer: customer[0].label,
-        },
+    if (!isObjEmpty(selectedAppointment)) {
+      const appointmentInfo = {
+        id: selectedAppointment.extendedProps.id,
+        doctor_id: doctor[0].id,
+        customer_id: customer[0].id,
+        date: moment(startPicker).format("YYYY-MM-DD"),
+        time_start: moment(startTime).format("HH:MM:00"),
+        time_end: moment(endTime).format("HH:MM:00"),
+        description: desc,
+        status: status[0].value,
       };
-
-      const propsToUpdate = ["id", "title", "url"];
-      const extendedPropsToUpdate = [
-        "calendar",
-        "guests",
-        "location",
-        "description",
-      ];
-      dispatch(updateEvent(eventToUpdate));
-      updateEventInCalendar(
-        eventToUpdate,
-        propsToUpdate,
-        extendedPropsToUpdate
-      );
-
-      handleAddEventSidebar();
-      toast.success(
-        <ToastComponent
-          title="Event Updated"
-          color="success"
-          icon={<Check />}
-        />,
-        {
-          icon: false,
-          autoClose: 2000,
-          hideProgressBar: true,
-          closeButton: false,
-        }
-      );
-    } else {
-      setError("title", {
-        type: "manual",
-      });
+      dispatch(updateAppointment(appointmentInfo))
+        .unwrap()
+        .then(() => {
+          toast.success(
+            <ToastComponent
+              title="Đã cập nhật lịch hẹn"
+              color="success"
+              icon={<Check />}
+            />,
+            {
+              icon: false,
+              autoClose: 2000,
+              hideProgressBar: true,
+              closeButton: false,
+            }
+          );
+          refetchEvents();
+          handleAddEventSidebar();
+        })
+        .catch(() => {
+          toast.error(
+            <ToastComponent
+              title="Có lỗi xảy ra"
+              color="warning"
+              icon={<Check />}
+            />,
+            {
+              icon: false,
+              autoClose: 2000,
+              hideProgressBar: true,
+              closeButton: false,
+            }
+          );
+          setError("title", {
+            type: "manual",
+          });
+        });
     }
-  };
-
-  // ** (UI) removeEventInCalendar
-  const removeEventInCalendar = (eventId) => {
-    calendarApi.getEventById(eventId).remove();
   };
 
   const handleDeleteEvent = () => {
@@ -334,8 +295,8 @@ const AddEventSidebar = (props) => {
   // ** Event Action buttons
   const EventActions = () => {
     if (
-      isObjEmpty(appointment) ||
-      (!isObjEmpty(appointment) && !appointment.description.length)
+      isObjEmpty(selectedAppointment) ||
+      (!isObjEmpty(selectedAppointment) && !selectedAppointment.title.length)
     ) {
       return (
         <Fragment>
@@ -390,11 +351,15 @@ const AddEventSidebar = (props) => {
         setCustomerModal(false);
       })
       .catch((err) => {
+        const { error } = err;
+        var errorMsg = error.phone[0] ? error.phone[0] : "";
+        errorMsg = errorMsg.charAt(0).toUpperCase() + errorMsg.slice(1);
+        console.log("errorMsg", errorMsg);
         toast.error(
           <ToastComponent
             title="Có lỗi xảy ra"
             color="warning"
-            message={err.error?.phone[0] | ""}
+            message={errorMsg}
             icon={<Check />}
           />,
           {
@@ -485,17 +450,14 @@ const AddEventSidebar = (props) => {
         tag="div"
       >
         <h5 className="modal-title">
-          {appointment && appointment.description && appointment.description.length
-            ? "Cập nhật"
-            : "Thêm"}{" "}
-          Lịch Hẹn
+          {isUpdate ? "Cập nhật" : "Thêm"} Lịch Hẹn
         </h5>
       </ModalHeader>
       <PerfectScrollbar options={{ wheelPropagation: false }}>
         <ModalBody className="flex-grow-1 pb-sm-0 pb-3">
           <Form
             onSubmit={handleSubmit(() => {
-               handleAddEvent();
+              handleAddEvent();
               // if (data.title.length) {
               //   if (isObjEmpty(errors)) {
               //     if (
@@ -516,10 +478,11 @@ const AddEventSidebar = (props) => {
             })}
           >
             <div className="mb-1">
-              <Label className="form-label" for="customer">
+              <Label required className="form-label" for="customer">
                 Khách hàng
               </Label>
               <AsyncCreatableSelect
+              required
                 placeholder="Khách hàng..."
                 id="customer"
                 value={customer}
@@ -643,9 +606,7 @@ const AddEventSidebar = (props) => {
                 classNamePrefix="select"
                 isClearable={false}
                 onChange={(data) => setStatus([data])}
-                components={{
-                  Option: OptionComponent,
-                }}
+                isDisabled={!isUpdate}
               />
             </div>
 

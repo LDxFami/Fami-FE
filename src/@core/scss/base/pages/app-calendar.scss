@@ -1,7 +1,7 @@
 // Core variables and mixins
 
-@import '../bootstrap-extended/include'; // Bootstrap includes
-@import '../components/include'; // Components includes
+@import "../bootstrap-extended/include"; // Bootstrap includes
+@import "../components/include"; // Components includes
 
 $fc-calendar-height: 650px;
 $fc-sidebar-width: 18rem;
@@ -263,7 +263,17 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
       }
     }
   }
-
+  .calendar-loading{
+    opacity: 0.6;
+    background-color: white;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    z-index: 3;
+  }
+  .fc-toolbar-title {
+    text-transform: capitalize;
+  }
   // right sidebar area styles
   .event-sidebar {
     position: absolute;
@@ -338,7 +348,7 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
     }
     .fc-popover-body {
       *:not(:last-of-type) {
-        margin-bottom: 0.3rem;
+        // margin-bottom: 0.3rem;
       }
     }
   }

@@ -9,8 +9,10 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 
+import moment from "moment";
 // ** Custom Components
 import Avatar from "@components/avatar";
+import SpinnerComponent from "../../../@core/components/spinner/Fallback-spinner";
 
 // ** Third Party Components
 import { toast } from "react-toastify";
@@ -62,12 +64,21 @@ const Calendar = (props) => {
       id: i.id,
       url: "",
       title: i.description,
-      start: new Date(i.date + " " + i.time_start),
-      end: new Date(i.date + " " + i.time_end),
+      start: new Date(i.date + "T" + i.time_start),
+      end: new Date(i.date + "T" + i.time_end),
+      extendedProps: {
+        doctor: i.doctor,
+        customer: i.customer,
+        description: i.description || "",
+        startTime: i.time_start,
+        endTime: i.time_end,
+        status: i.status,
+        date: i.date,
+        id: i.id,
+      },
     }));
     return data;
   }, [store.appointments]);
-
 
   // ** calendarOptions(Props)
   const calendarOptions = {
@@ -79,6 +90,8 @@ const Calendar = (props) => {
       start: "sidebarToggle, prev,next, title",
       end: "dayGridMonth,timeGridWeek,timeGridDay,listMonth",
     },
+
+    dayHeaderClassNames: "calendar-header",
     /*
       Enable dragging and resizing event
       ? Docs: https://fullcalendar.io/docs/editable
@@ -111,8 +124,7 @@ const Calendar = (props) => {
 
     eventClassNames({ event: calendarEvent }) {
       // eslint-disable-next-line no-underscore-dangle
-      const colorName =
-        calendarsColor[calendarEvent._def.extendedProps.calendar];
+      const colorName = calendarsColor[calendarEvent._def.extendedProps.status];
 
       return [
         // Background Color
@@ -121,7 +133,7 @@ const Calendar = (props) => {
     },
 
     eventClick({ event: clickedEvent }) {
-      // dispatch(selectEvent(clickedEvent));
+      dispatch(selectEvent(clickedEvent));
       handleAddEventSidebar();
 
       // * Only grab required field otherwise it goes in infinity loop
@@ -154,8 +166,7 @@ const Calendar = (props) => {
       ? Docs: https://fullcalendar.io/docs/eventDrop
       ? We can use `eventDragStop` but it doesn't return updated event so we have to use `eventDrop` which returns updated event
     */
-      datesSet: handleMonthChange,
-
+    datesSet: handleMonthChange,
 
     eventDrop({ event: droppedEvent }) {
       dispatch(updateEvent(droppedEvent));
@@ -201,10 +212,13 @@ const Calendar = (props) => {
     direction: isRtl ? "rtl" : "ltr",
   };
 
-  
-
   return (
     <Card className="shadow-none border-0 mb-0 rounded-0">
+      {store.appointments.loading !== "success" ? (
+        <div className="calendar-loading">
+          <SpinnerComponent />
+        </div>
+      ) : null}
       <CardBody className="pb-0">
         <FullCalendar {...calendarOptions} />{" "}
       </CardBody>
