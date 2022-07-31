@@ -29,6 +29,7 @@ import { selectAppointment } from "../../../redux/\bappointment";
 import "@styles/react/apps/app-calendar.scss";
 import { getAppointment } from "../../../redux/\bappointment";
 import { getDoctor } from "../../../redux/doctor";
+import { getUser } from "../../../redux/user";
 
 // ** CalendarColors
 const calendarsColor = {
@@ -80,6 +81,11 @@ const CalendarComponent = () => {
     }
   };
 
+  useEffect(() => {
+    dispatch(getUser())
+  }, [])
+  
+
   // ** Fetch Events On Mount
   useEffect(() => {
     dispatch(getAppointment({ month, doctor_id: doctorId }));
@@ -122,7 +128,6 @@ const CalendarComponent = () => {
           </Col>
           <Col className="position-relative">
             <Calendar
-              
               isRtl={isRtl}
               store={store}
               handleMonthChange={handleMonthChange}

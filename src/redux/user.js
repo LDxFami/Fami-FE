@@ -1,32 +1,37 @@
 // ** Redux Imports
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
-import instance from '../configs/api'
+import instance from "../configs/api";
 
 // ** app Imports
 
-export const getUser = createAsyncThunk('api/user', async () => {
-  const response = await instance.get('/apps/calendar/events')
-  return response.data
-})
+export const getUser = createAsyncThunk(
+  "user/getUser",
+  async (params, { rejectWithValue }) => {
+    try {
+      const response = await instance.get("/api/profile", {
+        params: { ...params },
+      });
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(err.response.data);
+    }
+  }
+);
 
 export const userSlice = createSlice({
-  name: 'userSlice',
+  name: "user",
   initialState: {
     userData: {},
   },
-  reducers: {
-   
+  reducers: {},
+  extraReducers: (builder) => {
+    builder.addCase(getUser.fulfilled, (state, action) => {
+      state.userData = action.payload.data;
+    });
   },
-  extraReducers: builder => {
-    builder
-      .addCase(getUser.fulfilled, (state, action) => {
-        state.events = action.payload
-      })
-     
-  }
-})
+});
 
-export const { selectEvent } = userSlice.actions
+export const { selectEvent } = userSlice.actions;
 
-export default userSlice.reducer
+export default userSlice.reducer;

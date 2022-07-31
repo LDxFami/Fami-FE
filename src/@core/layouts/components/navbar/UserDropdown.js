@@ -9,7 +9,7 @@ import Avatar from '@components/avatar'
 import { isUserLoggedIn } from '@utils'
 
 // ** Store & Actions
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { handleLogout } from '@store/authentication'
 
 // ** Third Party Components
@@ -25,13 +25,18 @@ const UserDropdown = () => {
   // ** Store Vars
   const dispatch = useDispatch()
 
+  const store = useSelector((state) => state.user);
+
+  const {userData} = store;
+
+  console.log(store)
+
   // ** State
-  const [userData, setUserData] = useState(null)
 
   //** ComponentDidMount
   useEffect(() => {
     if (isUserLoggedIn() !== null) {
-      setUserData(JSON.parse(localStorage.getItem('userData')))
+      // setUserData(JSON.parse(localStorage.getItem('userData')))
     }
   }, [])
 

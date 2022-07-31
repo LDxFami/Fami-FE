@@ -73,7 +73,7 @@ const SidebarLeft = (props) => {
             <span className="align-middle">Bộ lọc</span>
           </h5>
           <div className="calendar-events-filter">
-            {filters.length &&
+            {filters.length > 0 &&
               filters.map((filter) => {
                 return (
                   <div
