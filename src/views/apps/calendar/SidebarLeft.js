@@ -88,7 +88,7 @@ const SidebarLeft = (props) => {
                       label={filter.label}
                       className="input-filter"
                       id={`${filter.id}-event`}
-                      checked={doctorId === filter.id}
+                      checked={doctorId.includes(filter.id)}
                       onChange={() => {
                         updateFilter(filter.id);
                         toggleSidebar();

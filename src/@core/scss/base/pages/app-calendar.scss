@@ -400,6 +400,9 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
       font-size: 0;
     }
   }
+  .fc-daygrid-event-dot{
+    display: none;
+  }
 }
 
 @media (min-width: 992px) {

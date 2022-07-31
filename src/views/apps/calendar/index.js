@@ -47,7 +47,7 @@ const CalendarComponent = () => {
   const [addSidebarOpen, setAddSidebarOpen] = useState(false);
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
   const [month, setMonth] = useState(new Date().getMonth() + 1);
-  const [doctorId, setDoctorId] = useState("");
+  const [doctorId, setDoctorId] = useState([]);
   // ** Hooks
   const [isRtl] = useRTL();
 
@@ -82,13 +82,12 @@ const CalendarComponent = () => {
   };
 
   useEffect(() => {
-    dispatch(getUser())
-  }, [])
-  
+    dispatch(getUser());
+  }, []);
 
   // ** Fetch Events On Mount
   useEffect(() => {
-    dispatch(getAppointment({ month, doctor_id: doctorId }));
+    dispatch(getAppointment({ month, doctor_id: doctorId.join("_") }));
   }, [month, doctorId]);
 
   const handleMonthChange = (payload) => {
@@ -100,8 +99,15 @@ const CalendarComponent = () => {
     setMonth(middate.getMonth() + 1);
   };
 
-  const updateFilter = (doctorId) => {
-    setDoctorId(doctorId);
+  const updateFilter = (id) => {
+    const tempArr = [...doctorId];
+    if (!tempArr.includes(id)) {
+      //checking weather array contain the id
+      tempArr.push(id); //adding to array because value doesnt exists
+    } else {
+      tempArr.splice(tempArr.indexOf(id), 1); //deleting
+    }
+    setDoctorId(tempArr);
   };
 
   return (
@@ -118,7 +124,7 @@ const CalendarComponent = () => {
             )}
           >
             <SidebarLeft
-              doctorId={doctorId}
+              doctorId={[...doctorId]}
               store={store}
               dispatch={dispatch}
               updateFilter={updateFilter}
