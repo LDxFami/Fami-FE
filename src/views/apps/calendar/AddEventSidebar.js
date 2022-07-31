@@ -138,12 +138,15 @@ const AddEventSidebar = (props) => {
         refetchEvents();
         handleAddEventSidebar();
       })
-      .catch(() => {
+      .catch((err) => {
+        console.log(err)
+        const {error} = err;
         toast.error(
           <ToastComponent
             title="Có lỗi xảy ra"
             color="warning"
             icon={<Check />}
+            message={error}
           />,
           {
             icon: false,
@@ -251,12 +254,14 @@ const AddEventSidebar = (props) => {
           refetchEvents();
           handleAddEventSidebar();
         })
-        .catch(() => {
+        .catch((err) => {
+          const { error } = err;
           toast.error(
             <ToastComponent
               title="Có lỗi xảy ra"
               color="warning"
               icon={<Check />}
+              message={error}
             />,
             {
               icon: false,
@@ -356,7 +361,7 @@ const AddEventSidebar = (props) => {
       })
       .catch((err) => {
         const { error } = err;
-        var errorMsg = error.phone[0] ? error.phone[0] : "";
+        var errorMsg = error ? error : "";
         errorMsg = errorMsg.charAt(0).toUpperCase() + errorMsg.slice(1);
         console.log("errorMsg", errorMsg);
         toast.error(
@@ -381,16 +386,24 @@ const AddEventSidebar = (props) => {
     <X className="cursor-pointer" size={15} onClick={handleAddEventSidebar} />
   );
 
-  const setInputChangeHandler = useCallback(
-    _.debounce(async (inputValue) => {
-      const originalPromiseResult = await dispatch(
-        getCustomer({ search_param: inputValue })
-      );
-      const resultAction = unwrapResult(originalPromiseResult);
-      return resultAction.data.items;
-    }, 100),
-    []
-  );
+  // const setInputChangeHandler = useCallback(
+  //   _.debounce(async (inputValue) => {
+  //     const originalPromiseResult = await dispatch(
+  //       getCustomer({ search_param: inputValue })
+  //     );
+  //     const resultAction = unwrapResult(originalPromiseResult);
+  //     return resultAction.data.items;
+  //   }, 100),
+  //   []
+  // );
+
+  const setInputChangeHandler = async (inputValue) => {
+    const originalPromiseResult = await dispatch(
+      getCustomer({ search_param: inputValue })
+    );
+    const resultAction = unwrapResult(originalPromiseResult);
+    return resultAction.data.items;
+  };
 
   const promiseOptions = async (inputValue, callback) => {
     const rs = await setInputChangeHandler(inputValue);
@@ -403,21 +416,29 @@ const AddEventSidebar = (props) => {
     );
   };
 
-  const onDoctorInputChange = useCallback(
-    _.debounce(async (inputValue) => {
-      const originalPromiseResult = await dispatch(
-        getDoctor({ search_param: inputValue })
-      );
-      const resultAction = unwrapResult(originalPromiseResult);
-      return resultAction.data.items;
-    }, 100),
-    []
-  );
+  // const onDoctorInputChange = useCallback(
+  //   _.debounce(async (inputValue) => {
+  //     const originalPromiseResult = await dispatch(
+  //       getDoctor({ search_param: inputValue })
+  //     );
+  //     const resultAction = unwrapResult(originalPromiseResult);
+  //     return resultAction.data.items;
+  //   }, 100),
+  //   []
+  // );
+
+  const onDoctorInputChange = async (inputValue) => {
+    const originalPromiseResult = await dispatch(
+      getDoctor({ search_param: inputValue })
+    );
+    const resultAction = unwrapResult(originalPromiseResult);
+    return resultAction.data.items;
+  };
 
   const doctorPromiseOptions = async (inputValue, callback) => {
     const rs = await onDoctorInputChange(inputValue);
     callback(
-      rs.data.items.map((i) => ({
+      rs.map((i) => ({
         label: i.name,
         value: i.id,
         id: i.id,
