@@ -199,7 +199,6 @@ const Calendar = (props) => {
   }, [calendarApi, setCalendarApi]);
 
   useEffect(() => {
-    console.log(store.appointments?.data.length);
     setCalendarData(
       store.appointments?.data.length > 0
         ? store.appointments?.data.map((i) => ({
@@ -264,6 +263,12 @@ const Calendar = (props) => {
     ? Docs: https://fullcalendar.io/docs/navLinks
   */
       navLinks: true,
+
+      eventTimeFormat: { // like '14:30:00'
+        hour: '2-digit',
+        minute: '2-digit',
+      },
+    
 
       eventClassNames({ event: calendarEvent }) {
         // eslint-disable-next-line no-underscore-dangle

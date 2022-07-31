@@ -168,7 +168,7 @@ const AddEventSidebar = (props) => {
     setStartTime(new Date());
     setEndTime(new Date());
     dispatch(selectAppointment({}));
-    setStatus(null);
+    setStatus({ value: 1, label: "Hiệu lực" });
     dispatch(getDoctor());
   };
 
@@ -580,6 +580,7 @@ const AddEventSidebar = (props) => {
                   dateFormat: "H:i:00",
                   enableTime: true,
                   noCalendar: true,
+                  enableSeconds:false,
                   time_24hr: true,
                 }}
                 disabled={role != "admin"}
@@ -604,6 +605,7 @@ const AddEventSidebar = (props) => {
                   enableTime: true,
                   noCalendar: true,
                   time_24hr: true,
+                  enableSeconds:false
                 }}
                 disabled={role != "admin"}
               />
