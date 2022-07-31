@@ -90,8 +90,19 @@ const CalendarComponent = () => {
 
   // ** Fetch Events On Mount
   useEffect(() => {
-    dispatch(getAppointment({ month, doctor_id: doctorId.join("_") }));
+    dispatch(
+      getAppointment({
+        month,
+        doctor_id: doctorId.length > 0 ? doctorId.join("_") : "null",
+      })
+    );
   }, [month, doctorId]);
+
+  useEffect(() => {
+    if (userData.roles && userData?.roles[0]?.name !== "admin") {
+      setDoctorId([userData.id]);
+    }
+  }, [userData]);
 
   const handleMonthChange = (payload) => {
     var middate = new Date(
@@ -114,7 +125,7 @@ const CalendarComponent = () => {
   };
 
   const handleCheckAllFilter = (filters) => {
-    console.log(filters)
+    console.log(filters);
     setDoctorId(filters);
   };
 

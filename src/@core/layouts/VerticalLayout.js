@@ -58,6 +58,8 @@ const VerticalLayout = props => {
   const { footerType, setFooterType } = useFooterType()
   const { navbarColor, setNavbarColor } = useNavbarColor()
 
+  console.log(navbarType)
+
   // ** States
   const [isMounted, setIsMounted] = useState(false)
   const [menuVisibility, setMenuVisibility] = useState(false)
@@ -139,7 +141,7 @@ const VerticalLayout = props => {
     <div
       className={classnames(
         `wrapper vertical-layout ${
-          navbarWrapperClasses[navbarType] || 'navbar-floating'
+          navbarWrapperClasses[navbarType] || 'navbar-sticky'
         } ${footerClasses[footerType] || 'footer-static'}`,
         {
           // Modern Menu

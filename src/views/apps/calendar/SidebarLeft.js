@@ -38,15 +38,20 @@ const SidebarLeft = (props) => {
 
   useEffect(() => {
     if (filters.length == 0) {
-      setFilters(
-        doctors?.data?.items.map((i) => ({
-          label: i.name,
-          id: i.id,
-          color: "primary",
-          className: "form-check-primary mb-1",
-        }))
-      );
-      onCheckAll(doctors?.data?.items.map((i) => (i.id)));
+      const tmpData = doctors?.data?.items.map((i) => ({
+        label: i.name,
+        id: i.id,
+        color: "primary",
+        className: "form-check-primary mb-1",
+      }));
+      tmpData.push({
+        label: "Chưa có bác sĩ",
+        id: "",
+        color: "primary",
+        className: "form-check-primary mb-1",
+      });
+      setFilters(tmpData);
+      onCheckAll(tmpData.map((i) => i.id));
     }
   }, [doctors]);
 
