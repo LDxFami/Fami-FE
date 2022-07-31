@@ -1,5 +1,5 @@
 // ** React Imports
-import { Fragment, useMemo } from "react";
+import { Fragment, useMemo, useState, useEffect } from "react";
 
 // ** Custom Components
 import classnames from "classnames";
@@ -12,17 +12,6 @@ import illustration from "@src/assets/images/pages/calendar-illustration.png";
 import { useSelector } from "react-redux";
 
 // ** Filters Checkbox Array
-const filters = [
-  { label: "Cá nhân", color: "danger", className: "form-check-danger mb-1" },
-  {
-    label: "Quan trọng",
-    color: "primary",
-    className: "form-check-primary mb-1",
-  },
-  { label: "Family", color: "warning", className: "form-check-warning mb-1" },
-  { label: "Holiday", color: "success", className: "form-check-success mb-1" },
-  { label: "ETC", color: "info", className: "form-check-info" },
-];
 
 const SidebarLeft = (props) => {
   // ** Props
@@ -35,6 +24,8 @@ const SidebarLeft = (props) => {
     doctorId,
   } = props;
 
+  const [filters, setFilters] = useState([]);
+
   const doctorStore = useSelector((state) => state.doctor);
   const appointmentStore = useSelector((state) => state.appointment);
 
@@ -44,15 +35,28 @@ const SidebarLeft = (props) => {
     return doctors?.data?.total > doctors?.data?.items.length;
   }, [doctors]);
 
-  const filters = useMemo(() => {
-    const data = doctors?.data?.items.map((i) => ({
-      label: i.name,
-      id: i.id,
-      color: "primary",
-      className: "form-check-primary mb-1",
-    }));
-    return [...data];
+  useEffect(() => {
+    if (filters.length == 0) {
+      setFilters(
+        doctors?.data?.items.map((i) => ({
+          label: i.name,
+          id: i.id,
+          color: "primary",
+          className: "form-check-primary mb-1",
+        }))
+      );
+    }
   }, [doctors]);
+
+  // const filters = useMemo(() => {
+  //   const data = doctors?.data?.items.map((i) => ({
+  //     label: i.name,
+  //     id: i.id,
+  //     color: "primary",
+  //     className: "form-check-primary mb-1",
+  //   }));
+  //   return [...data];
+  // }, [doctors]);
 
   // ** Function to handle Add Event Click
   const handleAddEventClick = () => {
