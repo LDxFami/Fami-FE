@@ -111,8 +111,8 @@ const AddEventSidebar = (props) => {
   // ** Adds New Event
   const handleAddEvent = () => {
     const appointmentInfo = {
-      doctor_id: doctor.length > 0 ? doctor[0].id : "",
-      customer_id: customer.length > 0 ? customer[0].id : "",
+      doctor_id: doctor && doctor.length > 0 ? doctor[0].id : "",
+      customer_id: customer && customer.length > 0 ? customer[0].id : "",
       date: moment(startPicker).format("YYYY-MM-DD"),
       time_start: moment(startTime).format("HH:MM:00"),
       time_end: moment(endTime).format("HH:MM:00"),
@@ -417,7 +417,7 @@ const AddEventSidebar = (props) => {
   const doctorPromiseOptions = async (inputValue, callback) => {
     const rs = await onDoctorInputChange(inputValue);
     callback(
-      rs.map((i) => ({
+      rs.data.items.map((i) => ({
         label: i.name,
         value: i.id,
         id: i.id,
@@ -561,7 +561,6 @@ const AddEventSidebar = (props) => {
                   time_24hr: true,
                 }}
                 disabled={role != "admin"}
-
               />
             </div>
 
@@ -585,7 +584,6 @@ const AddEventSidebar = (props) => {
                   time_24hr: true,
                 }}
                 disabled={role != "admin"}
-
               />
             </div>
             <div className="mb-1">
@@ -619,7 +617,6 @@ const AddEventSidebar = (props) => {
                 isClearable={false}
                 onChange={(data) => setStatus([data])}
                 isDisabled={!isUpdate || role != "admin"}
-
               />
             </div>
 
