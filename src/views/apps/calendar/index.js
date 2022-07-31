@@ -41,6 +41,9 @@ const CalendarComponent = () => {
   // ** Variables
   const dispatch = useDispatch();
   const store = useSelector((state) => state.appointment);
+  const userStore = useSelector((state) => state.user);
+
+  const { userData } = userStore;
 
   // ** states
   const [calendarApi, setCalendarApi] = useState(null);
@@ -110,6 +113,11 @@ const CalendarComponent = () => {
     setDoctorId(tempArr);
   };
 
+  const handleCheckAllFilter = (filters) => {
+    console.log(filters)
+    setDoctorId(filters);
+  };
+
   return (
     <Fragment>
       <div className="app-calendar overflow-hidden border">
@@ -123,14 +131,19 @@ const CalendarComponent = () => {
               }
             )}
           >
-            <SidebarLeft
-              doctorId={[...doctorId]}
-              store={store}
-              dispatch={dispatch}
-              updateFilter={updateFilter}
-              toggleSidebar={toggleSidebar}
-              handleAddEventSidebar={handleAddEventSidebar}
-            />
+            {userData &&
+            userData.roles &&
+            userData?.roles[0]?.name === "admin" ? (
+              <SidebarLeft
+                doctorId={[...doctorId]}
+                store={store}
+                dispatch={dispatch}
+                updateFilter={updateFilter}
+                toggleSidebar={toggleSidebar}
+                handleAddEventSidebar={handleAddEventSidebar}
+                onCheckAll={handleCheckAllFilter}
+              />
+            ) : null}
           </Col>
           <Col className="position-relative">
             <Calendar

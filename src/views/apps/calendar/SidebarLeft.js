@@ -22,6 +22,7 @@ const SidebarLeft = (props) => {
     updateAllFilters,
     dispatch,
     doctorId,
+    onCheckAll,
   } = props;
 
   const [filters, setFilters] = useState([]);
@@ -76,6 +77,26 @@ const SidebarLeft = (props) => {
           <h5 className="section-label mb-1">
             <span className="align-middle">Bộ lọc</span>
           </h5>
+          <div className="form-check mb-1">
+            <Input
+              id="view-all"
+              type="checkbox"
+              label="View All"
+              className="select-all"
+              checked={filters.length === doctorId.length}
+              onChange={(e) => {
+                if (filters.length !== doctorId.length) {
+                  onCheckAll(filters.map((i) => i.id));
+                } else {
+                  onCheckAll([]);
+                }
+                toggleSidebar();
+              }}
+            />
+            <Label className="form-check-label" for="view-all">
+              Tất cả
+            </Label>
+          </div>
           <div className="calendar-events-filter">
             {filters.length > 0 &&
               filters.map((filter) => {
