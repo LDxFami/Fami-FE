@@ -46,6 +46,7 @@ const SidebarLeft = (props) => {
           className: "form-check-primary mb-1",
         }))
       );
+      onCheckAll(doctors?.data?.items.map((i) => (i.id)));
     }
   }, [doctors]);
 
