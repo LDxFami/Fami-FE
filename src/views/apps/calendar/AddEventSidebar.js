@@ -62,6 +62,7 @@ const ToastComponent = ({ title, icon, color, message = "" }) => (
 const AddEventSidebar = (props) => {
   // ** Props
   const {
+    role,
     open,
     dispatch,
     refetchEvents,
@@ -116,8 +117,8 @@ const AddEventSidebar = (props) => {
   // ** Adds New Event
   const handleAddEvent = () => {
     const appointmentInfo = {
-      doctor_id: doctor[0].id,
-      customer_id: customer[0].id,
+      doctor_id: doctor.length>0 ? doctor[0].id : "",
+      customer_id: customer.length>0 ? customer[0].id : "",
       date: moment(startPicker).format("YYYY-MM-DD"),
       time_start: moment(startTime).format("HH:MM:00"),
       time_end: moment(endTime).format("HH:MM:00"),
@@ -229,8 +230,8 @@ const AddEventSidebar = (props) => {
     if (!isObjEmpty(selectedAppointment)) {
       const appointmentInfo = {
         id: selectedAppointment.extendedProps.id,
-        doctor_id: doctor[0].id,
-        customer_id: customer[0].id,
+        doctor_id: doctor.length > 0 ? doctor[0].id : "",
+        customer_id: customer.length ? customer[0].id : "",
         date: moment(startPicker).format("YYYY-MM-DD"),
         time_start: moment(startTime).format("HH:MM:00"),
         time_end: moment(endTime).format("HH:MM:00"),
@@ -320,9 +321,9 @@ const AddEventSidebar = (props) => {
           <Button className="me-1" color="primary" onClick={handleUpdateEvent}>
             Cập nhật
           </Button>
-          <Button color="danger" onClick={handleDeleteEvent} outline>
+          {/* <Button color="danger" onClick={handleDeleteEvent} outline>
             Xoá
-          </Button>
+          </Button> */}
         </Fragment>
       );
     }

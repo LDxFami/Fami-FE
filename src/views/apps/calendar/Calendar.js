@@ -1,5 +1,5 @@
 // ** React Import
-import { useEffect, useRef, memo, Fragment, useMemo } from "react";
+import { useEffect, useRef, memo, Fragment, useMemo, useState } from "react";
 
 // ** Full Calendar & it's Plugins
 import FullCalendar from "@fullcalendar/react";
@@ -18,6 +18,7 @@ import SpinnerComponent from "../../../@core/components/spinner/Fallback-spinner
 import { toast } from "react-toastify";
 import { Card, CardBody } from "reactstrap";
 import { Menu, Check } from "react-feather";
+import { readFile } from "xlsx";
 
 // ** Toast Component
 const ToastComponent = ({ title, icon, color }) => (
@@ -49,7 +50,10 @@ const Calendar = (props) => {
     toggleSidebar,
     selectEvent,
     updateEvent,
+    role,
   } = props;
+
+  const [calendarData, setCalendarData] = useState([]);
 
   // ** UseEffect checks for CalendarAPI Update
   useEffect(() => {
@@ -58,159 +62,169 @@ const Calendar = (props) => {
     }
   }, [calendarApi, setCalendarApi]);
 
-  const calendarData = useMemo(() => {
-    var data = [];
-    data = store.appointments.data.map((i) => ({
-      id: i.id,
-      url: "",
-      title: i.customer.name,
-      start: new Date(i.date + "T" + i.time_start),
-      end: new Date(i.date + "T" + i.time_end),
-      extendedProps: {
-        doctor: i.doctor,
-        customer: i.customer,
-        description: i.description || "",
-        startTime: i.time_start,
-        endTime: i.time_end,
-        status: i.status,
-        date: i.date,
-        id: i.id,
-      },
-    }));
-    return data;
-  }, [store.appointments]);
+  useEffect(() => {
+    console.log(store.appointments?.data.length);
+    setCalendarData(
+      store.appointments?.data.length > 0
+        ? store.appointments?.data.map((i) => ({
+            id: i.id,
+            url: "",
+            title: i.customer.name,
+            start: new Date(i.date + "T" + i.time_start),
+            end: new Date(i.date + "T" + i.time_end),
+            extendedProps: {
+              doctor: i.doctor,
+              customer: i.customer,
+              description: i.description || "",
+              startTime: i.time_start,
+              endTime: i.time_end,
+              status: i.status,
+              date: i.date,
+              id: i.id,
+            },
+          }))
+        : []
+    );
+  }, [store]);
 
   // ** calendarOptions(Props)
-  const calendarOptions = {
-    locale: viLocale,
-    events: calendarData,
-    plugins: [interactionPlugin, dayGridPlugin, timeGridPlugin, listPlugin],
-    initialView: "dayGridMonth",
-    headerToolbar: {
-      start: "sidebarToggle, prev,next, title",
-      end: "dayGridMonth,timeGridWeek,timeGridDay,listMonth",
-    },
+  const calendarOptions = useMemo(() => {
+    var tmpData = {};
+    tmpData = {
+      locale: viLocale,
+      events: calendarData,
+      plugins: [interactionPlugin, dayGridPlugin, timeGridPlugin, listPlugin],
+      initialView: "dayGridMonth",
+      headerToolbar: {
+        start: "sidebarToggle, prev,next, title",
+        end: "dayGridMonth,timeGridWeek,timeGridDay,listMonth",
+      },
 
-    dayHeaderClassNames: "calendar-header",
-    /*
+      dayHeaderClassNames: "calendar-header",
+      /*
       Enable dragging and resizing event
       ? Docs: https://fullcalendar.io/docs/editable
     */
-    editable: false,
+      editable: false,
 
-    /*
+      /*
       Enable resizing event from start
       ? Docs: https://fullcalendar.io/docs/eventResizableFromStart
     */
-    eventResizableFromStart: false,
+      eventResizableFromStart: false,
 
-    /*
+      /*
       Automatically scroll the scroll-containers during event drag-and-drop and date selecting
       ? Docs: https://fullcalendar.io/docs/dragScroll
     */
-    dragScroll: true,
+      dragScroll: true,
 
-    /*
+      /*
       Max number of events within a given day
       ? Docs: https://fullcalendar.io/docs/dayMaxEvents
     */
-    dayMaxEvents: 3,
+      dayMaxEvents: 3,
 
-    /*
+      /*
       Determines if day names and week names are clickable
       ? Docs: https://fullcalendar.io/docs/navLinks
     */
-    navLinks: true,
+      navLinks: true,
 
-    eventClassNames({ event: calendarEvent }) {
-      // eslint-disable-next-line no-underscore-dangle
-      const colorName = calendarsColor[calendarEvent._def.extendedProps.status];
+      eventClassNames({ event: calendarEvent }) {
+        // eslint-disable-next-line no-underscore-dangle
+        const colorName =
+          calendarsColor[calendarEvent._def.extendedProps.status];
 
-      return [
-        // Background Color
-        `bg-light-${colorName}`,
-      ];
-    },
+        return [
+          // Background Color
+          `bg-light-${colorName}`,
+        ];
+      },
 
-    eventClick({ event: clickedEvent }) {
-      dispatch(selectEvent(clickedEvent));
-      handleAddEventSidebar();
+      eventClick({ event: clickedEvent }) {
+        dispatch(selectEvent(clickedEvent));
+        handleAddEventSidebar();
 
-      // * Only grab required field otherwise it goes in infinity loop
-      // ! Always grab all fields rendered by form (even if it get `undefined`) otherwise due to Vue3/Composition API you might get: "object is not extensible"
-      // event.value = grabEventDataFromEventApi(clickedEvent)
+        // * Only grab required field otherwise it goes in infinity loop
+        // ! Always grab all fields rendered by form (even if it get `undefined`) otherwise due to Vue3/Composition API you might get: "object is not extensible"
+        // event.value = grabEventDataFromEventApi(clickedEvent)
 
-      // eslint-disable-next-line no-use-before-define
-      // isAddNewEventSidebarActive.value = true
-    },
+        // eslint-disable-next-line no-use-before-define
+        // isAddNewEventSidebarActive.value = true
+      },
 
-    customButtons: {
-      sidebarToggle: {
-        text: <Menu className="d-xl-none d-block" />,
-        click() {
-          toggleSidebar(true);
+      customButtons: {
+        sidebarToggle: {
+          text: <Menu className="d-xl-none d-block" />,
+          click() {
+            toggleSidebar(true);
+          },
         },
       },
-    },
 
-    dateClick(info) {
-      const ev = blankEvent;
-      ev.start = info.date;
-      ev.end = info.date;
-      // dispatch(selectEvent(ev));
-      handleAddEventSidebar();
-    },
+      dateClick(info) {
+        const ev = blankEvent;
+        ev.start = info.date;
+        ev.end = info.date;
+        // dispatch(selectEvent(ev));
+        if (role == "admin") {
+          handleAddEventSidebar();
+        }
+      },
 
-    /*
+      /*
       Handle event drop (Also include dragged event)
       ? Docs: https://fullcalendar.io/docs/eventDrop
       ? We can use `eventDragStop` but it doesn't return updated event so we have to use `eventDrop` which returns updated event
     */
-    datesSet: handleMonthChange,
+      datesSet: handleMonthChange,
 
-    eventDrop({ event: droppedEvent }) {
-      dispatch(updateEvent(droppedEvent));
-      toast.success(
-        <ToastComponent
-          title="Event Updated"
-          color="success"
-          icon={<Check />}
-        />,
-        {
-          icon: false,
-          autoClose: 2000,
-          hideProgressBar: true,
-          closeButton: false,
-        }
-      );
-    },
+      eventDrop({ event: droppedEvent }) {
+        dispatch(updateEvent(droppedEvent));
+        toast.success(
+          <ToastComponent
+            title="Event Updated"
+            color="success"
+            icon={<Check />}
+          />,
+          {
+            icon: false,
+            autoClose: 2000,
+            hideProgressBar: true,
+            closeButton: false,
+          }
+        );
+      },
 
-    /*
+      /*
       Handle event resize
       ? Docs: https://fullcalendar.io/docs/eventResize
     */
-    eventResize({ event: resizedEvent }) {
-      dispatch(updateEvent(resizedEvent));
-      toast.success(
-        <ToastComponent
-          title="Event Updated"
-          color="success"
-          icon={<Check />}
-        />,
-        {
-          icon: false,
-          autoClose: 2000,
-          hideProgressBar: true,
-          closeButton: false,
-        }
-      );
-    },
+      eventResize({ event: resizedEvent }) {
+        dispatch(updateEvent(resizedEvent));
+        toast.success(
+          <ToastComponent
+            title="Event Updated"
+            color="success"
+            icon={<Check />}
+          />,
+          {
+            icon: false,
+            autoClose: 2000,
+            hideProgressBar: true,
+            closeButton: false,
+          }
+        );
+      },
 
-    ref: calendarRef,
+      ref: calendarRef,
 
-    // Get direction from app state (store)
-    direction: isRtl ? "rtl" : "ltr",
-  };
+      // Get direction from app state (store)
+      direction: isRtl ? "rtl" : "ltr",
+    };
+    return tmpData;
+  }, [role, calendarData]);
 
   return (
     <Card className="shadow-none border-0 mb-0 rounded-0">

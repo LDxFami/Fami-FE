@@ -86,6 +86,7 @@ const CalendarComponent = () => {
 
   useEffect(() => {
     dispatch(getUser());
+    dispatch(getDoctor());
   }, []);
 
   // ** Fetch Events On Mount
@@ -93,7 +94,7 @@ const CalendarComponent = () => {
     dispatch(
       getAppointment({
         month,
-        doctor_id: doctorId.length > 0 ? doctorId.join("_") : "null",
+        doctor_id: doctorId.length > 0 ? doctorId.join("_") : null,
       })
     );
   }, [month, doctorId]);
@@ -156,8 +157,10 @@ const CalendarComponent = () => {
               />
             ) : null}
           </Col>
+
           <Col className="position-relative">
             <Calendar
+              role={userData?.roles ? userData?.roles[0]?.name : ""}
               isRtl={isRtl}
               store={store}
               handleMonthChange={handleMonthChange}
@@ -182,6 +185,7 @@ const CalendarComponent = () => {
       </div>
       <AddEventSidebar
         store={store}
+        role={userData?.roles ? userData?.roles[0]?.name : ""}
         dispatch={dispatch}
         addEvent={addEvent}
         open={addSidebarOpen}

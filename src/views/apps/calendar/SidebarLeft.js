@@ -23,6 +23,7 @@ const SidebarLeft = (props) => {
     dispatch,
     doctorId,
     onCheckAll,
+    role = "",
   } = props;
 
   const [filters, setFilters] = useState([]);
@@ -44,12 +45,14 @@ const SidebarLeft = (props) => {
         color: "primary",
         className: "form-check-primary mb-1",
       }));
-      tmpData.push({
-        label: "Chưa có bác sĩ",
-        id: "",
-        color: "primary",
-        className: "form-check-primary mb-1",
-      });
+      if (doctors.data.items.length > 0) {
+        tmpData.push({
+          label: "Chưa có bác sĩ",
+          id: "",
+          color: "primary",
+          className: "form-check-primary mb-1",
+        });
+      }
       setFilters(tmpData);
       onCheckAll(tmpData.map((i) => i.id));
     }
@@ -70,7 +73,6 @@ const SidebarLeft = (props) => {
     toggleSidebar(false);
     handleAddEventSidebar();
   };
-
   return (
     <Fragment>
       <div className="sidebar-wrapper">
@@ -94,7 +96,7 @@ const SidebarLeft = (props) => {
                 if (filters.length !== doctorId.length) {
                   onCheckAll(filters.map((i) => i.id));
                 } else {
-                  onCheckAll([]);
+                  onCheckAll([0]);
                 }
                 toggleSidebar();
               }}
