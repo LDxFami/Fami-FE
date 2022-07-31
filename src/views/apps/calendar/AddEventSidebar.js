@@ -114,8 +114,8 @@ const AddEventSidebar = (props) => {
       doctor_id: doctor && doctor.length > 0 ? doctor[0].id : "",
       customer_id: customer && customer.length > 0 ? customer[0].id : "",
       date: moment(startPicker).format("YYYY-MM-DD"),
-      time_start: moment(startTime).format("HH:MM:00"),
-      time_end: moment(endTime).format("HH:MM:00"),
+      time_start: moment(startTime).format("H:mm:00"),
+      time_end: moment(endTime).format("H:mm:00"),
       status,
       description: desc,
     };
@@ -230,8 +230,8 @@ const AddEventSidebar = (props) => {
         doctor_id: doctor.length > 0 ? doctor[0].id : "",
         customer_id: customer.length ? customer[0].id : "",
         date: moment(startPicker).format("YYYY-MM-DD"),
-        time_start: moment(startTime).format("HH:MM:00"),
-        time_end: moment(endTime).format("HH:MM:00"),
+        time_start: moment(startTime).format("H:mm:00"),
+        time_end: moment(endTime).format("H:mm:00"),
         description: desc,
         status: status[0].value,
       };
@@ -522,6 +522,7 @@ const AddEventSidebar = (props) => {
                 onCreateOption={handleCreate}
                 loadOptions={promiseOptions}
                 isDisabled={role != "admin"}
+                formatCreateLabel={(inputValue)=>{return `Tạo khách hàng "${inputValue}"`}}
               />
             </div>
 
