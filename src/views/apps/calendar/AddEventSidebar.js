@@ -42,7 +42,7 @@ import {
   addAppointment,
   selectAppointment,
   updateAppointment,
-} from "../../../redux/\bappointment";
+} from "../../../redux/appointment";
 
 // ** Toast Component
 const ToastComponent = ({ title, icon, color, message = "" }) => (

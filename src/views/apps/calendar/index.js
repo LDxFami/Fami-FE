@@ -24,10 +24,10 @@ import {
   removeEvent,
 } from "./store";
 
-import { selectAppointment } from "../../../redux/\bappointment";
+import { selectAppointment } from "../../../redux/appointment";
 // ** Styles
 import "@styles/react/apps/app-calendar.scss";
-import { getAppointment } from "../../../redux/\bappointment";
+import { getAppointment } from "../../../redux/appointment";
 import { getDoctor } from "../../../redux/doctor";
 import { getUser } from "../../../redux/user";
 
