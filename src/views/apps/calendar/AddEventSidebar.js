@@ -61,13 +61,7 @@ const ToastComponent = ({ title, icon, color, message = "" }) => (
 
 const AddEventSidebar = (props) => {
   // ** Props
-  const {
-    role,
-    open,
-    dispatch,
-    refetchEvents,
-    handleAddEventSidebar,
-  } = props;
+  const { role, open, dispatch, refetchEvents, handleAddEventSidebar } = props;
 
   // ** Vars & Hooks
   const { setError, setValue, getValues, handleSubmit } = useForm({
@@ -117,8 +111,8 @@ const AddEventSidebar = (props) => {
   // ** Adds New Event
   const handleAddEvent = () => {
     const appointmentInfo = {
-      doctor_id: doctor.length>0 ? doctor[0].id : "",
-      customer_id: customer.length>0 ? customer[0].id : "",
+      doctor_id: doctor.length > 0 ? doctor[0].id : "",
+      customer_id: customer.length > 0 ? customer[0].id : "",
       date: moment(startPicker).format("YYYY-MM-DD"),
       time_start: moment(startTime).format("HH:MM:00"),
       time_end: moment(endTime).format("HH:MM:00"),
@@ -296,36 +290,44 @@ const AddEventSidebar = (props) => {
 
   // ** Event Action buttons
   const EventActions = () => {
-    if (
-      isObjEmpty(selectedAppointment) ||
-      (!isObjEmpty(selectedAppointment) && !selectedAppointment.title.length)
-    ) {
-      return (
-        <Fragment>
-          <Button className="me-1" type="submit" color="primary">
-            Thêm
-          </Button>
-          <Button
-            color="secondary"
-            type="reset"
-            onClick={handleAddEventSidebar}
-            outline
-          >
-            Huỷ
-          </Button>
-        </Fragment>
-      );
-    } else {
-      return (
-        <Fragment>
-          <Button className="me-1" color="primary" onClick={handleUpdateEvent}>
-            Cập nhật
-          </Button>
-          {/* <Button color="danger" onClick={handleDeleteEvent} outline>
+    if (role == "admin") {
+      if (
+        isObjEmpty(selectedAppointment) ||
+        (!isObjEmpty(selectedAppointment) && !selectedAppointment.title.length)
+      ) {
+        return (
+          <Fragment>
+            <Button className="me-1" type="submit" color="primary">
+              Thêm
+            </Button>
+            <Button
+              color="secondary"
+              type="reset"
+              onClick={handleAddEventSidebar}
+              outline
+            >
+              Huỷ
+            </Button>
+          </Fragment>
+        );
+      } else {
+        return (
+          <Fragment>
+            <Button
+              className="me-1"
+              color="primary"
+              onClick={handleUpdateEvent}
+            >
+              Cập nhật
+            </Button>
+            {/* <Button color="danger" onClick={handleDeleteEvent} outline>
             Xoá
           </Button> */}
-        </Fragment>
-      );
+          </Fragment>
+        );
+      }
+    } else {
+      return <Fragment></Fragment>;
     }
   };
 
@@ -484,7 +486,7 @@ const AddEventSidebar = (props) => {
                 Khách hàng
               </Label>
               <AsyncCreatableSelect
-              required
+                required
                 placeholder="Khách hàng..."
                 id="customer"
                 value={customer}
@@ -498,6 +500,7 @@ const AddEventSidebar = (props) => {
                 // }}
                 onCreateOption={handleCreate}
                 loadOptions={promiseOptions}
+                isDisabled={role != "admin"}
               />
             </div>
 
@@ -517,6 +520,7 @@ const AddEventSidebar = (props) => {
                 // components={{
                 //   Option: OptionComponent,
                 // }}
+                isDisabled={role != "admin"}
                 loadOptions={doctorPromiseOptions}
               />
             </div>
@@ -535,6 +539,7 @@ const AddEventSidebar = (props) => {
                 options={{
                   dateFormat: "Y-m-d",
                 }}
+                disabled={role != "admin"}
               />
             </div>
 
@@ -555,6 +560,8 @@ const AddEventSidebar = (props) => {
                   noCalendar: true,
                   time_24hr: true,
                 }}
+                disabled={role != "admin"}
+
               />
             </div>
 
@@ -577,6 +584,8 @@ const AddEventSidebar = (props) => {
                   noCalendar: true,
                   time_24hr: true,
                 }}
+                disabled={role != "admin"}
+
               />
             </div>
             <div className="mb-1">
@@ -591,6 +600,7 @@ const AddEventSidebar = (props) => {
                 value={desc}
                 onChange={(e) => setDesc(e.target.value)}
                 placeholder="Mô tả..."
+                disabled={role != "admin"}
               />
             </div>
 
@@ -608,7 +618,8 @@ const AddEventSidebar = (props) => {
                 classNamePrefix="select"
                 isClearable={false}
                 onChange={(data) => setStatus([data])}
-                isDisabled={!isUpdate}
+                isDisabled={!isUpdate || role != "admin"}
+
               />
             </div>
 
