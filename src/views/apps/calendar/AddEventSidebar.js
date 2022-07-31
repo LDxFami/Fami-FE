@@ -171,6 +171,7 @@ const AddEventSidebar = (props) => {
     setEndTime(new Date());
     dispatch(selectAppointment({}));
     setStatus(null);
+    dispatch(getDoctor());
   };
 
   // ** Set sidebar fields

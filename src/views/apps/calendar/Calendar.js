@@ -63,7 +63,7 @@ const Calendar = (props) => {
     data = store.appointments.data.map((i) => ({
       id: i.id,
       url: "",
-      title: i.description,
+      title: i.customer.name,
       start: new Date(i.date + "T" + i.time_start),
       end: new Date(i.date + "T" + i.time_end),
       extendedProps: {
@@ -96,13 +96,13 @@ const Calendar = (props) => {
       Enable dragging and resizing event
       ? Docs: https://fullcalendar.io/docs/editable
     */
-    editable: true,
+    editable: false,
 
     /*
       Enable resizing event from start
       ? Docs: https://fullcalendar.io/docs/eventResizableFromStart
     */
-    eventResizableFromStart: true,
+    eventResizableFromStart: false,
 
     /*
       Automatically scroll the scroll-containers during event drag-and-drop and date selecting
@@ -114,7 +114,7 @@ const Calendar = (props) => {
       Max number of events within a given day
       ? Docs: https://fullcalendar.io/docs/dayMaxEvents
     */
-    dayMaxEvents: 2,
+    dayMaxEvents: 3,
 
     /*
       Determines if day names and week names are clickable
