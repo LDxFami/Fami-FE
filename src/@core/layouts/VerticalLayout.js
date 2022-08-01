@@ -141,7 +141,7 @@ const VerticalLayout = props => {
       className={classnames(
         `wrapper vertical-layout ${
           navbarWrapperClasses[navbarType] || 'navbar-sticky'
-        } ${footerClasses[footerType] || 'footer-static'} overflow-hidden`,
+        } ${footerClasses[footerType] || 'footer-static'}`,
         {
           // Modern Menu
           'vertical-menu-modern': windowWidth >= 1200,
