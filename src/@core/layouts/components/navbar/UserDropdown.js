@@ -29,7 +29,6 @@ const UserDropdown = () => {
 
   const {userData} = store;
 
-  console.log(userData)
 
   // ** State
 

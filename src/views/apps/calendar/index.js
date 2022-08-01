@@ -126,7 +126,6 @@ const CalendarComponent = () => {
   };
 
   const handleCheckAllFilter = (filters) => {
-    console.log(filters);
     setDoctorId(filters);
   };
 

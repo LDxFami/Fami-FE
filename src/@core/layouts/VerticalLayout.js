@@ -58,7 +58,6 @@ const VerticalLayout = props => {
   const { footerType, setFooterType } = useFooterType()
   const { navbarColor, setNavbarColor } = useNavbarColor()
 
-  console.log(navbarType)
 
   // ** States
   const [isMounted, setIsMounted] = useState(false)
