@@ -114,8 +114,8 @@ const AddEventSidebar = (props) => {
       doctor_id: doctor && doctor.length > 0 ? doctor[0].id : "",
       customer_id: customer && customer.length > 0 ? customer[0].id : "",
       date: moment(startPicker).format("YYYY-MM-DD"),
-      time_start: moment(startTime).format("H:mm:00"),
-      time_end: moment(endTime).format("H:mm:00"),
+      time_start: moment(startTime).format("HH:mm:00"),
+      time_end: moment(endTime).format("HH:mm:00"),
       status,
       description: desc,
     };
