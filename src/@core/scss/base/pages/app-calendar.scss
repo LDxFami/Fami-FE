@@ -139,16 +139,25 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
     min-height: $fc-calendar-height;
   }
 
+  .bold {
+    .fc-event-title,.fc-event-time {
+      font-weight: bold !important;
+      font-size: 12px;
+      .fc-event-description{
+        font-weight: normal !important;
+      }
+    }
+  }
+
   // Daygrid
   .fc-scrollgrid-section-liquid > td {
     border-bottom: 0;
   }
   .fc-daygrid-event-harness {
-
     .fc-daygrid-event {
       display: flex;
       align-items: flex-start !important;
-      .fc-daygrid-event-dot{
+      .fc-daygrid-event-dot {
         margin-top: 4px;
       }
     }
@@ -165,7 +174,6 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
   .fc-daygrid-day-bottom {
     margin-top: 0.3rem !important;
   }
- 
 
   .fc-daygrid-day {
     padding: 5px;

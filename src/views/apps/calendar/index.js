@@ -13,7 +13,6 @@ import AddEventSidebar from "./AddEventSidebar";
 // ** Custom Hooks
 import { useRTL } from "@hooks/useRTL";
 
-import useWindowDimensions from "../../../utility/hooks/useWindowDimensions";
 
 // ** Store & Actions
 import { useSelector, useDispatch } from "react-redux";
@@ -55,7 +54,6 @@ const CalendarComponent = () => {
   const [doctorId, setDoctorId] = useState([]);
   // ** Hooks
   const [isRtl] = useRTL();
-  const {height} = useWindowDimensions();
   // ** AddEventSidebar Toggle Function
   const handleAddEventSidebar = () => setAddSidebarOpen(!addSidebarOpen);
 
@@ -133,7 +131,7 @@ const CalendarComponent = () => {
 
   return (
     <Fragment>
-      <div className="app-calendar overflow-hidden border" style={{height:(height*0.85)}}>
+      <div className="app-calendar overflow-hidden border">
         <Row className="g-0">
           <Col
             id="app-calendar-sidebar"

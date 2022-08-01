@@ -193,15 +193,21 @@ const Calendar = (props) => {
     role,
   } = props;
 
+  const initialView = width > 540 ? "dayGridMonth" : "timeGridDay";
+
   const [calendarData, setCalendarData] = useState([]);
   const [calendarOptions, setCalendarOptions] = useState(defaultOptions);
-  const initialView = width > 540 ? "dayGridMonth" : "timeGridDay";
+  const [viewCurrent, setviewCurrent] = useState(initialView);
   // ** UseEffect checks for CalendarAPI Update
   useEffect(() => {
     if (calendarApi === null) {
       setCalendarApi(calendarRef.current.getApi());
     }
   }, [calendarApi, setCalendarApi]);
+
+  useEffect(() => {
+    setviewCurrent(initialView);
+  }, [initialView]);
 
   useEffect(() => {
     setCalendarData(
@@ -229,6 +235,7 @@ const Calendar = (props) => {
   }, [store]);
 
   useEffect(() => {
+    console.log();
     const options = {
       locale: viLocale,
       events: calendarData,
@@ -246,16 +253,25 @@ const Calendar = (props) => {
       scrollTime: scrollTime,
 
       eventDidMount: function (event) {
-        const { el } = event;
-        console.log(event.event.title);
-        if (event.event.extendedProps.description) {
-          console.log(event.event.extendedProps.description);
-          let p = document.createElement("span");
-          var br = document.createElement("br");
-          p.append(br);
-          var node = document.createTextNode(" "+ event.event.extendedProps.description);
-          p.appendChild(node);
-          el.querySelectorAll(".fc-event-title")[0].append(p);
+        // console.log(viewCurrent);
+        // const { el } = event;
+        // console.log(1);
+        // let p = document.createElement("span");
+        // let br = document.createElement("br");
+        // p.append(br);
+        // p.className =
+        //   viewCurrent !== "timeGridDay" ? "fc-event-hidden" : "fc-event-description";
+        // var node = document.createTextNode(
+        //   event.event.extendedProps.description
+        // );
+        // p.appendChild(node);
+        // el.querySelectorAll(".fc-event-title")[0].append(p);
+      },
+
+      eventContent: function (arg, createElement) {
+        const { event } = arg;
+        if (arg.view.type === "timeGridDay") {
+          return renderEvent(event, arg.view.type);
         }
       },
 
@@ -309,7 +325,7 @@ const Calendar = (props) => {
 
         return [
           // Background Color
-          `bg-light-${colorName}`,
+          `bg-light-${colorName} bold`,
         ];
       },
 
@@ -349,8 +365,10 @@ const Calendar = (props) => {
     ? Docs: https://fullcalendar.io/docs/eventDrop
     ? We can use `eventDragStop` but it doesn't return updated event so we have to use `eventDrop` which returns updated event
   */
-      datesSet: handleMonthChange,
-
+      datesSet: function (info) {
+        handleMonthChange(info);
+        setviewCurrent(info.view.type);
+      },
       eventDrop({ event: droppedEvent }) {
         dispatch(updateEvent(droppedEvent));
         toast.success(
@@ -394,16 +412,22 @@ const Calendar = (props) => {
       // Get direction from app state (store)
       direction: isRtl ? "rtl" : "ltr",
     };
-    setCalendarOptions(options);
-  }, [role, calendarData]);
+    setCalendarOptions({ ...options });
+  }, [role, calendarData, initialView]);
 
-  // ** calendarOptions(Props)
-  // const calendarOptions = useMemo(() => {
-  //   var tmpData = {};
-  //   console.log(width);
-  //   tmpData = {};
-  //   return tmpData;
-  // }, [role, calendarData, width]);
+  const renderEvent = (event, view) => {
+    console.log(event);
+    return (
+      <>
+        <div class="fc-event-time">
+          {moment(event.startStr).format("HH:mm")}
+        </div>
+        <div class="fc-event-title">{event.title}{event.extendedProps.description ? <span class="fc-event-description"> - {event.extendedProps.description}</span> : null}</div>
+       
+
+      </>
+    );
+  };
 
   return (
     <Card className="shadow-none border-0 mb-0 rounded-0">
