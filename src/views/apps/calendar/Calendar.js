@@ -228,10 +228,13 @@ const Calendar = (props) => {
       events: calendarData,
       plugins: [interactionPlugin, dayGridPlugin, timeGridPlugin, listPlugin],
       initialView: initialView,
+      allDaySlot: false,
       headerToolbar: {
         start: "sidebarToggle, prev,next, title",
         end: "dayGridMonth,timeGridWeek,timeGridDay,listMonth",
       },
+      slotMinTime: "07:00:00",
+      slotMaxTime: "21:30:00",
 
       dayHeaderClassNames: "calendar-header",
       /*
@@ -267,6 +270,12 @@ const Calendar = (props) => {
       eventTimeFormat: { // like '14:30:00'
         hour: '2-digit',
         minute: '2-digit',
+        hour12: false
+      },
+
+      slotLabelFormat: { 
+        hour: '2-digit', 
+        minute: '2-digit' 
       },
     
 
