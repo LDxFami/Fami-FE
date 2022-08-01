@@ -139,7 +139,6 @@ const AddEventSidebar = (props) => {
         handleAddEventSidebar();
       })
       .catch((err) => {
-        console.log(err)
         const {error} = err;
         toast.error(
           <ToastComponent
@@ -363,7 +362,6 @@ const AddEventSidebar = (props) => {
         const { error } = err;
         var errorMsg = error ? error : "";
         errorMsg = errorMsg.charAt(0).toUpperCase() + errorMsg.slice(1);
-        console.log("errorMsg", errorMsg);
         toast.error(
           <ToastComponent
             title="Có lỗi xảy ra"
