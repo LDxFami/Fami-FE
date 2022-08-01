@@ -158,6 +158,8 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
   }
   .fc-daygrid-day {
     padding: 5px;
+    height: 120px;
+    width: fit-content;
     .fc-daygrid-day-top {
       flex-direction: row;
     }
