@@ -21,6 +21,8 @@ import { Menu, Check } from "react-feather";
 import { readFile } from "xlsx";
 import useWindowDimensions from "../../../utility/hooks/useWindowDimensions";
 
+const scrollTime = moment().format("HH:mm:ss");
+
 // ** Toast Component
 const ToastComponent = ({ title, icon, color }) => (
   <Fragment>
@@ -47,6 +49,9 @@ const Calendar = (props) => {
       start: "sidebarToggle, prev,next, title",
       end: "dayGridMonth,timeGridWeek,timeGridDay,listMonth",
     },
+
+    now: new Date(),
+    scrollTime: scrollTime,
 
     dayHeaderClassNames: "calendar-header",
     /*
@@ -207,6 +212,7 @@ const Calendar = (props) => {
             title: i.customer.name,
             start: new Date(i.date + "T" + i.time_start),
             end: new Date(i.date + "T" + i.time_end),
+            description: i.description || "",
             extendedProps: {
               doctor: i.doctor,
               customer: i.customer,
@@ -235,6 +241,23 @@ const Calendar = (props) => {
       },
       slotMinTime: "07:00:00",
       slotMaxTime: "21:30:00",
+
+      now: new Date(),
+      scrollTime: scrollTime,
+
+      eventDidMount: function (event) {
+        const { el } = event;
+        console.log(event.event.title);
+        if (event.event.extendedProps.description) {
+          console.log(event.event.extendedProps.description);
+          let p = document.createElement("span");
+          var br = document.createElement("br");
+          p.append(br);
+          var node = document.createTextNode(" "+ event.event.extendedProps.description);
+          p.appendChild(node);
+          el.querySelectorAll(".fc-event-title")[0].append(p);
+        }
+      },
 
       dayHeaderClassNames: "calendar-header",
       /*
@@ -267,17 +290,17 @@ const Calendar = (props) => {
   */
       navLinks: true,
 
-      eventTimeFormat: { // like '14:30:00'
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
+      eventTimeFormat: {
+        // like '14:30:00'
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
       },
 
-      slotLabelFormat: { 
-        hour: '2-digit', 
-        minute: '2-digit' 
+      slotLabelFormat: {
+        hour: "2-digit",
+        minute: "2-digit",
       },
-    
 
       eventClassNames({ event: calendarEvent }) {
         // eslint-disable-next-line no-underscore-dangle

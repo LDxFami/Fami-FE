@@ -144,6 +144,15 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
     border-bottom: 0;
   }
   .fc-daygrid-event-harness {
+
+    .fc-daygrid-event {
+      display: flex;
+      align-items: flex-start !important;
+      .fc-daygrid-event-dot{
+        margin-top: 4px;
+      }
+    }
+
     .fc-event {
       font-size: $fc-event-font-size;
       font-weight: $fc-event-font-weight;
@@ -156,10 +165,11 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
   .fc-daygrid-day-bottom {
     margin-top: 0.3rem !important;
   }
+ 
+
   .fc-daygrid-day {
     padding: 5px;
     height: 120px;
-    width: fit-content;
     .fc-daygrid-day-top {
       flex-direction: row;
     }
@@ -265,7 +275,7 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
       }
     }
   }
-  .calendar-loading{
+  .calendar-loading {
     opacity: 0.6;
     background-color: white;
     position: absolute;
@@ -401,11 +411,11 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
     .fc-sidebarToggle-button {
       font-size: 0;
     }
-    .fc-more-link{
-      content:"+"
+    .fc-more-link {
+      content: "+";
     }
   }
-  .fc-daygrid-event-dot{
+  .fc-daygrid-event-dot {
     display: none;
   }
 }
