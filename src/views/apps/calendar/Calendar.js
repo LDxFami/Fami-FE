@@ -323,9 +323,8 @@ const Calendar = (props) => {
       },
 
       eventClick({ event: clickedEvent, view }) {
-        
-        if (view.type === "dayGridMonth") {
-          calendarApi.changeView("timeGridDay",clickedEvent.start);
+        if (view.type === "dayGridMonth" && width < 540) {
+          calendarApi.changeView("timeGridDay", clickedEvent.start);
         } else {
           dispatch(selectEvent(clickedEvent));
           handleAddEventSidebar();
@@ -349,12 +348,16 @@ const Calendar = (props) => {
       },
 
       dateClick(info) {
-        const ev = blankEvent;
-        ev.start = info.date;
-        ev.end = info.date;
-        // dispatch(selectEvent(ev));
-        if (role == "admin") {
-          handleAddEventSidebar();
+        if (info.view.type === "dayGridMonth" && width < 540) {
+          calendarApi.changeView("timeGridDay", info.start);
+        } else {
+          const ev = blankEvent;
+          ev.start = info.date;
+          ev.end = info.date;
+          // dispatch(selectEvent(ev));
+          if (role == "admin") {
+            handleAddEventSidebar();
+          }
         }
       },
 
