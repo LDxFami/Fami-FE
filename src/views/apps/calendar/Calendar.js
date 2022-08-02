@@ -50,9 +50,13 @@ const Calendar = (props) => {
       end: "dayGridMonth,timeGridWeek,timeGridDay,listMonth",
     },
 
+    buttonText: {
+      listMonth: "List",
+    },
+
     now: new Date(),
     scrollTime: scrollTime,
-    nowIndicator:true,
+    nowIndicator: true,
 
     dayHeaderClassNames: "calendar-header",
     /*
@@ -251,7 +255,9 @@ const Calendar = (props) => {
 
       now: new Date(),
       scrollTime: scrollTime,
-
+      buttonText: {
+        listMonth: "List",
+      },
       eventContent: function (arg, createElement) {
         const { event } = arg;
         if (arg.view.type === "timeGridDay") {
@@ -304,7 +310,7 @@ const Calendar = (props) => {
         hour: "2-digit",
         minute: "2-digit",
       },
-      nowIndicator:true,
+      nowIndicator: true,
       eventClassNames({ event: calendarEvent }) {
         // eslint-disable-next-line no-underscore-dangle
         const colorName =
@@ -406,7 +412,8 @@ const Calendar = (props) => {
     return (
       <>
         <div class="fc-event-time">
-          {moment(event.startStr).format("HH:mm")} - {moment(event.endStr).format("HH:mm")} 
+          {moment(event.startStr).format("HH:mm")} -{" "}
+          {moment(event.endStr).format("HH:mm")}
         </div>
         <div class="fc-event-title">
           {event.title}
