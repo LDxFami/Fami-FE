@@ -323,7 +323,7 @@ const Calendar = (props) => {
       },
 
       eventClick({ event: clickedEvent, view }) {
-        if (view.type === "dayGridMonth" && width < 540) {
+        if (view.type === "dayGridMonth" && width < 54) {
           calendarApi.changeView("timeGridDay", clickedEvent.start);
         } else {
           dispatch(selectEvent(clickedEvent));
@@ -349,7 +349,7 @@ const Calendar = (props) => {
 
       dateClick(info) {
         if (info.view.type === "dayGridMonth" && width < 540) {
-          calendarApi.changeView("timeGridDay", info.start);
+          calendarApi.changeView("timeGridDay", info.date);
         } else {
           const ev = blankEvent;
           ev.start = info.date;
