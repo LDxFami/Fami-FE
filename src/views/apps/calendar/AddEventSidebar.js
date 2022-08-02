@@ -229,8 +229,8 @@ const AddEventSidebar = (props) => {
         doctor_id: doctor.length > 0 ? doctor[0].id : "",
         customer_id: customer.length ? customer[0].id : "",
         date: moment(startPicker).format("YYYY-MM-DD"),
-        time_start: moment(startTime).format("H:mm:00"),
-        time_end: moment(endTime).format("H:mm:00"),
+        time_start: moment(startTime).format("HH:mm:00"),
+        time_end: moment(endTime).format("HH:mm:00"),
         description: desc,
         status: status[0].value,
       };
@@ -575,7 +575,7 @@ const AddEventSidebar = (props) => {
                 onChange={(date) => setStartTime(date[0])}
                 value={startTime}
                 options={{
-                  dateFormat: "H:i:00",
+                  dateFormat: "H:i",
                   enableTime: true,
                   noCalendar: true,
                   enableSeconds:false,
@@ -599,7 +599,7 @@ const AddEventSidebar = (props) => {
                 onChange={(date) => setEndTime(date[0])}
                 value={endTime}
                 options={{
-                  dateFormat: "H:i:00",
+                  dateFormat: "H:i",
                   enableTime: true,
                   noCalendar: true,
                   time_24hr: true,
