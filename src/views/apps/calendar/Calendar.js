@@ -252,26 +252,13 @@ const Calendar = (props) => {
       now: new Date(),
       scrollTime: scrollTime,
 
-      eventDidMount: function (event) {
-        // console.log(viewCurrent);
-        // const { el } = event;
-        // console.log(1);
-        // let p = document.createElement("span");
-        // let br = document.createElement("br");
-        // p.append(br);
-        // p.className =
-        //   viewCurrent !== "timeGridDay" ? "fc-event-hidden" : "fc-event-description";
-        // var node = document.createTextNode(
-        //   event.event.extendedProps.description
-        // );
-        // p.appendChild(node);
-        // el.querySelectorAll(".fc-event-title")[0].append(p);
-      },
-
       eventContent: function (arg, createElement) {
         const { event } = arg;
         if (arg.view.type === "timeGridDay") {
           return renderEvent(event, arg.view.type);
+        }
+        if (arg.view.type === "dayGridMonth" && width < 540) {
+          return renderMobile(event, arg.view.type);
         }
       },
 
@@ -317,7 +304,7 @@ const Calendar = (props) => {
         hour: "2-digit",
         minute: "2-digit",
       },
-
+      nowIndicator:true,
       eventClassNames({ event: calendarEvent }) {
         // eslint-disable-next-line no-underscore-dangle
         const colorName =
@@ -325,7 +312,7 @@ const Calendar = (props) => {
 
         return [
           // Background Color
-          `bg-light-${colorName} bold`,
+          `bg-light-${colorName} bold `,
         ];
       },
 
@@ -416,17 +403,26 @@ const Calendar = (props) => {
   }, [role, calendarData, initialView]);
 
   const renderEvent = (event, view) => {
-    console.log(event);
     return (
       <>
         <div class="fc-event-time">
-          {moment(event.startStr).format("HH:mm")}
+          {moment(event.startStr).format("HH:mm")} - {moment(event.endStr).format("HH:mm")} 
         </div>
-        <div class="fc-event-title">{event.title}{event.extendedProps.description ? <span class="fc-event-description"> - {event.extendedProps.description}</span> : null}</div>
-       
-
+        <div class="fc-event-title">
+          {event.title}
+          {event.extendedProps.description ? (
+            <span class="fc-event-description">
+              {" "}
+              - {event.extendedProps.description}
+            </span>
+          ) : null}
+        </div>
       </>
     );
+  };
+
+  const renderMobile = (event, view) => {
+    return <div class="fc-daygrid-event-dot" />;
   };
 
   return (
