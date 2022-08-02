@@ -52,6 +52,7 @@ const Calendar = (props) => {
 
     now: new Date(),
     scrollTime: scrollTime,
+    nowIndicator:true,
 
     dayHeaderClassNames: "calendar-header",
     /*
@@ -235,7 +236,6 @@ const Calendar = (props) => {
   }, [store]);
 
   useEffect(() => {
-    console.log();
     const options = {
       locale: viLocale,
       events: calendarData,
