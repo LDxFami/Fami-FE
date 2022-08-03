@@ -130,7 +130,7 @@ const SidebarLeft = (props) => {
                       checked={doctorId.includes(filter.id)}
                       onChange={() => {
                         updateFilter(filter.id);
-                        toggleSidebar();
+                        // toggleSidebar();
                       }}
                     />
                     <Label
