@@ -24,6 +24,7 @@ const SidebarLeft = (props) => {
     doctorId,
     onCheckAll,
     role = "",
+    canCreateAppointment = false
   } = props;
 
   const [filters, setFilters] = useState([]);
@@ -54,7 +55,9 @@ const SidebarLeft = (props) => {
         });
       }
       setFilters(tmpData);
-      onCheckAll(tmpData.map((i) => i.id));
+      if (canCreateAppointment) {
+        onCheckAll(tmpData.map((i) => i.id));
+      }
     }
   }, [doctors]);
 
@@ -77,9 +80,12 @@ const SidebarLeft = (props) => {
     <Fragment>
       <div className="sidebar-wrapper">
         <CardBody className="card-body d-flex justify-content-center my-sm-0 mb-3">
-          <Button color="primary" block onClick={handleAddEventClick}>
-            <span className="align-middle">Thêm lịch hẹn</span>
-          </Button>
+            {
+              canCreateAppointment && 
+              <Button color="primary" block onClick={handleAddEventClick}>
+                <span className="align-middle">Thêm lịch hẹn</span>
+              </Button>
+            }
         </CardBody>
         <CardBody>
           <h5 className="section-label mb-1">

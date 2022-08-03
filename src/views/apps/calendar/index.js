@@ -51,7 +51,7 @@ const CalendarComponent = () => {
   const [addSidebarOpen, setAddSidebarOpen] = useState(false);
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
   const [month, setMonth] = useState(new Date().getMonth() + 1);
-  const [doctorId, setDoctorId] = useState([]);
+  const [doctorId, setDoctorId] = useState(userData?.roles && userData?.roles[0]?.name !== "admin" ? [userData.id] : []);
   // ** Hooks
   const [isRtl] = useRTL();
   // ** AddEventSidebar Toggle Function
@@ -59,6 +59,8 @@ const CalendarComponent = () => {
 
   // ** LeftSidebar Toggle Function
   const toggleSidebar = (val) => setLeftSidebarOpen(val);
+
+  let loaded = false;
 
   // ** Blank Event Object
   const blankEvent = {
@@ -91,12 +93,15 @@ const CalendarComponent = () => {
 
   // ** Fetch Events On Mount
   useEffect(() => {
-    dispatch(
-      getAppointment({
-        month,
-        doctor_id: doctorId.length > 0 ? doctorId.join("_") : null,
-      })
-    );
+    if (doctorId.length > 0 || loaded) {
+      dispatch(
+        getAppointment({
+          month,
+          doctor_id: doctorId.length > 0 ? doctorId.join("_") : null,
+        })
+      );
+    }
+    loaded = true;
   }, [month, doctorId]);
 
   useEffect(() => {
@@ -104,7 +109,6 @@ const CalendarComponent = () => {
       setDoctorId([userData.id]);
     }
   }, [userData]);
-
   const handleMonthChange = (payload) => {
     var middate = new Date(
       (new Date(payload.startStr).getTime() +
@@ -144,7 +148,7 @@ const CalendarComponent = () => {
           >
             {userData &&
             userData.roles &&
-            userData?.roles[0]?.name === "admin" ? (
+            (userData?.roles[0]?.name === "admin" || userData?.roles[0]?.name === "doctor") ? (
               <SidebarLeft
                 doctorId={[...doctorId]}
                 store={store}
@@ -153,6 +157,7 @@ const CalendarComponent = () => {
                 toggleSidebar={toggleSidebar}
                 handleAddEventSidebar={handleAddEventSidebar}
                 onCheckAll={handleCheckAllFilter}
+                canCreateAppointment={userData?.roles[0]?.name === "admin"}
               />
             ) : null}
           </Col>
