@@ -429,6 +429,7 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
   .fc-daygrid-day-events {
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
     .fc-daygrid-event-harness {
       & + .fc-daygrid-event-harness {
         margin-top: 0px !important;

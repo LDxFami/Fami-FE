@@ -294,7 +294,7 @@ const Calendar = (props) => {
     Max number of events within a given day
     ? Docs: https://fullcalendar.io/docs/dayMaxEvents
   */
-      dayMaxEvents: 3,
+      dayMaxEvents: width < 540 ? 30 : 5,
 
       /*
     Determines if day names and week names are clickable
