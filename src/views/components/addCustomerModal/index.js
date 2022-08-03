@@ -36,6 +36,7 @@ import dinersCC from "@src/assets/images/icons/payments/diners-cc.png";
 import maestroCC from "@src/assets/images/icons/payments/maestro-cc.png";
 import discoverCC from "@src/assets/images/icons/payments/discover-cc.png";
 import mastercardCC from "@src/assets/images/icons/payments/mastercard-cc.png";
+import OverlapModal from "../overlapModal";
 
 const cardsObj = {
   jcb: jcbCC,
@@ -70,9 +71,18 @@ const AddCustomerModal = (props) => {
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [errMsg, seterrMsg] = useState("")
+  const [customerConfirmodal, setcustomerConfirmodal] = useState(false)
 
   const onSubmit = (data) => {
-    handleAddCustomer({name,phone});
+    if(name == "" || phone == ""){
+      seterrMsg('Bạn chưa điền đầy đủ thông tin');
+      setcustomerConfirmodal(true);
+      return;
+    }
+    else{
+      handleAddCustomer({name,phone});
+    }
   };
 
   const handleSelectedEvent = () => {
@@ -142,6 +152,14 @@ const AddCustomerModal = (props) => {
           </Row>
         </ModalBody>
       </Modal>
+      <OverlapModal
+          onShowToggle={()=>{setcustomerConfirmodal(false)}}
+          handleOverlap={() => {
+            handleAddCustomer({name,phone});
+          }}
+          message={errMsg}
+          isShow={customerConfirmodal}
+        />
     </Fragment>
   );
 };
