@@ -272,6 +272,7 @@ const Calendar = (props) => {
       },
 
       dayHeaderClassNames: "calendar-header",
+      slotEventOverlap: false,
       /*
     Enable dragging and resizing event
     ? Docs: https://fullcalendar.io/docs/editable
