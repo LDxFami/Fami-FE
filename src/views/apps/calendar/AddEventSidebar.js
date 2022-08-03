@@ -90,7 +90,8 @@ const AddEventSidebar = (props) => {
   const [customerInput, setCustomerInput] = useState({ phone: "", name: "" });
   const [isUpdate, setUpdate] = useState(false);
   const [overlapModal, setoverlapModal] = useState(false);
-  const [overlapMsg, setoverlapMsg] = useState("");
+  const [overlapMsg, setoverlapMsg] = useState("")
+
   //** Effects
   useEffect(() => {
     dispatch(getDoctor());
@@ -458,18 +459,19 @@ const AddEventSidebar = (props) => {
     setCustomerModal(true);
   };
 
-  const onCheckOverlap = async (appointmentInfo) => {
+  const onCheckOverlap = (appointmentInfo) => {
+    var isOverlap;
     dispatch(checkOverlapAppointment(appointmentInfo))
       .unwrap()
       .then((rs) => {
-        console.log(rs);
         if (rs.is_overlap) {
           setoverlapModal(true);
           setoverlapMsg(rs.message);
         }
-        return rs.is_overlap;
+        isOverlap = rs.is_overlap;
       })
       .catch((err) => {});
+    return isOverlap;
   };
 
   return (
@@ -657,14 +659,12 @@ const AddEventSidebar = (props) => {
         />
         <OverlapModal
           onShowToggle={handleToggleOverlap}
-          handleOverlap={() => {
+          handleSubmit={() => {
             isUpdate ? handleUpdateEvent() : handleAddEvent();
-            setoverlapModal(false);
           }}
           message={overlapMsg}
           isShow={overlapModal}
         />
-       
       </PerfectScrollbar>
     </Modal>
   );
