@@ -201,7 +201,7 @@ const AddEventSidebar = (props) => {
             label:
               selectedAppointment.extendedProps?.customer.name +
               " - " +
-              selectedAppointment.extendedProps?.customer.phone,
+              (selectedAppointment.extendedProps?.customer?.phone ?? "Không có SDT"),
             value: selectedAppointment.extendedProps?.customer.id,
             id: selectedAppointment.extendedProps?.customer.id,
           },
