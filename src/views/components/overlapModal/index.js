@@ -52,9 +52,9 @@ const defaultValues = {
   cardNumber: "",
 };
 
-const AddCustomerModal = (props) => {
+const OverlapModal = (props) => {
   //Props
-  const { isShow, onShowToggle, value, handleAddCustomer } = props;
+  const { isShow, onShowToggle,  handleOverlap ,message} = props;
   // ** States
 
   // ** Hooks
@@ -64,22 +64,12 @@ const AddCustomerModal = (props) => {
     setError,
     clearErrors,
     handleSubmit,
-    handleCancle,
     formState: { errors },
   } = useForm({ defaultValues });
 
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
 
   const onSubmit = (data) => {
-    handleAddCustomer({name,phone});
-  };
-
-  const handleSelectedEvent = () => {
-    if (!isObjEmpty(value)) {
-      setName(value.name);
-      setPhone(value.phone);
-    }
+    handleOverlap();
   };
 
   return (
@@ -88,14 +78,13 @@ const AddCustomerModal = (props) => {
         isOpen={isShow}
         toggle={onShowToggle}
         className="modal-dialog-centered"
-        onOpened={() => handleSelectedEvent()}
       >
         <ModalHeader
           className="bg-transparent"
           toggle={onShowToggle}
         ></ModalHeader>
         <ModalBody className="px-sm-5 mx-50 pb-5">
-          <h1 className="text-center mb-1">Thêm khách hàng mới</h1>
+          <h1 className="text-center mb-1">{message}</h1>
           <Row
             tag="form"
             className="gy-1 gx-2 mt-75"
@@ -103,25 +92,8 @@ const AddCustomerModal = (props) => {
           >
             <Col md={6}>
               <Label className="form-label" for="name">
-                Tên khách hàng
+                Bạn có muốn tiếp tục?
               </Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Tên khách hàng..."
-              />
-            </Col>
-            <Col md={6}>
-              <Label className="form-label" for="phone">
-                Số điện thoại
-              </Label>
-              <Input
-                id="phone"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="Số điện thoại..."
-              />
             </Col>
 
             <Col className="text-center mt-1" xs={12}>
@@ -146,4 +118,4 @@ const AddCustomerModal = (props) => {
   );
 };
 
-export default AddCustomerModal;
+export default OverlapModal;
