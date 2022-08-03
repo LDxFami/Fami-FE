@@ -17,6 +17,18 @@ export const getAppointment = createAsyncThunk(
   }
 );
 
+export const checkOverlapAppointment = createAsyncThunk(
+  "appointment/checkOverlapAppointment",
+  async (params, { rejectWithValue }) => {
+    try {
+      const response = await instance.post("/api/appointments/check-overlap", { ...params });
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(err.response.data);
+    }
+  }
+);
+
 export const addAppointment = createAsyncThunk(
   "appointment/addAppointment",
   async (params, { rejectWithValue }) => {
@@ -49,6 +61,11 @@ export const appointmentSlice = createSlice({
       loading: "pending",
       error: "",
     },
+    isOverlap:{
+      data: false,
+      loading: "pending",
+      error: "",
+    },
     appointment: {},
     selectedAppointment: {},
 
@@ -77,6 +94,16 @@ export const appointmentSlice = createSlice({
       .addCase(addAppointment.rejected, (state, action) => {
         // state.appointment.loading = "error";
         // state.appointment.error = action.payload;
+      })
+      .addCase(checkOverlapAppointment.fulfilled, (state, action) => {
+        state.isOverlap.loading = "success";
+      })
+      .addCase(checkOverlapAppointment.pending, (state, action) => {
+        state.isOverlap.loading = "pending";
+      })
+      .addCase(checkOverlapAppointment.rejected, (state, action) => {
+        state.isOverlap.loading = "error";
+        state.isOverlap.error = action.payload;
       })
       .addCase(updateAppointment.fulfilled, (state, action) => {
         state.appointment.loading = "success";

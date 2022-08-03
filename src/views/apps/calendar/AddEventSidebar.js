@@ -42,7 +42,9 @@ import {
   addAppointment,
   selectAppointment,
   updateAppointment,
+  checkOverlapAppointment,
 } from "../../../redux/appointment";
+import OverlapModal from "../../components/overlapModal";
 
 // ** Toast Component
 const ToastComponent = ({ title, icon, color, message = "" }) => (
@@ -87,6 +89,8 @@ const AddEventSidebar = (props) => {
   const [customerModal, setCustomerModal] = useState(false);
   const [customerInput, setCustomerInput] = useState({ phone: "", name: "" });
   const [isUpdate, setUpdate] = useState(false);
+  const [overlapModal, setoverlapModal] = useState(false);
+  const [overlapMsg, setoverlapMsg] = useState("")
 
   //** Effects
   useEffect(() => {
@@ -119,42 +123,44 @@ const AddEventSidebar = (props) => {
       status,
       description: desc,
     };
-    dispatch(addAppointment(appointmentInfo))
-      .unwrap()
-      .then(() => {
-        toast.success(
-          <ToastComponent
-            title="Đã thêm lịch hẹn"
-            color="success"
-            icon={<Check />}
-          />,
-          {
-            icon: false,
-            autoClose: 2000,
-            hideProgressBar: true,
-            closeButton: false,
-          }
-        );
-        refetchEvents();
-        handleAddEventSidebar();
-      })
-      .catch((err) => {
-        const {error} = err;
-        toast.error(
-          <ToastComponent
-            title="Có lỗi xảy ra"
-            color="warning"
-            icon={<Check />}
-            message={error}
-          />,
-          {
-            icon: false,
-            autoClose: 2000,
-            hideProgressBar: true,
-            closeButton: false,
-          }
-        );
-      });
+    if (!onCheckOverlap(appointmentInfo)) {
+      dispatch(addAppointment(appointmentInfo))
+        .unwrap()
+        .then(() => {
+          toast.success(
+            <ToastComponent
+              title="Đã thêm lịch hẹn"
+              color="success"
+              icon={<Check />}
+            />,
+            {
+              icon: false,
+              autoClose: 2000,
+              hideProgressBar: true,
+              closeButton: false,
+            }
+          );
+          refetchEvents();
+          handleAddEventSidebar();
+        })
+        .catch((err) => {
+          const { error } = err;
+          toast.error(
+            <ToastComponent
+              title="Có lỗi xảy ra"
+              color="warning"
+              icon={<Check />}
+              message={error}
+            />,
+            {
+              icon: false,
+              autoClose: 2000,
+              hideProgressBar: true,
+              closeButton: false,
+            }
+          );
+        });
+    }
   };
 
   // ** Reset Input Values on Close
@@ -201,7 +207,8 @@ const AddEventSidebar = (props) => {
             label:
               selectedAppointment.extendedProps?.customer.name +
               " - " +
-              (selectedAppointment.extendedProps?.customer?.phone ?? "Không có SDT"),
+              (selectedAppointment.extendedProps?.customer?.phone ??
+                "Không có SDT"),
             value: selectedAppointment.extendedProps?.customer.id,
             id: selectedAppointment.extendedProps?.customer.id,
           },
@@ -234,45 +241,47 @@ const AddEventSidebar = (props) => {
         description: desc,
         status: status[0].value,
       };
-      dispatch(updateAppointment(appointmentInfo))
-        .unwrap()
-        .then(() => {
-          toast.success(
-            <ToastComponent
-              title="Đã cập nhật lịch hẹn"
-              color="success"
-              icon={<Check />}
-            />,
-            {
-              icon: false,
-              autoClose: 2000,
-              hideProgressBar: true,
-              closeButton: false,
-            }
-          );
-          refetchEvents();
-          handleAddEventSidebar();
-        })
-        .catch((err) => {
-          const { error } = err;
-          toast.error(
-            <ToastComponent
-              title="Có lỗi xảy ra"
-              color="warning"
-              icon={<Check />}
-              message={error}
-            />,
-            {
-              icon: false,
-              autoClose: 2000,
-              hideProgressBar: true,
-              closeButton: false,
-            }
-          );
-          setError("title", {
-            type: "manual",
+      if (!onCheckOverlap(appointmentInfo)) {
+        dispatch(updateAppointment(appointmentInfo))
+          .unwrap()
+          .then(() => {
+            toast.success(
+              <ToastComponent
+                title="Đã cập nhật lịch hẹn"
+                color="success"
+                icon={<Check />}
+              />,
+              {
+                icon: false,
+                autoClose: 2000,
+                hideProgressBar: true,
+                closeButton: false,
+              }
+            );
+            refetchEvents();
+            handleAddEventSidebar();
+          })
+          .catch((err) => {
+            const { error } = err;
+            toast.error(
+              <ToastComponent
+                title="Có lỗi xảy ra"
+                color="warning"
+                icon={<Check />}
+                message={error}
+              />,
+              {
+                icon: false,
+                autoClose: 2000,
+                hideProgressBar: true,
+                closeButton: false,
+              }
+            );
+            setError("title", {
+              type: "manual",
+            });
           });
-        });
+      }
     }
   };
 
@@ -337,6 +346,10 @@ const AddEventSidebar = (props) => {
 
   const handleToggleModal = () => {
     setCustomerModal(!customerModal);
+  };
+
+  const handleToggleOverlap = () => {
+    setoverlapModal(false);
   };
 
   const handleAddCustomer = async (customerInfo) => {
@@ -414,17 +427,6 @@ const AddEventSidebar = (props) => {
     );
   };
 
-  // const onDoctorInputChange = useCallback(
-  //   _.debounce(async (inputValue) => {
-  //     const originalPromiseResult = await dispatch(
-  //       getDoctor({ search_param: inputValue })
-  //     );
-  //     const resultAction = unwrapResult(originalPromiseResult);
-  //     return resultAction.data.items;
-  //   }, 100),
-  //   []
-  // );
-
   const onDoctorInputChange = async (inputValue) => {
     const originalPromiseResult = await dispatch(
       getDoctor({ search_param: inputValue })
@@ -456,6 +458,21 @@ const AddEventSidebar = (props) => {
     setCustomerModal(true);
   };
 
+  const onCheckOverlap = (appointmentInfo) => {
+    var isOverlap;
+    dispatch(checkOverlapAppointment(appointmentInfo))
+      .unwrap()
+      .then((rs) => {
+        if (rs.is_overlap) {
+          setoverlapModal(true);
+          setoverlapMsg(rs.message);
+        }
+        isOverlap = rs.is_overlap;
+      })
+      .catch((err) => {});
+    return isOverlap;
+  };
+
   return (
     <Modal
       isOpen={open}
@@ -481,23 +498,6 @@ const AddEventSidebar = (props) => {
           <Form
             onSubmit={handleSubmit(() => {
               handleAddEvent();
-              // if (data.title.length) {
-              //   if (isObjEmpty(errors)) {
-              //     if (
-              //       isObjEmpty(selectedEvent) ||
-              //       (!isObjEmpty(selectedEvent) && !selectedEvent.title.length)
-              //     ) {
-              //       handleAddEvent();
-              //     } else {
-              //       handleUpdateEvent();
-              //     }
-              //     handleAddEventSidebar();
-              //   }
-              // } else {
-              //   setError("title", {
-              //     type: "manual",
-              //   });
-              // }
             })}
           >
             <div className="mb-1">
@@ -520,7 +520,9 @@ const AddEventSidebar = (props) => {
                 onCreateOption={handleCreate}
                 loadOptions={promiseOptions}
                 isDisabled={role != "admin"}
-                formatCreateLabel={(inputValue)=>{return `Tạo khách hàng "${inputValue}"`}}
+                formatCreateLabel={(inputValue) => {
+                  return `Tạo khách hàng "${inputValue}"`;
+                }}
               />
             </div>
 
@@ -578,7 +580,7 @@ const AddEventSidebar = (props) => {
                   dateFormat: "H:i",
                   enableTime: true,
                   noCalendar: true,
-                  enableSeconds:false,
+                  enableSeconds: false,
                   time_24hr: true,
                 }}
                 disabled={role != "admin"}
@@ -603,7 +605,7 @@ const AddEventSidebar = (props) => {
                   enableTime: true,
                   noCalendar: true,
                   time_24hr: true,
-                  enableSeconds:false
+                  enableSeconds: false,
                 }}
                 disabled={role != "admin"}
               />
@@ -654,6 +656,14 @@ const AddEventSidebar = (props) => {
           handleAddCustomer={(customerInfo) => {
             handleAddCustomer(customerInfo);
           }}
+        />
+        <OverlapModal
+          onShowToggle={handleToggleOverlap}
+          handleSubmit={() => {
+            isUpdate ? handleUpdateEvent() : handleAddEvent();
+          }}
+          message={overlapMsg}
+          isShow={overlapModal}
         />
       </PerfectScrollbar>
     </Modal>
