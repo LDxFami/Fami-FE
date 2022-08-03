@@ -210,14 +210,14 @@ const AddEventSidebar = (props) => {
       setDoctor(
         [
           {
-            label: selectedAppointment.extendedProps?.doctor.name,
-            value: selectedAppointment.extendedProps?.doctor.id,
-            id: selectedAppointment.extendedProps?.doctor.id,
+            label: selectedAppointment.extendedProps?.doctor?.name,
+            value: selectedAppointment.extendedProps?.doctor?.id,
+            id: selectedAppointment.extendedProps?.doctor?.id,
           },
         ] || null
       );
-      setInputChangeHandler(selectedAppointment.extendedProps?.customer.name);
-      onDoctorInputChange(selectedAppointment.extendedProps?.doctor.name);
+      setInputChangeHandler(selectedAppointment.extendedProps?.customer?.name);
+      onDoctorInputChange(selectedAppointment.extendedProps?.doctor?.name);
     }
   };
 
