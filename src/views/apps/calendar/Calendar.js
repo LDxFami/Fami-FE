@@ -263,6 +263,9 @@ const Calendar = (props) => {
         if (arg.view.type === "timeGridDay") {
           return renderEvent(event, arg.view.type);
         }
+        if (arg.view.type === "listMonth") {
+          return renderAdminList(event, arg.view.type, width);
+        }
         if (arg.view.type === "dayGridMonth" && width < 540) {
           return renderMobile(event, arg.view.type);
         }
@@ -419,14 +422,14 @@ const Calendar = (props) => {
   const renderEvent = (event, view) => {
     return (
       <>
-        <div class="fc-event-time">
+        <div className="fc-event-time">
           {moment(event.startStr).format("HH:mm")} -{" "}
           {moment(event.endStr).format("HH:mm")}
         </div>
-        <div class="fc-event-title">
+        <div className="fc-event-title">
           {event.title}
           {event.extendedProps.description ? (
-            <span class="fc-event-description">
+            <span className="fc-event-description">
               {" "}
               - {event.extendedProps.description}
             </span>
@@ -436,8 +439,25 @@ const Calendar = (props) => {
     );
   };
 
+  const renderAdminList = (event, view, width) => {
+    if (width > 540) {
+      return (
+        <>
+          <div className="fw-bold">{event.title}</div>
+          {event.extendedProps.doctor?.name ?? "Chưa có BS"}
+          {event.extendedProps.description ? " - " + event.extendedProps.description : ''}
+        </>);
+    }
+    
+    return (
+      <>
+        <div className="fw-bold">{event.title}</div>
+        {event.extendedProps.description}
+      </>);
+  };
+
   const renderMobile = (event, view) => {
-    return <div class="fc-daygrid-event-dot" />;
+    return <div className="fc-daygrid-event-dot" />;
   };
 
   return (
