@@ -79,8 +79,8 @@ const AddEventSidebar = (props) => {
   // ** States
   const [desc, setDesc] = useState("");
   const [status, setStatus] = useState({ value: 1, label: "Hiệu lực" });
-  const [startTime, setStartTime] = useState(new Date().setMinutes(0));
-  const [endTime, setEndTime] = useState(new Date().setMinutes(0));
+  const [startTime, setStartTime] = useState((new Date()).getHours() + ":00");
+  const [endTime, setEndTime] = useState((new Date()).getHours() + ":00");
   const [startPicker, setStartPicker] = useState(new Date());
   const [customer, setCustomer] = useState();
   const [doctor, setDoctor] = useState();
@@ -591,7 +591,6 @@ const AddEventSidebar = (props) => {
               </Label>
               <Flatpickr
                 required
-                enableTime
                 noCalendar
                 id="endTime"
                 name="endTime"
