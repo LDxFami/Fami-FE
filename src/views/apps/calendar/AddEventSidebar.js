@@ -407,7 +407,7 @@ const AddEventSidebar = (props) => {
     const rs = await setInputChangeHandler(inputValue);
     callback(
       rs.map((i) => ({
-        label: i.name + " - " + i.phone,
+        label: i.name + " - " + (i.phone ?? "Không có SĐT"),
         value: i.id,
         id: i.id,
       }))
