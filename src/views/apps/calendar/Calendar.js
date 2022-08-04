@@ -271,6 +271,7 @@ const Calendar = (props) => {
         }
       },
 
+
       dayHeaderClassNames: "calendar-header",
       slotEventOverlap: false,
       /*
@@ -464,9 +465,9 @@ const Calendar = (props) => {
 
     return (
       <>
-        <div class={`fc-daygrid-event-dot border-color-${calendarsColor[event.extendedProps.status ?? 1]}`}></div>
-        <div class="fc-event-time">{moment(event.startStr).format("HH:mm")}</div>
-        <div class="fc-event-title">{event.extendedProps.customer?.name}</div>
+        <div className={`fc-daygrid-event-dot border-color-${calendarsColor[event.extendedProps.status ?? 1]}`}></div>
+        <div className="fc-event-time">{moment(event.startStr).format("HH:mm")}</div>
+        <div className="fc-event-title">{event.extendedProps.customer?.name}</div>
       </>
     );
   };
