@@ -156,6 +156,7 @@ const AddCustomerModal = (props) => {
           onShowToggle={()=>{setcustomerConfirmodal(false)}}
           handleOverlap={() => {
             handleAddCustomer({name,phone});
+            setcustomerConfirmodal(false)
           }}
           message={errMsg}
           isShow={customerConfirmodal}

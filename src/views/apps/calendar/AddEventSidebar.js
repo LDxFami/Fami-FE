@@ -114,7 +114,7 @@ const AddEventSidebar = (props) => {
   ];
 
   // ** Adds New Event
-  const handleAddEvent = () => {
+  const handleAddEvent =  () => {
     const appointmentInfo = {
       doctor_id: doctor && doctor.length > 0 ? doctor[0].id : "",
       customer_id: customer && customer.length > 0 ? customer[0].id : "",
@@ -124,44 +124,42 @@ const AddEventSidebar = (props) => {
       status,
       description: desc,
     };
-    if (!onCheckOverlap(appointmentInfo)) {
-      dispatch(addAppointment(appointmentInfo))
-        .unwrap()
-        .then(() => {
-          toast.success(
-            <ToastComponent
-              title="Đã thêm lịch hẹn"
-              color="success"
-              icon={<Check />}
-            />,
-            {
-              icon: false,
-              autoClose: 2000,
-              hideProgressBar: true,
-              closeButton: false,
-            }
-          );
-          refetchEvents();
-          handleAddEventSidebar();
-        })
-        .catch((err) => {
-          const { error } = err;
-          toast.error(
-            <ToastComponent
-              title="Có lỗi xảy ra"
-              color="warning"
-              icon={<Check />}
-              message={error}
-            />,
-            {
-              icon: false,
-              autoClose: 2000,
-              hideProgressBar: true,
-              closeButton: false,
-            }
-          );
-        });
-    }
+    dispatch(addAppointment(appointmentInfo))
+      .unwrap()
+      .then(() => {
+        toast.success(
+          <ToastComponent
+            title="Đã thêm lịch hẹn"
+            color="success"
+            icon={<Check />}
+          />,
+          {
+            icon: false,
+            autoClose: 2000,
+            hideProgressBar: true,
+            closeButton: false,
+          }
+        );
+        refetchEvents();
+        handleAddEventSidebar();
+      })
+      .catch((err) => {
+        const { error } = err;
+        toast.error(
+          <ToastComponent
+            title="Có lỗi xảy ra"
+            color="warning"
+            icon={<Check />}
+            message={error}
+          />,
+          {
+            icon: false,
+            autoClose: 2000,
+            hideProgressBar: true,
+            closeButton: false,
+          }
+        );
+      });
   };
 
   // ** Reset Input Values on Close
@@ -242,47 +240,45 @@ const AddEventSidebar = (props) => {
         description: desc,
         status: status[0].value,
       };
-      if (!onCheckOverlap(appointmentInfo)) {
-        dispatch(updateAppointment(appointmentInfo))
-          .unwrap()
-          .then(() => {
-            toast.success(
-              <ToastComponent
-                title="Đã cập nhật lịch hẹn"
-                color="success"
-                icon={<Check />}
-              />,
-              {
-                icon: false,
-                autoClose: 2000,
-                hideProgressBar: true,
-                closeButton: false,
-              }
-            );
-            refetchEvents();
-            handleAddEventSidebar();
-          })
-          .catch((err) => {
-            const { error } = err;
-            toast.error(
-              <ToastComponent
-                title="Có lỗi xảy ra"
-                color="warning"
-                icon={<Check />}
-                message={error}
-              />,
-              {
-                icon: false,
-                autoClose: 2000,
-                hideProgressBar: true,
-                closeButton: false,
-              }
-            );
-            setError("title", {
-              type: "manual",
-            });
+      dispatch(updateAppointment(appointmentInfo))
+        .unwrap()
+        .then(() => {
+          toast.success(
+            <ToastComponent
+              title="Đã cập nhật lịch hẹn"
+              color="success"
+              icon={<Check />}
+            />,
+            {
+              icon: false,
+              autoClose: 2000,
+              hideProgressBar: true,
+              closeButton: false,
+            }
+          );
+          refetchEvents();
+          handleAddEventSidebar();
+        })
+        .catch((err) => {
+          const { error } = err;
+          toast.error(
+            <ToastComponent
+              title="Có lỗi xảy ra"
+              color="warning"
+              icon={<Check />}
+              message={error}
+            />,
+            {
+              icon: false,
+              autoClose: 2000,
+              hideProgressBar: true,
+              closeButton: false,
+            }
+          );
+          setError("title", {
+            type: "manual",
           });
-      }
+        });
     }
   };
 
@@ -330,7 +326,7 @@ const AddEventSidebar = (props) => {
             <Button
               className="me-1"
               color="primary"
-              onClick={handleUpdateEvent}
+              onClick={onCheckOverlap}
             >
               Cập nhật
             </Button>
@@ -459,16 +455,27 @@ const AddEventSidebar = (props) => {
     setCustomerModal(true);
   };
 
-  const onCheckOverlap = (appointmentInfo) => {
-    var isOverlap;
-    dispatch(checkOverlapAppointment(appointmentInfo))
+  const onCheckOverlap = async () => {
+    var isOverlap = false;
+    const appointmentInfo = {
+      id: isUpdate ? selectedAppointment?.extendedProps?.id : null,
+      doctor_id: doctor.length > 0 ? doctor[0].id : "",
+      customer_id: customer.length ? customer[0].id : "",
+      date: moment(startPicker).format("YYYY-MM-DD"),
+      time_start: moment(startTime).format("HH:mm:00"),
+      time_end: moment(endTime).format("HH:mm:00"),
+      description: desc,
+      status: status.length ? status[0].value : 1,
+    };
+    await dispatch(checkOverlapAppointment(appointmentInfo))
       .unwrap()
       .then((rs) => {
         if (rs.is_overlap) {
           setoverlapModal(true);
           setoverlapMsg(rs.message);
+        } else {
+          isUpdate ? handleUpdateEvent() : handleAddEvent();
         }
-        isOverlap = rs.is_overlap;
       })
       .catch((err) => {});
     return isOverlap;
@@ -498,7 +505,7 @@ const AddEventSidebar = (props) => {
         <ModalBody className="flex-grow-1 pb-sm-0 pb-3">
           <Form
             onSubmit={handleSubmit(() => {
-              handleAddEvent();
+              onCheckOverlap();
             })}
           >
             <div className="mb-1">
