@@ -117,6 +117,10 @@
       }
 
       // Border colors
+      .border-color-#{$color_name} {
+        border-color: $color_value !important;
+      }
+
       .border-#{$color_name} {
         border: 1px solid $color_value !important;
       }

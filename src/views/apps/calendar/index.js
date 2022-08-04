@@ -34,8 +34,9 @@ import { getUser } from "../../../redux/user";
 
 // ** CalendarColors
 const calendarsColor = {
+  2: "success",
   1: "primary",
-  0: "warning",
+  0: "danger",
 };
 
 const CalendarComponent = () => {

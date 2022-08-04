@@ -106,6 +106,7 @@ const AddEventSidebar = (props) => {
   const statusOptions = [
     { value: 0, label: "Đã huỷ" },
     { value: 1, label: "Hiệu lực" },
+    { value: 2, label: "Đã hoàn thành" },
   ];
 
   // ** Adds New Event

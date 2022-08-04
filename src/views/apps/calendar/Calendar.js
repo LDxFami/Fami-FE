@@ -266,8 +266,8 @@ const Calendar = (props) => {
         if (arg.view.type === "listMonth") {
           return renderAdminList(event, arg.view.type, width);
         }
-        if (arg.view.type === "dayGridMonth" && width < 540) {
-          return renderMobile(event, arg.view.type);
+        if (arg.view.type === "dayGridMonth") {
+          return renderDayGridMonth(event, arg.view.type, width);
         }
       },
 
@@ -457,8 +457,18 @@ const Calendar = (props) => {
       </>);
   };
 
-  const renderMobile = (event, view) => {
-    return <div className="fc-daygrid-event-dot" />;
+  const renderDayGridMonth = (event, view, width) => {
+    if (width < 540) {
+      return <div className="fc-daygrid-event-dot" />;
+    }
+
+    return (
+      <>
+        <div class={`fc-daygrid-event-dot border-color-${calendarsColor[event.extendedProps.status ?? 1]}`}></div>
+        <div class="fc-event-time">{moment(event.startStr).format("HH:mm")}</div>
+        <div class="fc-event-title">{event.extendedProps.customer?.name}</div>
+      </>
+    );
   };
 
   return (
