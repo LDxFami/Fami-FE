@@ -240,45 +240,47 @@ const AddEventSidebar = (props) => {
         description: desc,
         status: status[0].value,
       };
-      dispatch(updateAppointment(appointmentInfo))
-        .unwrap()
-        .then(() => {
-          toast.success(
-            <ToastComponent
-              title="Đã cập nhật lịch hẹn"
-              color="success"
-              icon={<Check />}
-            />,
-            {
-              icon: false,
-              autoClose: 2000,
-              hideProgressBar: true,
-              closeButton: false,
-            }
-          );
-          refetchEvents();
-          handleAddEventSidebar();
-        })
-        .catch((err) => {
-          const { error } = err;
-          toast.error(
-            <ToastComponent
-              title="Có lỗi xảy ra"
-              color="warning"
-              icon={<Check />}
-              message={error}
-            />,
-            {
-              icon: false,
-              autoClose: 2000,
-              hideProgressBar: true,
-              closeButton: false,
-            }
-          );
-          setError("title", {
-            type: "manual",
+      if (!onCheckOverlap(appointmentInfo)) {
+        dispatch(updateAppointment(appointmentInfo))
+          .unwrap()
+          .then(() => {
+            toast.success(
+              <ToastComponent
+                title="Đã cập nhật lịch hẹn"
+                color="success"
+                icon={<Check />}
+              />,
+              {
+                icon: false,
+                autoClose: 2000,
+                hideProgressBar: true,
+                closeButton: false,
+              }
+            );
+            refetchEvents();
+            handleAddEventSidebar();
+          })
+          .catch((err) => {
+            const { error } = err;
+            toast.error(
+              <ToastComponent
+                title="Có lỗi xảy ra"
+                color="warning"
+                icon={<Check />}
+                message={error}
+              />,
+              {
+                icon: false,
+                autoClose: 2000,
+                hideProgressBar: true,
+                closeButton: false,
+              }
+            );
+            setError("title", {
+              type: "manual",
+            });
           });
-        });
+      }
     }
   };
 
