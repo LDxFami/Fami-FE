@@ -1,52 +1,22 @@
 // ** React Imports
-import { Fragment, useEffect, useState } from "react";
+import { Fragment } from "react";
 
 // ** Reactstrap Imports
 import {
   Row,
   Col,
-  Card,
   Modal,
   Label,
-  Input,
   Button,
-  CardBody,
-  CardText,
-  CardTitle,
   ModalBody,
-  InputGroup,
   ModalHeader,
-  FormFeedback,
-  InputGroupText,
 } from "reactstrap";
 
 // ** Third Party Components
-import classnames from "classnames";
-import Cleave from "cleave.js/react";
-import { Check, X, CreditCard } from "react-feather";
-import { useForm, Controller } from "react-hook-form";
-import { isObjEmpty } from "@utils";
+import { useForm } from "react-hook-form";
 
 // ** Images
-import jcbCC from "@src/assets/images/icons/payments/jcb-cc.png";
-import amexCC from "@src/assets/images/icons/payments/amex-cc.png";
-import uatpCC from "@src/assets/images/icons/payments/uatp-cc.png";
-import visaCC from "@src/assets/images/icons/payments/visa-cc.png";
-import dinersCC from "@src/assets/images/icons/payments/diners-cc.png";
-import maestroCC from "@src/assets/images/icons/payments/maestro-cc.png";
-import discoverCC from "@src/assets/images/icons/payments/discover-cc.png";
-import mastercardCC from "@src/assets/images/icons/payments/mastercard-cc.png";
 
-const cardsObj = {
-  jcb: jcbCC,
-  uatp: uatpCC,
-  visa: visaCC,
-  amex: amexCC,
-  diners: dinersCC,
-  maestro: maestroCC,
-  discover: discoverCC,
-  mastercard: mastercardCC,
-};
 
 const defaultValues = {
   cardNumber: "",
@@ -60,15 +30,11 @@ const OverlapModal = (props) => {
   // ** Hooks
   const {
     reset,
-    control,
-    setError,
-    clearErrors,
     handleSubmit,
-    formState: { errors },
   } = useForm({ defaultValues });
 
 
-  const onSubmit = (data) => {
+  const onSubmit = () => {
     handleOverlap();
   };
 

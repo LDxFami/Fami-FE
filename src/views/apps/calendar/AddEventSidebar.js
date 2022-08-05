@@ -668,7 +668,7 @@ const AddEventSidebar = (props) => {
         />
         <OverlapModal
           onShowToggle={handleToggleOverlap}
-          handleSubmit={() => {
+          handleOverlap={() => {
             isUpdate ? handleUpdateEvent() : handleAddEvent();
             setoverlapModal(false);
           }}

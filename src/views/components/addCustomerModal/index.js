@@ -71,17 +71,16 @@ const AddCustomerModal = (props) => {
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [errMsg, seterrMsg] = useState("")
-  const [customerConfirmodal, setcustomerConfirmodal] = useState(false)
+  const [errMsg, seterrMsg] = useState("");
+  const [customerConfirmodal, setcustomerConfirmodal] = useState(false);
 
   const onSubmit = (data) => {
-    if(name == "" || phone == ""){
-      seterrMsg('Bạn chưa điền đầy đủ thông tin');
+    if (name == "" || phone == "") {
+      seterrMsg("Bạn chưa điền đầy đủ thông tin");
       setcustomerConfirmodal(true);
       return;
-    }
-    else{
-      handleAddCustomer({name,phone});
+    } else {
+      handleAddCustomer({ name, phone });
     }
   };
 
@@ -90,6 +89,11 @@ const AddCustomerModal = (props) => {
       setName(value.name);
       setPhone(value.phone);
     }
+  };
+
+  const onOverlapModalSubmit = () => {
+    handleAddCustomer({ name, phone });
+    setcustomerConfirmodal(false);
   };
 
   return (
@@ -153,14 +157,11 @@ const AddCustomerModal = (props) => {
         </ModalBody>
       </Modal>
       <OverlapModal
-          onShowToggle={()=>{setcustomerConfirmodal(false)}}
-          handleOverlap={() => {
-            handleAddCustomer({name,phone});
-            setcustomerConfirmodal(false)
-          }}
-          message={errMsg}
-          isShow={customerConfirmodal}
-        />
+        onShowToggle={() => setcustomerConfirmodal(false)}
+        handleOverlap={onOverlapModalSubmit}
+        message={errMsg}
+        isShow={customerConfirmodal}
+      />
     </Fragment>
   );
 };
