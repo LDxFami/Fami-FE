@@ -79,8 +79,8 @@ const AddEventSidebar = (props) => {
   // ** States
   const [desc, setDesc] = useState("");
   const [status, setStatus] = useState({ value: 1, label: "Hiệu lực" });
-  const [startTime, setStartTime] = useState((new Date()).getHours() + ":00");
-  const [endTime, setEndTime] = useState((new Date()).getHours() + ":00");
+  const [startTime, setStartTime] = useState((new Date()).setHours(8,0,0,0));
+  const [endTime, setEndTime] = useState((new Date()).setHours(8,30,0,0));
   const [startPicker, setStartPicker] = useState(new Date());
   const [customer, setCustomer] = useState();
   const [doctor, setDoctor] = useState();
@@ -165,8 +165,8 @@ const AddEventSidebar = (props) => {
     setCustomer(null);
     setDoctor(null);
     setStartPicker(new Date());
-    setStartTime(new Date());
-    setEndTime(new Date());
+    setStartTime((new Date()).setHours(8,0,0,0));
+    setEndTime((new Date()).setHours(8,30,0,0));
     dispatch(selectAppointment({}));
     setStatus({ value: 1, label: "Hiệu lực" });
     dispatch(getDoctor());
@@ -559,6 +559,9 @@ const AddEventSidebar = (props) => {
                 value={startPicker}
                 options={{
                   dateFormat: "Y-m-d",
+                  locale: {
+                    firstDayOfWeek: 1
+                  }
                 }}
                 disabled={role != "admin"}
               />
@@ -592,7 +595,6 @@ const AddEventSidebar = (props) => {
               </Label>
               <Flatpickr
                 required
-                noCalendar
                 id="endTime"
                 name="endTime"
                 className="form-control"
