@@ -64,7 +64,7 @@ const OverlapModal = (props) => {
 
             <Col className="text-center mt-1" xs={12}>
               <Button type="submit" className="me-1" color="primary">
-                Thêm
+                Tiếp tục
               </Button>
               <Button
                 color="secondary"
