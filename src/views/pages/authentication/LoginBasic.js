@@ -275,9 +275,6 @@ const LoginBasic = () => {
                   <Label className="form-label" for="login-password">
                     Mật khẩu
                   </Label>
-                  <Link to="/pages/forgot-password-basic">
-                    <small>Quên mật khẩu?</small>
-                  </Link>
                 </div>
                 <Controller
                   id="password"
@@ -292,12 +289,12 @@ const LoginBasic = () => {
                   )}
                 />
               </div>
-              <div className="form-check mb-1">
+              {/* <div className="form-check mb-1">
                 <Input type="checkbox" id="remember-me" />
                 <Label className="form-check-label" for="remember-me">
                   Lưu tài khoản
                 </Label>
-              </div>
+              </div> */}
               <Button color="primary" block>
                 Đăng nhập
               </Button>
