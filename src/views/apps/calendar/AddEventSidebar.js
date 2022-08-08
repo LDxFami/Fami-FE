@@ -240,7 +240,6 @@ const AddEventSidebar = (props) => {
         description: desc,
         status: status[0].value,
       };
-      if (!onCheckOverlap(appointmentInfo)) {
         dispatch(updateAppointment(appointmentInfo))
           .unwrap()
           .then(() => {
@@ -280,7 +279,6 @@ const AddEventSidebar = (props) => {
               type: "manual",
             });
           });
-      }
     }
   };
 
