@@ -63,7 +63,7 @@ const ToastComponent = ({ title, icon, color, message = "" }) => (
 
 const AddEventSidebar = (props) => {
   // ** Props
-  const { role, open, dispatch, refetchEvents, handleAddEventSidebar } = props;
+  const { canModify, role, open, dispatch, refetchEvents, handleAddEventSidebar } = props;
 
   // ** Vars & Hooks
   const { setError, setValue, getValues, handleSubmit } = useForm({
@@ -300,7 +300,7 @@ const AddEventSidebar = (props) => {
 
   // ** Event Action buttons
   const EventActions = () => {
-    if (role == "admin") {
+    if (canModify) {
       if (
         isObjEmpty(selectedAppointment) ||
         (!isObjEmpty(selectedAppointment) && !selectedAppointment.title.length)
@@ -459,8 +459,8 @@ const AddEventSidebar = (props) => {
     var isOverlap = false;
     const appointmentInfo = {
       id: isUpdate ? selectedAppointment?.extendedProps?.id : null,
-      doctor_id: doctor.length > 0 ? doctor[0].id : "",
-      customer_id: customer.length ? customer[0].id : "",
+      doctor_id: doctor && doctor.length > 0 ? doctor[0].id : "",
+      customer_id: customer && customer.length ? customer[0].id : "",
       date: moment(startPicker).format("YYYY-MM-DD"),
       time_start: moment(startTime).format("HH:mm:00"),
       time_end: moment(endTime).format("HH:mm:00"),
@@ -527,7 +527,7 @@ const AddEventSidebar = (props) => {
                 // }}
                 onCreateOption={handleCreate}
                 loadOptions={promiseOptions}
-                isDisabled={role != "admin"}
+                isDisabled={!canModify}
                 formatCreateLabel={(inputValue) => {
                   return `Tạo khách hàng "${inputValue}"`;
                 }}
@@ -550,7 +550,7 @@ const AddEventSidebar = (props) => {
                 // components={{
                 //   Option: OptionComponent,
                 // }}
-                isDisabled={role != "admin"}
+                isDisabled={!canModify}
                 loadOptions={doctorPromiseOptions}
               />
             </div>
@@ -572,7 +572,7 @@ const AddEventSidebar = (props) => {
                     firstDayOfWeek: 1
                   }
                 }}
-                disabled={role != "admin"}
+                disabled={!canModify}
               />
             </div>
 
@@ -594,7 +594,7 @@ const AddEventSidebar = (props) => {
                   enableSeconds: false,
                   time_24hr: true,
                 }}
-                disabled={role != "admin"}
+                disabled={!canModify}
               />
             </div>
 
@@ -616,7 +616,7 @@ const AddEventSidebar = (props) => {
                   time_24hr: true,
                   enableSeconds: false,
                 }}
-                disabled={role != "admin"}
+                disabled={!canModify}
               />
             </div>
             <div className="mb-1">
@@ -631,7 +631,7 @@ const AddEventSidebar = (props) => {
                 value={desc}
                 onChange={(e) => setDesc(e.target.value)}
                 placeholder="Mô tả..."
-                disabled={role != "admin"}
+                disabled={!canModify}
               />
             </div>
 
@@ -649,7 +649,7 @@ const AddEventSidebar = (props) => {
                 classNamePrefix="select"
                 isClearable={false}
                 onChange={(data) => setStatus([data])}
-                isDisabled={!isUpdate || role != "admin"}
+                isDisabled={!isUpdate || !canModify}
               />
             </div>
 

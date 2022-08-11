@@ -81,7 +81,10 @@ const CalendarComponent = () => {
   // ** refetchEvents
   const refetchEvents = () => {
     dispatch(getDoctor());
-    dispatch(getAppointment({ month }));
+    dispatch(getAppointment({ 
+      month, 
+      doctor_id: doctorId.length > 0 ? doctorId.join("_") : null
+    }));
     if (calendarApi !== null) {
       calendarApi.refetchEvents();
     }
@@ -94,7 +97,7 @@ const CalendarComponent = () => {
 
   // ** Fetch Events On Mount
   useEffect(() => {
-    if (doctorId.length > 0 || loaded) {
+    if (userData && (doctorId.length > 0 || loaded)) {
       dispatch(
         getAppointment({
           month,
@@ -158,7 +161,7 @@ const CalendarComponent = () => {
                 toggleSidebar={toggleSidebar}
                 handleAddEventSidebar={handleAddEventSidebar}
                 onCheckAll={handleCheckAllFilter}
-                canCreateAppointment={userData?.roles[0]?.name === "admin"}
+                canCreateAppointment={userData?.roles[0]?.name === "admin" || userData?.group?.slug == 'medic'}
               />
             ) : null}
           </Col>
@@ -191,6 +194,7 @@ const CalendarComponent = () => {
       <AddEventSidebar
         store={store}
         role={userData?.roles ? userData?.roles[0]?.name : ""}
+        canModify={(userData?.roles ? userData?.roles[0]?.name : "") == 'admin' || userData?.group?.slug == 'medic'}
         dispatch={dispatch}
         addEvent={addEvent}
         open={addSidebarOpen}
