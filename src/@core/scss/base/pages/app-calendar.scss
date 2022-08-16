@@ -34,6 +34,29 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
         box-shadow: none !important;
       }
     }
+    .fc-customerSearch-button {
+      padding: 0px !important;
+      background-color: #ffffff;
+      border: 0px;
+      display: block;
+      max-width: 200px;
+      width: 200px;
+      .react-select {
+        z-index: 2;
+        &.select__option--is-focused {
+          background-color: rgba($color: $primary, $alpha: 0.12);
+          color: $primary !important;
+        }
+        .select__option{
+          color: $primary;
+        }
+        &.select__option--is-selected {
+          background-color: $primary;
+          color: $white !important;
+        }
+      }
+    }
+
     .fc-prev-button {
       padding-left: 0 !important;
     }
@@ -41,6 +64,11 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
       display: flex;
       align-items: center;
       flex-wrap: wrap;
+    }
+    .fc-toolbar-chunk:nth-child(2) {
+      display: flex;
+      align-items: center;
+      flex-wrap: nowrap;
     }
     .fc-button {
       padding: $fc-toolbar-btn-padding;
@@ -149,8 +177,6 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
       }
     }
   }
-
-  
 
   // Daygrid
   .fc-scrollgrid-section-liquid > td {
