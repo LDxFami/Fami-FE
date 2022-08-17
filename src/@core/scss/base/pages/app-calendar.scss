@@ -15,6 +15,33 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
 // Full calendar styles
 .fc {
   // Toolbar
+  .fc-toolbar-chunk:nth-child(2) {
+    flex:1;
+    padding: 0px 10px;
+    .fc-customerSearch-button {
+      padding: 0px !important;
+      background-color: #ffffff;
+      border: 0px;
+      display: block;
+      max-width: 100%;
+      min-width: 100%;
+      width: 100%;
+      .react-select {
+        z-index: 2;
+        &.select__option--is-focused {
+          background-color: rgba($color: $primary, $alpha: 0.12);
+          color: $primary !important;
+        }
+        .select__option {
+          color: $primary;
+        }
+        &.select__option--is-selected {
+          background-color: $primary;
+          color: $white !important;
+        }
+      }
+    }
+  }
   .fc-toolbar {
     flex-wrap: wrap;
     flex-direction: row !important;
@@ -32,28 +59,6 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
         background-color: transparent !important;
         border-color: transparent !important;
         box-shadow: none !important;
-      }
-    }
-    .fc-customerSearch-button {
-      padding: 0px !important;
-      background-color: #ffffff;
-      border: 0px;
-      display: block;
-      max-width: 200px;
-      width: 200px;
-      .react-select {
-        z-index: 2;
-        &.select__option--is-focused {
-          background-color: rgba($color: $primary, $alpha: 0.12);
-          color: $primary !important;
-        }
-        .select__option{
-          color: $primary;
-        }
-        &.select__option--is-selected {
-          background-color: $primary;
-          color: $white !important;
-        }
       }
     }
 
@@ -451,6 +456,7 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
     .fc-more-link {
       content: "+";
     }
+   
   }
   .fc-daygrid-day-events {
     display: flex;
