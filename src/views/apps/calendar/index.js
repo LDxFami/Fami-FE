@@ -13,17 +13,9 @@ import AddEventSidebar from "./AddEventSidebar";
 // ** Custom Hooks
 import { useRTL } from "@hooks/useRTL";
 
-
 // ** Store & Actions
 import { useSelector, useDispatch } from "react-redux";
-import {
-  fetchEvents,
-  selectEvent,
-  updateEvent,
-  updateAllFilters,
-  addEvent,
-  removeEvent,
-} from "./store";
+import { updateEvent, addEvent, removeEvent } from "./store";
 
 import { selectAppointment } from "../../../redux/appointment";
 // ** Styles
@@ -52,7 +44,10 @@ const CalendarComponent = () => {
   const [addSidebarOpen, setAddSidebarOpen] = useState(false);
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
   const [month, setMonth] = useState(new Date().getMonth() + 1);
-  const [doctorId, setDoctorId] = useState(userData?.roles && userData?.roles[0]?.name !== "admin" ? [userData.id] : []);
+  const [doctorId, setDoctorId] = useState(
+    userData?.roles && userData?.roles[0]?.name !== "admin" ? [userData.id] : []
+  );
+  const [customerId, setCustomerId] = useState("");
   // ** Hooks
   const [isRtl] = useRTL();
   // ** AddEventSidebar Toggle Function
@@ -81,10 +76,13 @@ const CalendarComponent = () => {
   // ** refetchEvents
   const refetchEvents = () => {
     dispatch(getDoctor());
-    dispatch(getAppointment({ 
-      month, 
-      doctor_id: doctorId.length > 0 ? doctorId.join("_") : null
-    }));
+    dispatch(
+      getAppointment({
+        month,
+        doctor_id: doctorId.length > 0 ? doctorId.join("_") : null,
+        customer_id: customerId !== "" ? customerId : null,
+      })
+    );
     if (calendarApi !== null) {
       calendarApi.refetchEvents();
     }
@@ -102,11 +100,13 @@ const CalendarComponent = () => {
         getAppointment({
           month,
           doctor_id: doctorId.length > 0 ? doctorId.join("_") : null,
+        customer_id: customerId !== "" ? customerId : null,
+
         })
       );
     }
     loaded = true;
-  }, [month, doctorId]);
+  }, [month, doctorId,customerId]);
 
   useEffect(() => {
     if (userData.roles && userData?.roles[0]?.name !== "admin") {
@@ -152,7 +152,8 @@ const CalendarComponent = () => {
           >
             {userData &&
             userData.roles &&
-            (userData?.roles[0]?.name === "admin" || userData?.roles[0]?.name === "doctor") ? (
+            (userData?.roles[0]?.name === "admin" ||
+              userData?.roles[0]?.name === "doctor") ? (
               <SidebarLeft
                 doctorId={[...doctorId]}
                 store={store}
@@ -161,7 +162,10 @@ const CalendarComponent = () => {
                 toggleSidebar={toggleSidebar}
                 handleAddEventSidebar={handleAddEventSidebar}
                 onCheckAll={handleCheckAllFilter}
-                canCreateAppointment={userData?.roles[0]?.name === "admin" || userData?.group?.slug == 'medic'}
+                canCreateAppointment={
+                  userData?.roles[0]?.name === "admin" ||
+                  userData?.group?.slug == "medic"
+                }
               />
             ) : null}
           </Col>
@@ -181,6 +185,9 @@ const CalendarComponent = () => {
               calendarsColor={calendarsColor}
               setCalendarApi={setCalendarApi}
               handleAddEventSidebar={handleAddEventSidebar}
+              onCustomerChange={(customer) => {
+                setCustomerId(customer? customer.id : "");
+              }}
             />
           </Col>
           <div
@@ -194,7 +201,10 @@ const CalendarComponent = () => {
       <AddEventSidebar
         store={store}
         role={userData?.roles ? userData?.roles[0]?.name : ""}
-        canModify={(userData?.roles ? userData?.roles[0]?.name : "") == 'admin' || userData?.group?.slug == 'medic'}
+        canModify={
+          (userData?.roles ? userData?.roles[0]?.name : "") == "admin" ||
+          userData?.group?.slug == "medic"
+        }
         dispatch={dispatch}
         addEvent={addEvent}
         open={addSidebarOpen}

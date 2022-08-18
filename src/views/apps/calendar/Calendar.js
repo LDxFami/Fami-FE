@@ -1,5 +1,6 @@
 // ** React Import
 import { useEffect, useRef, memo, Fragment, useMemo, useState } from "react";
+import AsyncSelect from "react-select/async";
 
 // ** Full Calendar & it's Plugins
 import FullCalendar from "@fullcalendar/react";
@@ -13,13 +14,15 @@ import moment from "moment";
 // ** Custom Components
 import Avatar from "@components/avatar";
 import SpinnerComponent from "../../../@core/components/spinner/Fallback-spinner";
+import { selectThemeColors, isObjEmpty } from "@utils";
 
 // ** Third Party Components
 import { toast } from "react-toastify";
 import { Card, CardBody } from "reactstrap";
 import { Menu, Check } from "react-feather";
-import { readFile } from "xlsx";
 import useWindowDimensions from "../../../utility/hooks/useWindowDimensions";
+import { getCustomer } from "../../../redux/customer";
+import { unwrapResult } from "@reduxjs/toolkit";
 
 const scrollTime = moment().format("HH:mm:ss");
 
@@ -196,6 +199,7 @@ const Calendar = (props) => {
     selectEvent,
     updateEvent,
     role,
+    onCustomerChange,
   } = props;
 
   const initialView = width > 540 ? "dayGridMonth" : "timeGridDay";
@@ -203,6 +207,7 @@ const Calendar = (props) => {
   const [calendarData, setCalendarData] = useState([]);
   const [calendarOptions, setCalendarOptions] = useState(defaultOptions);
   const [viewCurrent, setviewCurrent] = useState(initialView);
+  const [customerSelect, setCustomerSelect] = useState("");
   // ** UseEffect checks for CalendarAPI Update
   useEffect(() => {
     if (calendarApi === null) {
@@ -248,6 +253,7 @@ const Calendar = (props) => {
       allDaySlot: false,
       headerToolbar: {
         start: "sidebarToggle, prev,next, title",
+        center: "customerSearch",
         end: "dayGridMonth,timeGridWeek,timeGridDay,listMonth",
       },
       slotMinTime: "07:00:00",
@@ -270,7 +276,6 @@ const Calendar = (props) => {
           return renderDayGridMonth(event, arg.view.type, width);
         }
       },
-
 
       dayHeaderClassNames: "calendar-header",
       slotEventOverlap: false,
@@ -350,6 +355,9 @@ const Calendar = (props) => {
             toggleSidebar(true);
           },
         },
+        customerSearch: {
+          text: renderCustomerSearch(),
+        },
       },
 
       dateClick(info) {
@@ -419,7 +427,7 @@ const Calendar = (props) => {
       direction: isRtl ? "rtl" : "ltr",
     };
     setCalendarOptions({ ...options });
-  }, [role, calendarData, initialView]);
+  }, [role, calendarData, initialView, customerSelect]);
 
   const renderEvent = (event, view) => {
     return (
@@ -447,15 +455,19 @@ const Calendar = (props) => {
         <>
           <div className="fw-bold">{event.title}</div>
           {event.extendedProps.doctor?.name ?? "Chưa có BS"}
-          {event.extendedProps.description ? " - " + event.extendedProps.description : ''}
-        </>);
+          {event.extendedProps.description
+            ? " - " + event.extendedProps.description
+            : ""}
+        </>
+      );
     }
-    
+
     return (
       <>
         <div className="fw-bold">{event.title}</div>
         {event.extendedProps.description}
-      </>);
+      </>
+    );
   };
 
   const renderDayGridMonth = (event, view, width) => {
@@ -465,10 +477,59 @@ const Calendar = (props) => {
 
     return (
       <>
-        <div className={`fc-daygrid-event-dot border-color-${calendarsColor[event.extendedProps.status ?? 1]}`}></div>
-        <div className="fc-event-time">{moment(event.startStr).format("HH:mm")}</div>
-        <div className="fc-event-title">{event.extendedProps.customer?.name}</div>
+        <div
+          className={`fc-daygrid-event-dot border-color-${
+            calendarsColor[event.extendedProps.status ?? 1]
+          }`}
+        ></div>
+        <div className="fc-event-time">
+          {moment(event.startStr).format("HH:mm")}
+        </div>
+        <div className="fc-event-title">
+          {event.extendedProps.customer?.name}
+        </div>
       </>
+    );
+  };
+
+  const setCustomerInputChangeHandler = async (inputValue) => {
+    const originalPromiseResult = await dispatch(
+      getCustomer({ search_param: inputValue })
+    );
+    const resultAction = unwrapResult(originalPromiseResult);
+    return resultAction.data.items;
+  };
+
+  const customerSearchPromiseOption = async (inputValue, callback) => {
+    const rs = await setCustomerInputChangeHandler(inputValue);
+    console.log(rs)
+    callback(
+      rs.map((i) => ({
+        label: i.name + " - " + (i.phone ?? "Không có SĐT"),
+        value: i.id,
+        id: i.id,
+      }))
+    );
+  };
+
+  const renderCustomerSearch = () => {
+    return (
+        <AsyncSelect
+          placeholder="Tìm khách hàng..."
+          id="customerCalendarSearch"
+          value={customerSelect}
+          theme={selectThemeColors}
+          className="react-select"
+          classNamePrefix="select"
+          isClearable={true}
+          
+          onChange={(data) => {
+            console.log(data)
+            setCustomerSelect(data);
+            onCustomerChange(data);
+          }}
+          loadOptions={customerSearchPromiseOption}
+        />
     );
   };
 

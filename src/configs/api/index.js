@@ -1,9 +1,15 @@
+
 import axios from "axios";
 import moment from "moment-timezone";
 
+import settings from '../setting';
+
 import { getStorage } from "@src/utility/storage";
+const { BASE_URL } = settings;
 
 const apiUrl = "https://fami-be.herokuapp.com";
+
+// const apiUrl = BASE_URL;
 
 export const setHeader = (isAuthenticated, contentType) => {
   const headers = {
