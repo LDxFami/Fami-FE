@@ -16,20 +16,25 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
 .fc {
   // Toolbar
   .fc-toolbar-chunk:nth-child(2) {
-    flex:1;
-    padding: 0px 10px;
+    flex: 1;
+    justify-content: flex-end;
+    padding: 0px 5px;
     .fc-customerSearch-button {
+      text-align: left;
       padding: 0px !important;
       background-color: #ffffff;
       border: 0px;
       display: block;
-      max-width: 100%;
-      min-width: 100%;
-      width: 100%;
+      max-width: 50%;
+      min-width: 50%;
+      width: 50%;
       .react-select {
         z-index: 2;
+        .select__control .select__single-value, .react-select__control .select__single-value{
+          text-align: left;
+        }
         .select__option {
-          color: #6E6B7B;
+          color: #6e6b7b;
           &.select__option--is-focused {
             background-color: rgba($color: $primary, $alpha: 0.12);
             color: $primary !important ;
@@ -39,7 +44,6 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
             color: $white !important;
           }
         }
-       
       }
     }
   }
@@ -457,7 +461,6 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
     .fc-more-link {
       content: "+";
     }
-   
   }
   .fc-daygrid-day-events {
     display: flex;
@@ -492,9 +495,28 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
   .app-calendar {
     .fc {
       .fc-header-toolbar {
+        .fc-toolbar-chunk:nth-child(2) {
+          display: flex;
+          justify-content: center;
+        }
         .fc-toolbar-chunk:last-of-type {
           margin-top: 1rem;
+          display: flex;
+          justify-content: center;
+          flex:1,
+          
         }
+      }
+    }
+  }
+}
+@media (max-width: 1440px) {
+  .fc {
+    .fc-toolbar-chunk:nth-child(2) {
+      .fc-customerSearch-button {
+        max-width: 100%;
+        min-width: 100%;
+        width: 100%;
       }
     }
   }
