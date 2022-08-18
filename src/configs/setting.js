@@ -8,10 +8,10 @@ console.log(process.env) // remove this after you've confirmed it working
 let settings = {};
 
 switch (process.env.MODE) {
-  case 'stag':
+  case 'staging':
     settings = stagSettings;
     break;
-  case 'prod':
+  case 'production':
     settings = prodSettings;
     break;
   default:
