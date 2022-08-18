@@ -28,17 +28,18 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
       width: 100%;
       .react-select {
         z-index: 2;
-        &.select__option--is-focused {
-          background-color: rgba($color: $primary, $alpha: 0.12);
-          color: $primary !important;
-        }
         .select__option {
-          color: $primary;
+          color: #6E6B7B;
+          &.select__option--is-focused {
+            background-color: rgba($color: $primary, $alpha: 0.12);
+            color: $primary !important ;
+          }
+          &.select__option--is-selected {
+            background-color: $primary;
+            color: $white !important;
+          }
         }
-        &.select__option--is-selected {
-          background-color: $primary;
-          color: $white !important;
-        }
+       
       }
     }
   }
