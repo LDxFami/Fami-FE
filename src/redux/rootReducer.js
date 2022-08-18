@@ -16,9 +16,8 @@ import calendar from '@src/views/apps/calendar/store'
 import ecommerce from '@src/views/apps/ecommerce/store'
 import dataTables from '@src/views/tables/data-tables/store'
 import permissions from '@src/views/apps/roles-permissions/store'
-import { combineReducers } from 'redux'
 
-const appReducer = combineReducers({
+const rootReducer = {
   auth,
   user,
   todo,
@@ -35,14 +34,6 @@ const appReducer = combineReducers({
   ecommerce,
   dataTables,
   permissions
-})
-
-const rootReducer = (state, action) => {
-  if (action.type === 'authentication/handleLogout') {
-    return appReducer(undefined, action)
-  }
-
-  return appReducer(state, action)
 }
 
 export default rootReducer

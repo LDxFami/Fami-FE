@@ -15,38 +15,6 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
 // Full calendar styles
 .fc {
   // Toolbar
-  .fc-toolbar-chunk:nth-child(2) {
-    flex: 1;
-    justify-content: flex-end;
-    padding: 0px 5px;
-    .fc-customerSearch-button {
-      text-align: left;
-      padding: 0px !important;
-      background-color: #ffffff;
-      border: 0px;
-      display: block;
-      max-width: 50%;
-      min-width: 50%;
-      width: 50%;
-      .react-select {
-        z-index: 2;
-        .select__control .select__single-value, .react-select__control .select__single-value{
-          text-align: left;
-        }
-        .select__option {
-          color: #6e6b7b;
-          &.select__option--is-focused {
-            background-color: rgba($color: $primary, $alpha: 0.12);
-            color: $primary !important ;
-          }
-          &.select__option--is-selected {
-            background-color: $primary;
-            color: $white !important;
-          }
-        }
-      }
-    }
-  }
   .fc-toolbar {
     flex-wrap: wrap;
     flex-direction: row !important;
@@ -66,7 +34,6 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
         box-shadow: none !important;
       }
     }
-
     .fc-prev-button {
       padding-left: 0 !important;
     }
@@ -74,11 +41,6 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
       display: flex;
       align-items: center;
       flex-wrap: wrap;
-    }
-    .fc-toolbar-chunk:nth-child(2) {
-      display: flex;
-      align-items: center;
-      flex-wrap: nowrap;
     }
     .fc-button {
       padding: $fc-toolbar-btn-padding;
@@ -187,6 +149,8 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
       }
     }
   }
+
+  
 
   // Daygrid
   .fc-scrollgrid-section-liquid > td {
@@ -495,28 +459,9 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
   .app-calendar {
     .fc {
       .fc-header-toolbar {
-        .fc-toolbar-chunk:nth-child(2) {
-          display: flex;
-          justify-content: center;
-        }
         .fc-toolbar-chunk:last-of-type {
           margin-top: 1rem;
-          display: flex;
-          justify-content: center;
-          flex:1,
-          
         }
-      }
-    }
-  }
-}
-@media (max-width: 1440px) {
-  .fc {
-    .fc-toolbar-chunk:nth-child(2) {
-      .fc-customerSearch-button {
-        max-width: 100%;
-        min-width: 100%;
-        width: 100%;
       }
     }
   }
