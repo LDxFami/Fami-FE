@@ -63,7 +63,14 @@ const ToastComponent = ({ title, icon, color, message = "" }) => (
 
 const AddEventSidebar = (props) => {
   // ** Props
-  const { canModify, role, open, dispatch, refetchEvents, handleAddEventSidebar } = props;
+  const {
+    canModify,
+    role,
+    open,
+    dispatch,
+    refetchEvents,
+    handleAddEventSidebar,
+  } = props;
 
   // ** Vars & Hooks
   const { setError, setValue, getValues, handleSubmit } = useForm({
@@ -81,8 +88,8 @@ const AddEventSidebar = (props) => {
   // ** States
   const [desc, setDesc] = useState("");
   const [status, setStatus] = useState({ value: 1, label: "Hiệu lực" });
-  const [startTime, setStartTime] = useState((new Date()).setHours(8,0,0,0));
-  const [endTime, setEndTime] = useState((new Date()).setHours(8,30,0,0));
+  const [startTime, setStartTime] = useState(new Date().setHours(8, 0, 0, 0));
+  const [endTime, setEndTime] = useState(new Date().setHours(8, 30, 0, 0));
   const [startPicker, setStartPicker] = useState(new Date());
   const [customer, setCustomer] = useState();
   const [doctor, setDoctor] = useState();
@@ -90,7 +97,7 @@ const AddEventSidebar = (props) => {
   const [customerInput, setCustomerInput] = useState({ phone: "", name: "" });
   const [isUpdate, setUpdate] = useState(false);
   const [overlapModal, setoverlapModal] = useState(false);
-  const [overlapMsg, setoverlapMsg] = useState("")
+  const [overlapMsg, setoverlapMsg] = useState("");
 
   //** Effects
   useEffect(() => {
@@ -114,7 +121,7 @@ const AddEventSidebar = (props) => {
   ];
 
   // ** Adds New Event
-  const handleAddEvent =  () => {
+  const handleAddEvent = () => {
     const appointmentInfo = {
       doctor_id: doctor && doctor.length > 0 ? doctor[0].id : "",
       customer_id: customer && customer.length > 0 ? customer[0].id : "",
@@ -169,8 +176,8 @@ const AddEventSidebar = (props) => {
     setCustomer(null);
     setDoctor(null);
     setStartPicker(new Date());
-    setStartTime((new Date()).setHours(8,0,0,0));
-    setEndTime((new Date()).setHours(8,30,0,0));
+    setStartTime(new Date().setHours(8, 0, 0, 0));
+    setEndTime(new Date().setHours(8, 30, 0, 0));
     dispatch(selectAppointment({}));
     setStatus({ value: 1, label: "Hiệu lực" });
     dispatch(getDoctor());
@@ -240,45 +247,45 @@ const AddEventSidebar = (props) => {
         description: desc,
         status: status[0].value,
       };
-        dispatch(updateAppointment(appointmentInfo))
-          .unwrap()
-          .then(() => {
-            toast.success(
-              <ToastComponent
-                title="Đã cập nhật lịch hẹn"
-                color="success"
-                icon={<Check />}
-              />,
-              {
-                icon: false,
-                autoClose: 2000,
-                hideProgressBar: true,
-                closeButton: false,
-              }
-            );
-            refetchEvents();
-            handleAddEventSidebar();
-          })
-          .catch((err) => {
-            const { error } = err;
-            toast.error(
-              <ToastComponent
-                title="Có lỗi xảy ra"
-                color="warning"
-                icon={<Check />}
-                message={error}
-              />,
-              {
-                icon: false,
-                autoClose: 2000,
-                hideProgressBar: true,
-                closeButton: false,
-              }
-            );
-            setError("title", {
-              type: "manual",
-            });
+      dispatch(updateAppointment(appointmentInfo))
+        .unwrap()
+        .then(() => {
+          toast.success(
+            <ToastComponent
+              title="Đã cập nhật lịch hẹn"
+              color="success"
+              icon={<Check />}
+            />,
+            {
+              icon: false,
+              autoClose: 2000,
+              hideProgressBar: true,
+              closeButton: false,
+            }
+          );
+          refetchEvents();
+          handleAddEventSidebar();
+        })
+        .catch((err) => {
+          const { error } = err;
+          toast.error(
+            <ToastComponent
+              title="Có lỗi xảy ra"
+              color="warning"
+              icon={<Check />}
+              message={error}
+            />,
+            {
+              icon: false,
+              autoClose: 2000,
+              hideProgressBar: true,
+              closeButton: false,
+            }
+          );
+          setError("title", {
+            type: "manual",
           });
+        });
     }
   };
 
@@ -323,11 +330,7 @@ const AddEventSidebar = (props) => {
       } else {
         return (
           <Fragment>
-            <Button
-              className="me-1"
-              color="primary"
-              onClick={onCheckOverlap}
-            >
+            <Button className="me-1" color="primary" onClick={onCheckOverlap}>
               Cập nhật
             </Button>
             {/* <Button color="danger" onClick={handleDeleteEvent} outline>
@@ -352,7 +355,7 @@ const AddEventSidebar = (props) => {
   const handleAddCustomer = async (customerInfo) => {
     dispatch(addCustomer(customerInfo))
       .unwrap()
-      .then(() => {
+      .then((rs) => {
         toast.success(
           <ToastComponent
             title="Đã thêm khách hàng"
@@ -367,6 +370,13 @@ const AddEventSidebar = (props) => {
           }
         );
         setCustomerModal(false);
+        
+        const customerOptionItem = {
+          label: rs.data.customer.name + " - " + (rs.data.customer.phone ?? "Không có SĐT"),
+          value: rs.data.customer.id,
+          id: rs.data.customer.id,
+        };
+        setCustomer([customerOptionItem]);
       })
       .catch((err) => {
         const { error } = err;
@@ -393,17 +403,6 @@ const AddEventSidebar = (props) => {
   const CloseBtn = (
     <X className="cursor-pointer" size={15} onClick={handleAddEventSidebar} />
   );
-
-  // const setInputChangeHandler = useCallback(
-  //   _.debounce(async (inputValue) => {
-  //     const originalPromiseResult = await dispatch(
-  //       getCustomer({ search_param: inputValue })
-  //     );
-  //     const resultAction = unwrapResult(originalPromiseResult);
-  //     return resultAction.data.items;
-  //   }, 100),
-  //   []
-  // );
 
   const setInputChangeHandler = async (inputValue) => {
     const originalPromiseResult = await dispatch(
@@ -569,8 +568,8 @@ const AddEventSidebar = (props) => {
                 options={{
                   dateFormat: "Y-m-d",
                   locale: {
-                    firstDayOfWeek: 1
-                  }
+                    firstDayOfWeek: 1,
+                  },
                 }}
                 disabled={!canModify}
               />
