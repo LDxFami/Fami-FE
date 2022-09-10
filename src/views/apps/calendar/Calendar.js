@@ -207,7 +207,7 @@ const Calendar = (props) => {
   const [calendarData, setCalendarData] = useState([]);
   const [calendarOptions, setCalendarOptions] = useState(defaultOptions);
   const [viewCurrent, setviewCurrent] = useState(initialView);
-  const [showPast, setShowPast] = useState(true);
+  const [showPast, setShowPast] = useState(false);
   const [customerSelect, setCustomerSelect] = useState("");
   // ** UseEffect checks for CalendarAPI Update
   useEffect(() => {
