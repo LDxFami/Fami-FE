@@ -225,7 +225,6 @@ const Calendar = (props) => {
     if (store.appointments?.data.length > 0) {
       console.log(viewCurrent)
       if (!showPast && viewCurrent === "listMonth") {
-        console.log(showPast)
         var date = new Date();
         date.setDate(date.getDate() - 1);
         calendarDta = store.appointments?.data.filter((i) => {
@@ -234,7 +233,6 @@ const Calendar = (props) => {
             date.getTime()
           );
         });
-        console.log(calendarDta)
       } else {
         calendarDta = store.appointments?.data;
       }
