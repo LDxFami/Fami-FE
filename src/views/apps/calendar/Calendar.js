@@ -18,7 +18,7 @@ import { selectThemeColors, isObjEmpty } from "@utils";
 
 // ** Third Party Components
 import { toast } from "react-toastify";
-import { Card, CardBody } from "reactstrap";
+import { Card, CardBody, Input, Label } from "reactstrap";
 import { Menu, Check } from "react-feather";
 import useWindowDimensions from "../../../utility/hooks/useWindowDimensions";
 import { getCustomer } from "../../../redux/customer";
@@ -207,6 +207,7 @@ const Calendar = (props) => {
   const [calendarData, setCalendarData] = useState([]);
   const [calendarOptions, setCalendarOptions] = useState(defaultOptions);
   const [viewCurrent, setviewCurrent] = useState(initialView);
+  const [showPast, setShowPast] = useState(true);
   const [customerSelect, setCustomerSelect] = useState("");
   // ** UseEffect checks for CalendarAPI Update
   useEffect(() => {
@@ -220,9 +221,23 @@ const Calendar = (props) => {
   }, [initialView]);
 
   useEffect(() => {
+    var calendarDta = [];
+    if (store.appointments?.data.length > 0) {
+      if (showPast && viewCurrent === "listMonth") {
+        var date = new Date();
+        calendarDta = store.appointments?.data.filter((i) => {
+          return (
+            new Date(i.date + "T" + i.time_start).getTime() >
+            date.setDate(date.getDate() - 1)
+          );
+        });
+      } else {
+        calendarDta = store.appointments?.data;
+      }
+    }
     setCalendarData(
-      store.appointments?.data.length > 0
-        ? store.appointments?.data.map((i) => ({
+      calendarDta.length > 0
+        ? calendarDta.map((i) => ({
             id: i.id,
             url: "",
             title: i.customer.name,
@@ -242,7 +257,7 @@ const Calendar = (props) => {
           }))
         : []
     );
-  }, [store]);
+  }, [store, showPast, viewCurrent]);
 
   useEffect(() => {
     const options = {
@@ -252,7 +267,9 @@ const Calendar = (props) => {
       initialView: initialView,
       allDaySlot: false,
       headerToolbar: {
-        start: "sidebarToggle, prev,next, title",
+        start: `sidebarToggle, prev,next, title, ${
+          viewCurrent === "listMonth" ? "showPastCheckBox" : ""
+        }`,
         center: "customerSearch",
         end: "dayGridMonth,timeGridWeek,timeGridDay,listMonth",
       },
@@ -358,6 +375,9 @@ const Calendar = (props) => {
         customerSearch: {
           text: renderCustomerSearch(),
         },
+        showPastCheckBox: {
+          text: renderShowPastCheckBox(),
+        },
       },
 
       dateClick(info) {
@@ -427,7 +447,7 @@ const Calendar = (props) => {
       direction: isRtl ? "rtl" : "ltr",
     };
     setCalendarOptions({ ...options });
-  }, [role, calendarData, initialView, customerSelect]);
+  }, [role, calendarData, initialView, customerSelect, showPast, viewCurrent]);
 
   const renderEvent = (event, view) => {
     return (
@@ -502,7 +522,6 @@ const Calendar = (props) => {
 
   const customerSearchPromiseOption = async (inputValue, callback) => {
     const rs = await setCustomerInputChangeHandler(inputValue);
-    console.log(rs)
     callback(
       rs.map((i) => ({
         label: i.name + " - " + (i.phone ?? "Không có SĐT"),
@@ -514,25 +533,39 @@ const Calendar = (props) => {
 
   const renderCustomerSearch = () => {
     return (
-        <AsyncSelect
-          placeholder="Tìm khách hàng..."
-          id="customerCalendarSearch"
-          value={customerSelect}
-          theme={selectThemeColors}
-          className="react-select"
-          classNamePrefix="select"
-          isClearable={true}
-          
-          onChange={(data) => {
-            console.log(data)
-            setCustomerSelect(data);
-            onCustomerChange(data);
-          }}
-          loadOptions={customerSearchPromiseOption}
-        />
+      <AsyncSelect
+        placeholder="Tìm khách hàng..."
+        id="customerCalendarSearch"
+        value={customerSelect}
+        theme={selectThemeColors}
+        className="react-select"
+        classNamePrefix="select"
+        isClearable={true}
+        onChange={(data) => {
+          setCustomerSelect(data);
+          onCustomerChange(data);
+        }}
+        loadOptions={customerSearchPromiseOption}
+      />
     );
   };
 
+  const renderShowPastCheckBox = () => (
+    <div className="fc-button-group">
+      <Input
+        type="checkbox"
+        key={"showpast"}
+        label={"Hiển thị cuộc hẹn trong quá khứ"}
+        className="input-filter"
+        id={`showpast-event`}
+        checked={showPast}
+        onChange={() => setShowPast(!showPast)}
+      />
+      <Label className="form-check-label" for={"showpast-event"}>
+        &nbsp;Hiển thị cuộc hẹn trong quá khứ
+      </Label>
+    </div>
+  );
   return (
     <Card className="shadow-none border-0 mb-0 rounded-0">
       {store.appointments.loading !== "success" ? (

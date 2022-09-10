@@ -30,7 +30,8 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
       width: 50%;
       .react-select {
         z-index: 2;
-        .select__control .select__single-value, .react-select__control .select__single-value{
+        .select__control .select__single-value,
+        .react-select__control .select__single-value {
           text-align: left;
         }
         .select__option {
@@ -74,11 +75,17 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
       display: flex;
       align-items: center;
       flex-wrap: wrap;
+      max-width: 265px;
     }
     .fc-toolbar-chunk:nth-child(2) {
       display: flex;
       align-items: center;
       flex-wrap: nowrap;
+    }
+    .fc-showPastCheckBox-button {
+      background-color: transparent !important;
+      border: none;
+      display: block;
     }
     .fc-button {
       padding: $fc-toolbar-btn-padding;
@@ -503,8 +510,7 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
           margin-top: 1rem;
           display: flex;
           justify-content: center;
-          flex:1,
-          
+          flex: 1;
         }
       }
     }
