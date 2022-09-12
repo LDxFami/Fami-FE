@@ -223,14 +223,14 @@ const Calendar = (props) => {
   useEffect(() => {
     var calendarDta = [];
     if (store.appointments?.data.length > 0) {
-      console.log(viewCurrent)
+      console.log(viewCurrent);
       if (!showPast && viewCurrent === "listMonth") {
         var date = new Date();
-        date.setDate(date.getDate() - 1);
+        date.setHours(0, 0, 0);
+
         calendarDta = store.appointments?.data.filter((i) => {
           return (
-            new Date(i.date + "T" + i.time_start).getTime() >
-            date.getTime()
+            new Date(i.date + "T" + i.time_start).getTime() > date.getTime()
           );
         });
       } else {
