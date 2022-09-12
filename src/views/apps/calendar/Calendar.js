@@ -223,7 +223,6 @@ const Calendar = (props) => {
   useEffect(() => {
     var calendarDta = [];
     if (store.appointments?.data.length > 0) {
-      console.log(viewCurrent);
       if (!showPast && viewCurrent === "listMonth") {
         var date = new Date();
         date.setHours(0, 0, 0);
