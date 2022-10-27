@@ -15,6 +15,8 @@ import { useDispatch } from "react-redux";
 import Select from "react-select";
 import ReactPaginate from "react-paginate";
 import DataTable from "react-data-table-component";
+import { debounce } from "lodash";
+
 import {
   ChevronDown,
   Share,
@@ -241,6 +243,7 @@ const UsersList = ({ data, loading }) => {
   };
 
   // ** Function in get data on rows per page
+
   const handlePerPage = (e) => {
     const value = parseInt(e.currentTarget.value);
     dispatch(
@@ -256,17 +259,21 @@ const UsersList = ({ data, loading }) => {
   };
 
   // ** Function in get data on search query change
+  const debouncedSearch = debounce((value) => {
+    dispatch(
+      getCustomer({
+        search_param: value,
+        page: currentPage,
+        limit: rowsPerPage,
+        sort_column: sortColumn,
+        sort_direction: sort,
+      })
+    );
+  }, 500);
+
   const handleFilter = (val) => {
-    // setSearchTerm(val);
-    // dispatch(
-    //   getCustomer({
-    //     search_param: val,
-    //     page: currentPage,
-    //     limit: rowsPerPage,
-    //     sort_column: column.sortField,
-    //     sort_direction: sortDirection,
-    //   })
-    // );
+    setSearchTerm(val);
+    debouncedSearch(val);
   };
 
   // ** Custom Pagination
