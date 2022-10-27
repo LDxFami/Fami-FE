@@ -121,25 +121,25 @@ const navigationItem = [
   //     },
   //   ],
   // },
-  // {
-  //   id: "users",
-  //   title: "User",
-  //   icon: <User size={20} />,
-  //   children: [
-  //     {
-  //       id: "list",
-  //       title: "List",
-  //       icon: <Circle size={12} />,
-  //       navLink: "/user/list",
-  //     },
-  //     {
-  //       id: "view",
-  //       title: "View",
-  //       icon: <Circle size={12} />,
-  //       navLink: "/user/view",
-  //     },
-  //   ],
-  // },
+  {
+    id: "customer",
+    title: "Customer",
+    icon: <User size={20} />,
+    children: [
+      {
+        id: "list",
+        title: "List",
+        icon: <Circle size={12} />,
+        navLink: "/user/list",
+      },
+      // {
+      //   id: "view",
+      //   title: "View",
+      //   icon: <Circle size={12} />,
+      //   navLink: "/user/view",
+      // },
+    ],
+  },
 ];
 
 export default navigationItem;

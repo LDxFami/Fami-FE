@@ -29,6 +29,35 @@ export const addCustomer = createAsyncThunk(
   }
 );
 
+export const updateCustomer = createAsyncThunk(
+  "customer/updateCustomer",
+  async (params, { rejectWithValue }) => {
+    try {
+      console.log(params)
+      const response = await instance.put(`api/customers/${params.id}`, {
+        ...params,
+      });
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(err.response.data);
+    }
+  }
+);
+
+export const deleteCustomer = createAsyncThunk(
+  "customer/deleteCustomer",
+  async (params, { rejectWithValue }) => {
+    try {
+      const response = await instance.delete(`api/customers/${params}`, {
+        ...params,
+      });
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(err.response.data);
+    }
+  }
+);
+
 export const customerSlice = createSlice({
   name: "customer",
   initialState: {
@@ -69,6 +98,26 @@ export const customerSlice = createSlice({
         state.customer.loading = "pending";
       })
       .addCase(addCustomer.rejected, (state, action) => {
+        state.customer.loading = "error";
+        state.customer.error = action.payload;
+      })
+      .addCase(updateCustomer.fulfilled, (state, action) => {
+        state.customer.loading = "success";
+      })
+      .addCase(updateCustomer.pending, (state, action) => {
+        state.customer.loading = "pending";
+      })
+      .addCase(updateCustomer.rejected, (state, action) => {
+        state.customer.loading = "error";
+        state.customer.error = action.payload;
+      })
+      .addCase(deleteCustomer.fulfilled, (state, action) => {
+        state.customer.loading = "success";
+      })
+      .addCase(deleteCustomer.pending, (state, action) => {
+        state.customer.loading = "pending";
+      })
+      .addCase(deleteCustomer.rejected, (state, action) => {
         state.customer.loading = "error";
         state.customer.error = action.payload;
       });
