@@ -33,7 +33,6 @@ export const updateCustomer = createAsyncThunk(
   "customer/updateCustomer",
   async (params, { rejectWithValue }) => {
     try {
-      console.log(params)
       const response = await instance.put(`api/customers/${params.id}`, {
         ...params,
       });
