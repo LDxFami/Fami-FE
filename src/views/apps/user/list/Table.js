@@ -1,5 +1,7 @@
 // ** React Imports
 import { Fragment, useState, useEffect, useCallback } from "react";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
 
 // ** Invoice List Sidebar
 import Sidebar from "./Sidebar";
@@ -50,6 +52,7 @@ import {
 // ** Styles
 import "@styles/react/libs/react-select/_react-select.scss";
 import "@styles/react/libs/tables/react-dataTable-component.scss";
+import BasicSweetCallback from "../../../components/alerts/AlertCallback";
 
 // ** Table Header
 const CustomHeader = ({
@@ -104,6 +107,32 @@ const CustomHeader = ({
     link.setAttribute("download", filename);
     link.click();
   }
+
+  const handleConfirmText = () => {
+    return MySwal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete it!",
+      customClass: {
+        confirmButton: "btn btn-primary",
+        cancelButton: "btn btn-outline-danger ms-1",
+      },
+      buttonsStyling: false,
+    }).then(function (result) {
+      if (result.value) {
+        MySwal.fire({
+          icon: "success",
+          title: "Deleted!",
+          text: "Your file has been deleted.",
+          customClass: {
+            confirmButton: "btn btn-success",
+          },
+        });
+      }
+    });
+  };
   return (
     <div className="invoice-list-table-header w-100 me-1 ms-50 mt-2 mb-75">
       <Row>
@@ -165,6 +194,7 @@ const CustomHeader = ({
     </div>
   );
 };
+const MySwal = withReactContent(Swal);
 
 const UsersList = ({ data, loading }) => {
   // ** Store Vars
@@ -356,16 +386,53 @@ const UsersList = ({ data, loading }) => {
     );
   };
 
+  const handleConfirmText = () => {
+    return MySwal.fire({
+      title: "Xác nhận",
+      text: "Bạn có chắc xoá khách hàng này?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Xoá khách hàng",
+      cancelButtonText: "Huỷ",
+      customClass: {
+        confirmButton: "btn btn-primary",
+        cancelButton: "btn btn-outline-danger ms-1",
+      },
+      buttonsStyling: false,
+    }).then(function (result) {
+      if (result.value) {
+        dispatch(
+          getCustomer({
+            search_param: searchTerm,
+            page: currentPage,
+            limit: rowsPerPage,
+            sort_column: sortColumn,
+            sort_direction: sort,
+          })
+        );
+        MySwal.fire({
+          icon: "success",
+          title: "Xác nhận",
+          text: "Đã xoá khách hàng.",
+          customClass: {
+            confirmButton: "btn btn-success",
+          },
+        });
+      }
+    });
+  };
+
   const toggleDelete = () => {
-    dispatch(
-      getCustomer({
-        search_param: searchTerm,
-        page: currentPage,
-        limit: rowsPerPage,
-        sort_column: sortColumn,
-        sort_direction: sort,
-      })
-    );
+    // dispatch(
+    //   getCustomer({
+    //     search_param: searchTerm,
+    //     page: currentPage,
+    //     limit: rowsPerPage,
+    //     sort_column: sortColumn,
+    //     sort_direction: sort,
+    //   })
+    // );
+    handleConfirmText();
   };
 
   return (
