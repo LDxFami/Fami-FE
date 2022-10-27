@@ -1,5 +1,5 @@
 // ** React Imports
-import { Fragment, useState, useEffect, useCallback } from "react";
+import { Fragment, useState, useEffect } from "react";
 import { unwrapResult } from "@reduxjs/toolkit";
 
 // ** Custom Components
@@ -9,13 +9,13 @@ import Avatar from "@components/avatar";
 import { toast } from "react-toastify";
 import Flatpickr from "react-flatpickr";
 import { X, Check } from "react-feather";
-import Select, { components } from "react-select";
+import Select from "react-select";
 import AsyncCreatableSelect from "react-select/async-creatable";
 import AsyncSelect from "react-select/async";
 
 import { useSelector } from "react-redux";
 import PerfectScrollbar from "react-perfect-scrollbar";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import _ from "lodash";
 import moment from "moment";
 import { addCustomer, getCustomer } from "../../../redux/customer";
@@ -65,7 +65,6 @@ const AddEventSidebar = (props) => {
   // ** Props
   const {
     canModify,
-    role,
     open,
     dispatch,
     refetchEvents,
@@ -73,17 +72,13 @@ const AddEventSidebar = (props) => {
   } = props;
 
   // ** Vars & Hooks
-  const { setError, setValue, getValues, handleSubmit } = useForm({
+  const { setError, handleSubmit } = useForm({
     defaultValues: { title: "" },
   });
 
-  const customerStore = useSelector((state) => state.customer);
-  const doctorStore = useSelector((state) => state.doctor);
   const appointmentStore = useSelector((state) => state.appointment);
 
-  const { customers, customer: customerStoreVal } = customerStore;
-  const { doctors } = doctorStore;
-  const { appointment, selectedAppointment } = appointmentStore;
+  const { selectedAppointment } = appointmentStore;
 
   // ** States
   const [desc, setDesc] = useState("");
@@ -289,21 +284,6 @@ const AddEventSidebar = (props) => {
     }
   };
 
-  const handleDeleteEvent = () => {
-    // dispatch(removeEvent(selectedEvent.id));
-    // removeEventInCalendar(selectedEvent.id);
-    handleAddEventSidebar();
-    toast.error(
-      <ToastComponent title="Event Removed" color="danger" icon={<Check />} />,
-      {
-        // toast.error(<ToastComponent title='Event Removed' color='danger' icon={<Trash />} />, {
-        icon: false,
-        autoClose: 2000,
-        hideProgressBar: true,
-        closeButton: false,
-      }
-    );
-  };
 
   // ** Event Action buttons
   const EventActions = () => {
@@ -476,7 +456,7 @@ const AddEventSidebar = (props) => {
           isUpdate ? handleUpdateEvent() : handleAddEvent();
         }
       })
-      .catch((err) => {});
+      .catch(() => {});
     return isOverlap;
   };
 
