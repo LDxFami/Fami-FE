@@ -1,5 +1,5 @@
 // ** React Imports
-import { Fragment, useState, useEffect } from "react";
+import { Fragment, useState, useEffect, useCallback } from "react";
 
 // ** Invoice List Sidebar
 import Sidebar from "./Sidebar";
@@ -122,7 +122,9 @@ const CustomHeader = ({
               <option value="25">25</option>
               <option value="50">50</option>
             </Input>
-            <label htmlFor="rows-per-page">Mục trong tổng {data.total} mục</label>
+            <label htmlFor="rows-per-page">
+              Mục trong tổng {data.total} mục
+            </label>
           </div>
         </Col>
         <Col
@@ -263,17 +265,20 @@ const UsersList = ({ data, loading }) => {
   };
 
   // ** Function in get data on search query change
-  const debouncedSearch = debounce((value) => {
-    dispatch(
-      getCustomer({
-        search_param: value,
-        page: currentPage,
-        limit: rowsPerPage,
-        sort_column: sortColumn,
-        sort_direction: sort,
-      })
-    );
-  }, 500);
+  const debouncedSearch = useCallback(
+    debounce((value) => {
+      dispatch(
+        getCustomer({
+          search_param: value,
+          page: currentPage,
+          limit: rowsPerPage,
+          sort_column: sortColumn,
+          sort_direction: sort,
+        })
+      );
+    }, 500),
+    []
+  );
 
   const handleFilter = (val) => {
     setSearchTerm(val);
