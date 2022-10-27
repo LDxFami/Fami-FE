@@ -121,24 +121,12 @@ const navigationItem = [
   //     },
   //   ],
   // },
+
   {
     id: "customer",
     title: "Customer",
     icon: <User size={20} />,
-    children: [
-      {
-        id: "list",
-        title: "List",
-        icon: <Circle size={12} />,
-        navLink: "/user/list",
-      },
-      // {
-      //   id: "view",
-      //   title: "View",
-      //   icon: <Circle size={12} />,
-      //   navLink: "/user/view",
-      // },
-    ],
+    navLink: "/user/list",
   },
 ];
 

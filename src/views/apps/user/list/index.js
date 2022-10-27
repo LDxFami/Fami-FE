@@ -30,14 +30,14 @@ const UsersList = () => {
         </div>
       ) : null}
       <Row>
-        <Col lg="3" sm="6">
+        {/* <Col lg="3" sm="6">
           <StatsHorizontal
             color="primary"
             statTitle="Số khách hàng"
             icon={<User size={20} />}
             renderStats={<h3 className="fw-bolder mb-75">{data?.total ??"Loading..."}</h3>}
           />
-        </Col>
+        </Col> */}
         {/* <Col lg="3" sm="6">
           <StatsHorizontal
             color="danger"

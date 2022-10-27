@@ -43,71 +43,9 @@ const renderClient = (row) => {
     ],
     color = states[stateNum];
 
-  if (row?.avatar?.length) {
-    return (
-      <div>
-        <Avatar className="me-1" img={row.avatar} width="32" height="32" />
-        {row.name}
-      </div>
-    );
-  } else {
-    return (
-      <div>
-        <Avatar
-          color={color || "primary"}
-          className="me-1"
-          content={row.name || "John Doe"}
-          initials
-        />
-        {row.name}
-      </div>
-    );
-  }
+  return <div>{row.name}</div>;
 };
 
-// ** Renders Role Columns
-const renderRole = (row) => {
-  const roleObj = {
-    subscriber: {
-      class: "text-primary",
-      icon: User,
-    },
-    maintainer: {
-      class: "text-success",
-      icon: Database,
-    },
-    editor: {
-      class: "text-info",
-      icon: Edit2,
-    },
-    author: {
-      class: "text-warning",
-      icon: Settings,
-    },
-    admin: {
-      class: "text-danger",
-      icon: Slack,
-    },
-  };
-
-  const Icon = roleObj[row.role] ? roleObj[row.role].icon : Edit2;
-
-  return (
-    <span className="text-truncate text-capitalize align-middle">
-      <Icon
-        size={18}
-        className={`${roleObj[row.role] ? roleObj[row.role].class : ""} me-50`}
-      />
-      {row.role}
-    </span>
-  );
-};
-
-const statusObj = {
-  pending: "light-warning",
-  active: "light-success",
-  inactive: "light-secondary",
-};
 
 export const columns = (toggleSidebar, setSelectedItem, toggleDelete) => [
   {
@@ -144,7 +82,7 @@ export const columns = (toggleSidebar, setSelectedItem, toggleDelete) => [
   },
   {
     name: "Hành động",
-    minWidth: "100px",
+    maxWidth: "150px",
     cell: (row) => (
       <div className="column-action">
         <UncontrolledDropdown>

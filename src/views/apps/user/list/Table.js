@@ -122,7 +122,7 @@ const CustomHeader = ({
               <option value="25">25</option>
               <option value="50">50</option>
             </Input>
-            <label htmlFor="rows-per-page">Mục</label>
+            <label htmlFor="rows-per-page">Mục trong tổng {data.total} mục</label>
           </div>
         </Col>
         <Col
@@ -130,7 +130,11 @@ const CustomHeader = ({
           className="d-flex align-items-sm-center justify-content-xl-end justify-content-start flex-xl-nowrap flex-wrap flex-sm-row flex-column pe-xl-1 p-0 mt-xl-0 mt-1"
         >
           <div className="d-flex align-items-center mb-sm-0 mb-1 me-1">
-            <label className="mb-0" htmlFor="search-invoice">
+            <label
+              className="mb-0"
+              style={{ whiteSpace: "nowrap" }}
+              htmlFor="search-invoice"
+            >
               Tìm kiếm:
             </label>
             <Input
