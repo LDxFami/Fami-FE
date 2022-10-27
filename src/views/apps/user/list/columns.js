@@ -2,11 +2,10 @@
 import { Link } from "react-router-dom";
 
 // ** Custom Components
-import Avatar from "@components/avatar";
 
 // ** Store & Actions
 import { store } from "@store/store";
-import { getUser, deleteUser } from "../store";
+import { getUser } from "../store";
 
 // ** Icons Imports
 import {
@@ -45,7 +44,6 @@ const renderClient = (row) => {
 
   return <div>{row.name}</div>;
 };
-
 
 export const columns = (toggleSidebar, setSelectedItem, toggleDelete) => [
   {
