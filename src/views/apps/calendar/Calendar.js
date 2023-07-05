@@ -337,6 +337,13 @@ const Calendar = (props) => {
         hour: "2-digit",
         minute: "2-digit",
       },
+      listDayFormat: {
+        weekday: "long",
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      },
+      listDaySideFormat: false,
       nowIndicator: true,
       eventClassNames({ event: calendarEvent }) {
         // eslint-disable-next-line no-underscore-dangle
