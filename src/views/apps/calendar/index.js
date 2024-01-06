@@ -44,6 +44,7 @@ const CalendarComponent = () => {
   const [addSidebarOpen, setAddSidebarOpen] = useState(false);
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
   const [month, setMonth] = useState(new Date().getMonth() + 1);
+  const [year, setYear] = useState(new Date().getFullYear());
   const [doctorId, setDoctorId] = useState(
     userData?.roles && userData?.roles[0]?.name !== "admin" ? [userData.id] : []
   );
@@ -79,6 +80,7 @@ const CalendarComponent = () => {
     dispatch(
       getAppointment({
         month,
+        year,
         doctor_id: doctorId.length > 0 ? doctorId.join("_") : null,
         customer_id: customerId !== "" ? customerId : null,
       })
@@ -99,14 +101,14 @@ const CalendarComponent = () => {
       dispatch(
         getAppointment({
           month,
+          year,
           doctor_id: doctorId.length > 0 ? doctorId.join("_") : null,
-        customer_id: customerId !== "" ? customerId : null,
-
+          customer_id: customerId !== "" ? customerId : null,
         })
       );
     }
     loaded = true;
-  }, [month, doctorId,customerId]);
+  }, [month, doctorId, customerId]);
 
   useEffect(() => {
     if (userData.roles && userData?.roles[0]?.name !== "admin") {
@@ -120,6 +122,7 @@ const CalendarComponent = () => {
         2
     );
     setMonth(middate.getMonth() + 1);
+    setYear(middate.getFullYear());
   };
 
   const updateFilter = (id) => {

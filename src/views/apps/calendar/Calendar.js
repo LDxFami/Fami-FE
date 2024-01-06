@@ -246,6 +246,7 @@ const Calendar = (props) => {
             description: i.description || "",
             extendedProps: {
               doctor: i.doctor,
+              secondaryDoctor: i.secondary_doctor,
               customer: i.customer,
               description: i.description || "",
               startTime: i.time_start,

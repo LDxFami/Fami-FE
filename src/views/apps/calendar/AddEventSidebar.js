@@ -88,6 +88,7 @@ const AddEventSidebar = (props) => {
   const [startPicker, setStartPicker] = useState(new Date());
   const [customer, setCustomer] = useState();
   const [doctor, setDoctor] = useState();
+  const [secondaryDoctor, setSecondaryDoctor] = useState();
   const [customerModal, setCustomerModal] = useState(false);
   const [customerInput, setCustomerInput] = useState({ phone: "", name: "" });
   const [isUpdate, setUpdate] = useState(false);
@@ -120,6 +121,7 @@ const AddEventSidebar = (props) => {
     const appointmentInfo = {
       doctor_id: doctor && doctor.length > 0 ? doctor[0].id : "",
       customer_id: customer && customer.length > 0 ? customer[0].id : "",
+      secondary_doctor_id: secondaryDoctor && secondaryDoctor.length > 0 ? secondaryDoctor[0].id : "",
       date: moment(startPicker).format("YYYY-MM-DD"),
       time_start: moment(startTime).format("HH:mm:00"),
       time_end: moment(endTime).format("HH:mm:00"),
@@ -224,6 +226,15 @@ const AddEventSidebar = (props) => {
           },
         ] || null
       );
+      setSecondaryDoctor(
+        [
+          {
+            label: selectedAppointment.extendedProps?.secondaryDoctor?.name,
+            value: selectedAppointment.extendedProps?.secondaryDoctor?.id,
+            id: selectedAppointment.extendedProps?.secondaryDoctor?.id,
+          },
+        ] || null
+      );
       setInputChangeHandler(selectedAppointment.extendedProps?.customer?.name);
       onDoctorInputChange(selectedAppointment.extendedProps?.doctor?.name);
     }
@@ -234,8 +245,9 @@ const AddEventSidebar = (props) => {
     if (!isObjEmpty(selectedAppointment)) {
       const appointmentInfo = {
         id: selectedAppointment.extendedProps.id,
-        doctor_id: doctor.length > 0 ? doctor[0].id : "",
-        customer_id: customer.length ? customer[0].id : "",
+        doctor_id: doctor && doctor.length > 0 ? doctor[0].id : "",
+        secondary_doctor_id: secondaryDoctor && secondaryDoctor.length > 0 && secondaryDoctor[0] ? secondaryDoctor[0].id : "",
+        customer_id: customer && customer.length ? customer[0].id : "",
         date: moment(startPicker).format("YYYY-MM-DD"),
         time_start: moment(startTime).format("HH:mm:00"),
         time_end: moment(endTime).format("HH:mm:00"),
@@ -350,7 +362,7 @@ const AddEventSidebar = (props) => {
           }
         );
         setCustomerModal(false);
-        
+
         const customerOptionItem = {
           label: rs.data.customer.name + " - " + (rs.data.customer.phone ?? "Không có SĐT"),
           value: rs.data.customer.id,
@@ -411,15 +423,13 @@ const AddEventSidebar = (props) => {
     return resultAction.data.items;
   };
 
-  const doctorPromiseOptions = async (inputValue, callback) => {
+  const doctorPromiseOptions = async (inputValue) => {
     const rs = await onDoctorInputChange(inputValue);
-    callback(
-      rs.map((i) => ({
-        label: i.name,
-        value: i.id,
-        id: i.id,
-      }))
-    );
+    return rs.map((i) => ({
+      label: i.name,
+      value: i.id,
+      id: i.id,
+    }))
   };
 
   const handleCreate = (inputValue) => {
@@ -439,6 +449,7 @@ const AddEventSidebar = (props) => {
     const appointmentInfo = {
       id: isUpdate ? selectedAppointment?.extendedProps?.id : null,
       doctor_id: doctor && doctor.length > 0 ? doctor[0].id : "",
+      secondary_doctor_id: secondaryDoctor && secondaryDoctor.length > 0 ? secondaryDoctor[0]?.id : null,
       customer_id: customer && customer.length ? customer[0].id : "",
       date: moment(startPicker).format("YYYY-MM-DD"),
       time_start: moment(startTime).format("HH:mm:00"),
@@ -493,7 +504,7 @@ const AddEventSidebar = (props) => {
               </Label>
               <AsyncCreatableSelect
                 required
-                placeholder="Khách hàng..."
+                placeholder=""
                 id="customer"
                 value={customer}
                 theme={selectThemeColors}
@@ -518,14 +529,36 @@ const AddEventSidebar = (props) => {
                 Bác sĩ
               </Label>
               <AsyncSelect
-                placeholder="Bác sĩ..."
+                placeholder=""
                 id="doctor"
                 value={doctor}
                 theme={selectThemeColors}
                 // className="react-select"
+                defaultOptions
                 classNamePrefix="select"
                 isClearable={false}
                 onChange={(data) => setDoctor([data])}
+                // components={{
+                //   Option: OptionComponent,
+                // }}
+                isDisabled={!canModify}
+                loadOptions={doctorPromiseOptions}
+              />
+            </div>
+            <div className="mb-1">
+              <Label className="form-label" for="secondary-doctor">
+                Bác sĩ 2
+              </Label>
+              <AsyncSelect
+                placeholder=""
+                id="secondary-doctor"
+                value={secondaryDoctor}
+                theme={selectThemeColors}
+                // className="react-select"
+                classNamePrefix="select"
+                defaultOptions
+                isClearable={true}
+                onChange={(data) => setSecondaryDoctor([data])}
                 // components={{
                 //   Option: OptionComponent,
                 // }}
@@ -609,7 +642,7 @@ const AddEventSidebar = (props) => {
                 rows="3"
                 value={desc}
                 onChange={(e) => setDesc(e.target.value)}
-                placeholder="Mô tả..."
+                placeholder=""
                 disabled={!canModify}
               />
             </div>
@@ -619,7 +652,7 @@ const AddEventSidebar = (props) => {
                 Trạng thái
               </Label>
               <Select
-                placeholder="Trạng thái..."
+                placeholder=""
                 id="status"
                 value={status}
                 options={statusOptions}
