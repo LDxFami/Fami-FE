@@ -478,14 +478,15 @@ const Calendar = (props) => {
   };
 
   const renderAdminList = (event, view, width) => {
+    let doctors = [event.extendedProps.doctor?.name, event.extendedProps.secondaryDoctor?.name].filter((i) => i);
+    let doctorText = doctors.length > 0 ? doctors.join(", ") : "Chưa có BS";
+    let description = event.extendedProps.description ?? "";
+    let listDesc = [doctorText, description].filter((i) => i).join(" - ");
     if (width > 540) {
       return (
         <>
           <div className="fw-bold">{event.title}</div>
-          {event.extendedProps.doctor?.name ?? "Chưa có BS"}
-          {event.extendedProps.description
-            ? " - " + event.extendedProps.description
-            : ""}
+          {listDesc}
         </>
       );
     }
@@ -493,7 +494,7 @@ const Calendar = (props) => {
     return (
       <>
         <div className="fw-bold">{event.title}</div>
-        {event.extendedProps.description}
+        {listDesc}
       </>
     );
   };
