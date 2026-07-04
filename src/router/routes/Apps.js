@@ -145,6 +145,10 @@ const AppRoutes = [
     component: lazy(() => import('../../views/apps/user/list'))
   },
   {
+    path: '/users/list',
+    component: lazy(() => import('../../views/apps/users/list'))
+  },
+  {
     path: '/user/view',
     exact: true,
     component: () => <Redirect to='/apps/user/view/1' />

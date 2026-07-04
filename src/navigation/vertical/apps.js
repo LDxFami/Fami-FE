@@ -8,6 +8,7 @@ import {
   Circle,
   ShoppingCart,
   User,
+  Users,
   Shield,
 } from "react-feather";
 
@@ -124,9 +125,15 @@ const navigationItem = [
 
   {
     id: "customer",
-    title: "Customer",
+    title: "Khách hàng",
     icon: <User size={20} />,
     navLink: "/user/list",
+  },
+  {
+    id: "user-management",
+    title: "Người dùng",
+    icon: <Users size={20} />,
+    navLink: "/users/list",
   },
 ];
 

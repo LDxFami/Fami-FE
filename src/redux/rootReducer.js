@@ -1,6 +1,7 @@
 // ** Reducers Imports
 import navbar from './navbar'
 import user from './user'
+import users from './users'
 import customer from './customer'
 import appointment from './appointment'
 import doctor from './doctor'
@@ -21,13 +22,13 @@ import { combineReducers } from 'redux'
 const appReducer = combineReducers({
   auth,
   user,
+  users,
   todo,
   chat,
   email,
   customer,
   doctor,
   appointment,
-  // users,
   navbar,
   layout,
   invoice,
