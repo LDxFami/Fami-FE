@@ -19,12 +19,24 @@ import { selectThemeColors, isObjEmpty } from "@utils";
 // ** Third Party Components
 import { toast } from "react-toastify";
 import { Card, CardBody, Input, Label } from "reactstrap";
-import { Menu, Check } from "react-feather";
+import { Menu, Check, Star } from "react-feather";
 import useWindowDimensions from "../../../utility/hooks/useWindowDimensions";
 import { getCustomer } from "../../../redux/customer";
 import { unwrapResult } from "@reduxjs/toolkit";
 
 const scrollTime = moment().format("HH:mm:ss");
+
+const getAppointmentTooltip = (event) => {
+  return event.extendedProps?.description?.trim() || "";
+};
+
+const emptyNoteTooltip = {
+  show: false,
+  text: "",
+  important: false,
+  x: 0,
+  y: 0,
+};
 
 // ** Toast Component
 const ToastComponent = ({ title, icon, color }) => (
@@ -209,12 +221,19 @@ const Calendar = (props) => {
   const [viewCurrent, setviewCurrent] = useState(initialView);
   const [showPast, setShowPast] = useState(false);
   const [customerSelect, setCustomerSelect] = useState("");
+  const [noteTooltip, setNoteTooltip] = useState(emptyNoteTooltip);
   // ** UseEffect checks for CalendarAPI Update
   useEffect(() => {
     if (calendarApi === null) {
       setCalendarApi(calendarRef.current.getApi());
     }
   }, [calendarApi, setCalendarApi]);
+
+  useEffect(() => {
+    document
+      .querySelectorAll(".tooltip[role='tooltip'], .tooltip.bs-tooltip-top, .tooltip.bs-tooltip-bottom")
+      .forEach((node) => node.remove());
+  }, []);
 
   useEffect(() => {
     setviewCurrent(initialView);
@@ -249,6 +268,7 @@ const Calendar = (props) => {
               secondaryDoctor: i.secondary_doctor,
               customer: i.customer,
               description: i.description || "",
+              isImportant: !!i.is_important,
               startTime: i.time_start,
               endTime: i.time_end,
               status: i.status,
@@ -350,14 +370,38 @@ const Calendar = (props) => {
         // eslint-disable-next-line no-underscore-dangle
         const colorName =
           calendarsColor[calendarEvent._def.extendedProps.status];
+        const classes = [`bg-light-${colorName} bold`];
 
-        return [
-          // Background Color
-          `bg-light-${colorName} bold `,
-        ];
+        if (calendarEvent._def.extendedProps.isImportant) {
+          classes.push("event-important");
+        }
+
+        return classes;
+      },
+
+      eventMouseEnter({ event, el }) {
+        const tooltipText = getAppointmentTooltip(event);
+        if (!tooltipText) {
+          return;
+        }
+
+        const rect = el.getBoundingClientRect();
+        setNoteTooltip({
+          show: true,
+          text: tooltipText,
+          important: !!event.extendedProps?.isImportant,
+          x: rect.left + rect.width / 2,
+          y: rect.top,
+        });
+      },
+
+      eventMouseLeave() {
+        setNoteTooltip(emptyNoteTooltip);
       },
 
       eventClick({ event: clickedEvent, view }) {
+        setNoteTooltip(emptyNoteTooltip);
+
         if (view.type === "dayGridMonth" && width < 54) {
           calendarApi.changeView("timeGridDay", clickedEvent.start);
         } else {
@@ -458,18 +502,26 @@ const Calendar = (props) => {
   }, [role, calendarData, initialView, customerSelect, showPast, viewCurrent]);
 
   const renderEvent = (event, view) => {
+    const { description, isImportant } = event.extendedProps;
     return (
       <>
-        <div className="fc-event-time">
+        <div className="fc-event-time d-flex align-items-center">
+          {isImportant ? (
+            <Star size={12} className="me-25 event-important-star" fill="currentColor" />
+          ) : null}
           {moment(event.startStr).format("HH:mm")} -{" "}
           {moment(event.endStr).format("HH:mm")}
         </div>
         <div className="fc-event-title">
           {event.title}
-          {event.extendedProps.description ? (
-            <span className="fc-event-description">
+          {description ? (
+            <span
+              className={`fc-event-description${
+                isImportant ? " note-important" : ""
+              }`}
+            >
               {" "}
-              - {event.extendedProps.description}
+              - {description}
             </span>
           ) : null}
         </div>
@@ -481,41 +533,59 @@ const Calendar = (props) => {
     let doctors = [event.extendedProps.doctor?.name, event.extendedProps.secondaryDoctor?.name].filter((i) => i);
     let doctorText = doctors.length > 0 ? doctors.join(", ") : "Chưa có BS";
     let description = event.extendedProps.description ?? "";
-    let listDesc = [doctorText, description].filter((i) => i).join(" - ");
-    if (width > 540) {
-      return (
-        <>
-          <div className="fw-bold">{event.title}</div>
-          {listDesc}
-        </>
-      );
-    }
-
+    const { isImportant } = event.extendedProps;
     return (
       <>
-        <div className="fw-bold">{event.title}</div>
-        {listDesc}
+        <div className="fw-bold d-flex align-items-center">
+          {isImportant ? (
+            <Star size={14} className="me-25 event-important-star" fill="currentColor" />
+          ) : null}
+          {event.title}
+        </div>
+        {doctorText}
+        {description ? (
+          <span className={isImportant ? "note-important" : undefined}>
+            {" - "}
+            {description}
+          </span>
+        ) : null}
       </>
     );
   };
 
   const renderDayGridMonth = (event, view, width) => {
+    const { description, isImportant, customer, status } = event.extendedProps;
+
     if (width < 540) {
-      return <div className="fc-daygrid-event-dot" />;
+      return isImportant ? (
+        <Star size={12} className="event-important-star" fill="currentColor" />
+      ) : (
+        <div className="fc-daygrid-event-dot" />
+      );
     }
 
     return (
       <>
-        <div
-          className={`fc-daygrid-event-dot border-color-${
-            calendarsColor[event.extendedProps.status ?? 1]
-          }`}
-        ></div>
+        {isImportant ? (
+          <Star size={12} className="event-important-star me-25" fill="currentColor" />
+        ) : (
+          <div
+            className={`fc-daygrid-event-dot border-color-${
+              calendarsColor[status ?? 1]
+            }`}
+          ></div>
+        )}
         <div className="fc-event-time">
           {moment(event.startStr).format("HH:mm")}
         </div>
         <div className="fc-event-title">
-          {event.extendedProps.customer?.name}
+          {customer?.name}
+          {isImportant && description ? (
+            <span className="fc-event-description note-important">
+              {" "}
+              - {description}
+            </span>
+          ) : null}
         </div>
       </>
     );
@@ -584,6 +654,19 @@ const Calendar = (props) => {
       ) : null}
       <CardBody className="pb-0">
         <FullCalendar {...calendarOptions} />{" "}
+        {noteTooltip.show ? (
+          <div
+            className={`appointment-note-tooltip${
+              noteTooltip.important ? " important" : ""
+            }`}
+            style={{
+              top: noteTooltip.y,
+              left: noteTooltip.x,
+            }}
+          >
+            {noteTooltip.text}
+          </div>
+        ) : null}
       </CardBody>
     </Card>
   );

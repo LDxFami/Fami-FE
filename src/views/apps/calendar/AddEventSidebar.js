@@ -82,6 +82,7 @@ const AddEventSidebar = (props) => {
 
   // ** States
   const [desc, setDesc] = useState("");
+  const [isImportant, setIsImportant] = useState(false);
   const [status, setStatus] = useState({ value: 1, label: "Hiệu lực" });
   const [startTime, setStartTime] = useState(new Date().setHours(8, 0, 0, 0));
   const [endTime, setEndTime] = useState(new Date().setHours(8, 30, 0, 0));
@@ -127,6 +128,7 @@ const AddEventSidebar = (props) => {
       time_end: moment(endTime).format("HH:mm:00"),
       status,
       description: desc,
+      is_important: isImportant,
     };
     dispatch(addAppointment(appointmentInfo))
       .unwrap()
@@ -170,8 +172,10 @@ const AddEventSidebar = (props) => {
   const handleResetInputValues = () => {
     // dispatch(selectEvent({}));
     setDesc("");
+    setIsImportant(false);
     setCustomer(null);
     setDoctor(null);
+    setSecondaryDoctor(null);
     setStartPicker(new Date());
     setStartTime(new Date().setHours(8, 0, 0, 0));
     setEndTime(new Date().setHours(8, 30, 0, 0));
@@ -184,6 +188,7 @@ const AddEventSidebar = (props) => {
   const handleSelectedEvent = () => {
     if (!isObjEmpty(selectedAppointment)) {
       setDesc(selectedAppointment.extendedProps?.description || desc);
+      setIsImportant(!!selectedAppointment.extendedProps?.isImportant);
       setStartPicker(new Date(selectedAppointment.start) || startPicker);
       setStatus(
         statusOptions.filter(
@@ -252,6 +257,7 @@ const AddEventSidebar = (props) => {
         time_start: moment(startTime).format("HH:mm:00"),
         time_end: moment(endTime).format("HH:mm:00"),
         description: desc,
+        is_important: isImportant,
         status: status[0].value,
       };
       dispatch(updateAppointment(appointmentInfo))
@@ -455,6 +461,7 @@ const AddEventSidebar = (props) => {
       time_start: moment(startTime).format("HH:mm:00"),
       time_end: moment(endTime).format("HH:mm:00"),
       description: desc,
+      is_important: isImportant,
       status: status.length ? status[0].value : 1,
     };
     await dispatch(checkOverlapAppointment(appointmentInfo))
@@ -645,6 +652,20 @@ const AddEventSidebar = (props) => {
                 placeholder=""
                 disabled={!canModify}
               />
+            </div>
+
+            <div className="form-check form-switch mb-1">
+              <Input
+                type="switch"
+                id="isImportant"
+                name="isImportant"
+                checked={isImportant}
+                onChange={(e) => setIsImportant(e.target.checked)}
+                disabled={!canModify}
+              />
+              <Label className="form-check-label" for="isImportant">
+                Ghi chú quan trọng
+              </Label>
             </div>
 
             <div className="mb-1">

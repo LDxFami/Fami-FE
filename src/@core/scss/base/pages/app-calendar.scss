@@ -191,8 +191,42 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
       font-size: 12px;
       .fc-event-description {
         font-weight: normal !important;
+
+        &.note-important {
+          color: $warning !important;
+          font-weight: 700 !important;
+        }
       }
     }
+  }
+
+  .event-important {
+    box-shadow: inset 4px 0 0 $warning;
+    border: 2px solid $warning !important;
+    background-color: rgba($warning, 0.18) !important;
+  }
+
+  .fc-list-event.event-important {
+    td {
+      background-color: rgba($warning, 0.14) !important;
+    }
+  }
+
+  .event-important-star {
+    color: $warning;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+    margin-top: 0 !important;
+    vertical-align: middle;
+    line-height: 1;
+  }
+
+  .note-important {
+    color: darken($warning, 8%) !important;
+    font-weight: 700 !important;
   }
 
   // Daygrid
@@ -203,6 +237,11 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
     .fc-daygrid-event {
       display: flex;
       align-items: flex-start !important;
+
+      &.event-important {
+        align-items: center !important;
+      }
+
       .fc-daygrid-event-dot {
         margin-top: 4px;
       }
@@ -524,6 +563,45 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
         min-width: 100%;
         width: 100%;
       }
+    }
+  }
+}
+
+.appointment-note-tooltip {
+  position: fixed;
+  z-index: 1040;
+  max-width: 280px;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: $white;
+  text-align: left;
+  white-space: pre-wrap;
+  pointer-events: none;
+  border-radius: 0.375rem;
+  background-color: $body-color;
+  box-shadow: 0 4px 14px rgba($black, 0.18);
+  transform: translate(-50%, calc(-100% - 8px));
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -6px;
+    border-width: 6px;
+    border-style: solid;
+    border-color: $body-color transparent transparent transparent;
+  }
+
+  &.important {
+    background-color: $warning;
+    font-weight: 600;
+    box-shadow: 0 4px 14px rgba($warning, 0.45);
+
+    &::after {
+      border-color: $warning transparent transparent transparent;
     }
   }
 }
