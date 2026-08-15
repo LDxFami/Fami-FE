@@ -14,6 +14,13 @@ export const getDoctor = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(err.response.data);
     }
+  },
+  {
+    // Dedupe concurrent list fetches (search still always runs)
+    condition: (params, { getState }) => {
+      if (params?.search_param) return true;
+      return getState().doctor.doctors.loading !== "loading";
+    },
   }
 );
 

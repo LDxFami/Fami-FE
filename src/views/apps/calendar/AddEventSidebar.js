@@ -98,11 +98,6 @@ const AddEventSidebar = (props) => {
 
   //** Effects
   useEffect(() => {
-    dispatch(getDoctor());
-    dispatch(getCustomer());
-  }, []);
-
-  useEffect(() => {
     setUpdate(
       !(
         isObjEmpty(selectedAppointment) ||
@@ -181,7 +176,6 @@ const AddEventSidebar = (props) => {
     setEndTime(new Date().setHours(8, 30, 0, 0));
     dispatch(selectAppointment({}));
     setStatus({ value: 1, label: "Hiệu lực" });
-    dispatch(getDoctor());
   };
 
   // ** Set sidebar fields

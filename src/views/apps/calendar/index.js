@@ -45,9 +45,7 @@ const CalendarComponent = () => {
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(new Date().getFullYear());
-  const [doctorId, setDoctorId] = useState(
-    userData?.roles && userData?.roles[0]?.name !== "admin" ? [userData.id] : []
-  );
+  const [doctorId, setDoctorId] = useState([]);
   const [customerId, setCustomerId] = useState("");
   // ** Hooks
   const [isRtl] = useRTL();
@@ -57,7 +55,10 @@ const CalendarComponent = () => {
   // ** LeftSidebar Toggle Function
   const toggleSidebar = (val) => setLeftSidebarOpen(val);
 
-  let loaded = false;
+  const profileReady = Boolean(userData?.roles);
+  const canViewAll =
+    userData?.roles?.[0]?.name === "admin" ||
+    userData?.group?.slug === "medic";
 
   // ** Blank Event Object
   const blankEvent = {
@@ -74,17 +75,16 @@ const CalendarComponent = () => {
     },
   };
 
+  const appointmentParams = {
+    month,
+    year,
+    customer_id: customerId !== "" ? customerId : null,
+  };
+
   // ** refetchEvents
   const refetchEvents = () => {
     dispatch(getDoctor());
-    dispatch(
-      getAppointment({
-        month,
-        year,
-        doctor_id: doctorId.length > 0 ? doctorId.join("_") : null,
-        customer_id: customerId !== "" ? customerId : null,
-      })
-    );
+    dispatch(getAppointment(appointmentParams));
     if (calendarApi !== null) {
       calendarApi.refetchEvents();
     }
@@ -95,23 +95,17 @@ const CalendarComponent = () => {
     dispatch(getDoctor());
   }, []);
 
-  // ** Fetch Events On Mount
+  // Fetch month appointments in parallel with doctors/profile — doctor
+  // filtering is done client-side so we don't wait on sidebar check-all.
   useEffect(() => {
-    if (userData && (doctorId.length > 0 || loaded)) {
-      dispatch(
-        getAppointment({
-          month,
-          year,
-          doctor_id: doctorId.length > 0 ? doctorId.join("_") : null,
-          customer_id: customerId !== "" ? customerId : null,
-        })
-      );
-    }
-    loaded = true;
-  }, [month, doctorId, customerId]);
+    dispatch(getAppointment(appointmentParams));
+  }, [month, year, customerId]);
 
   useEffect(() => {
-    if (userData.roles && userData?.roles[0]?.name !== "admin") {
+    if (!userData?.roles) return;
+    const isAdmin = userData.roles[0]?.name === "admin";
+    const isMedic = userData?.group?.slug === "medic";
+    if (!isAdmin && !isMedic) {
       setDoctorId([userData.id]);
     }
   }, [userData]);
@@ -178,6 +172,9 @@ const CalendarComponent = () => {
               role={userData?.roles ? userData?.roles[0]?.name : ""}
               isRtl={isRtl}
               store={store}
+              doctorId={doctorId}
+              canViewAll={canViewAll}
+              profileReady={profileReady}
               handleMonthChange={handleMonthChange}
               dispatch={dispatch}
               blankEvent={blankEvent}

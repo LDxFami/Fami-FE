@@ -212,6 +212,9 @@ const Calendar = (props) => {
     updateEvent,
     role,
     onCustomerChange,
+    doctorId = [],
+    canViewAll = false,
+    profileReady = false,
   } = props;
 
   const initialView = width > 540 ? "dayGridMonth" : "timeGridDay";
@@ -242,16 +245,38 @@ const Calendar = (props) => {
   useEffect(() => {
     var calendarDta = [];
     if (store.appointments?.data.length > 0) {
+      const matchesDoctorFilter = (appointment) => {
+        if (!profileReady) return false;
+        if (!doctorId.length) return canViewAll;
+        // Sidebar "uncheck all" uses sentinel [0]
+        if (doctorId.length === 1 && doctorId[0] === 0) return false;
+
+        const idSet = new Set(doctorId.map(String));
+        const includeUnassigned = idSet.has("");
+        const primaryId = appointment.doctor_id ?? appointment.doctor?.id;
+        const secondaryId =
+          appointment.secondary_doctor_id ?? appointment.secondary_doctor?.id;
+
+        if (includeUnassigned && (primaryId == null || primaryId === "")) {
+          return true;
+        }
+        if (primaryId != null && idSet.has(String(primaryId))) return true;
+        if (secondaryId != null && idSet.has(String(secondaryId))) return true;
+        return false;
+      };
+
+      const doctorFiltered = store.appointments.data.filter(matchesDoctorFilter);
+
       if (!showPast && viewCurrent === "listMonth") {
         var date = new Date();
         date.setHours(0, 0, 0);
-        calendarDta = store.appointments?.data.filter((i) => {
+        calendarDta = doctorFiltered.filter((i) => {
           return (
             new Date(i.date + "T" + i.time_start).getTime() > date.getTime()
           );
         });
       } else {
-        calendarDta = store.appointments?.data;
+        calendarDta = doctorFiltered;
       }
     }
     setCalendarData(
@@ -278,7 +303,7 @@ const Calendar = (props) => {
           }))
         : []
     );
-  }, [store, showPast, viewCurrent]);
+  }, [store, showPast, viewCurrent, doctorId, canViewAll, profileReady]);
 
   useEffect(() => {
     const options = {
