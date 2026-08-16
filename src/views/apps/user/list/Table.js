@@ -300,14 +300,15 @@ const UsersList = ({ data, loading }) => {
       dispatch(
         getCustomer({
           search_param: value,
-          page: currentPage,
+          page: 1,
           limit: rowsPerPage,
           sort_column: sortColumn,
           sort_direction: sort,
         })
       );
-    }, 500),
-    []
+      setCurrentPage(1);
+    }, 300),
+    [rowsPerPage, sortColumn, sort]
   );
 
   const handleFilter = (val) => {

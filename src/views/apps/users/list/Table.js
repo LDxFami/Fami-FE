@@ -153,7 +153,7 @@ const UsersTable = () => {
         })
       );
       setCurrentPage(1);
-    }, 500),
+    }, 300),
     [rowsPerPage, sortColumn, sort]
   );
 

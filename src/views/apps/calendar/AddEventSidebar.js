@@ -1,5 +1,5 @@
 // ** React Imports
-import { Fragment, useState, useEffect } from "react";
+import { Fragment, useState, useEffect, useMemo } from "react";
 import { unwrapResult } from "@reduxjs/toolkit";
 
 // ** Custom Components
@@ -32,6 +32,10 @@ import {
 
 // ** Utils
 import { selectThemeColors, isObjEmpty } from "@utils";
+import {
+  createDebouncedNameLoader,
+  NAME_SEARCH_LIMIT,
+} from "../../../utility/asyncNameSearch";
 
 // ** Styles Imports
 import "@styles/react/libs/react-select/_react-select.scss";
@@ -234,8 +238,6 @@ const AddEventSidebar = (props) => {
           },
         ] || null
       );
-      setInputChangeHandler(selectedAppointment.extendedProps?.customer?.name);
-      onDoctorInputChange(selectedAppointment.extendedProps?.doctor?.name);
     }
   };
 
@@ -396,41 +398,47 @@ const AddEventSidebar = (props) => {
     <X className="cursor-pointer" size={15} onClick={handleAddEventSidebar} />
   );
 
-  const setInputChangeHandler = async (inputValue) => {
-    const originalPromiseResult = await dispatch(
-      getCustomer({ search_param: inputValue })
-    );
-    const resultAction = unwrapResult(originalPromiseResult);
-    return resultAction.data.items;
-  };
+  const customerLoadOptions = useMemo(
+    () =>
+      createDebouncedNameLoader(async (inputValue) => {
+        const params = {
+          limit: NAME_SEARCH_LIMIT,
+          page: 1,
+        };
+        if (inputValue) {
+          params.search_param = inputValue;
+        }
+        const originalPromiseResult = await dispatch(getCustomer(params));
+        const resultAction = unwrapResult(originalPromiseResult);
+        return (resultAction.data.items || []).map((i) => ({
+          label: i.name + " - " + (i.phone ?? "Không có SĐT"),
+          value: i.id,
+          id: i.id,
+        }));
+      }),
+    [dispatch]
+  );
 
-  const promiseOptions = async (inputValue, callback) => {
-    const rs = await setInputChangeHandler(inputValue);
-    callback(
-      rs.map((i) => ({
-        label: i.name + " - " + (i.phone ?? "Không có SĐT"),
-        value: i.id,
-        id: i.id,
-      }))
-    );
-  };
-
-  const onDoctorInputChange = async (inputValue) => {
-    const originalPromiseResult = await dispatch(
-      getDoctor({ search_param: inputValue })
-    );
-    const resultAction = unwrapResult(originalPromiseResult);
-    return resultAction.data.items;
-  };
-
-  const doctorPromiseOptions = async (inputValue) => {
-    const rs = await onDoctorInputChange(inputValue);
-    return rs.map((i) => ({
-      label: i.name,
-      value: i.id,
-      id: i.id,
-    }))
-  };
+  const doctorLoadOptions = useMemo(
+    () =>
+      createDebouncedNameLoader(async (inputValue) => {
+        const params = {
+          limit: NAME_SEARCH_LIMIT,
+          page: 1,
+        };
+        if (inputValue) {
+          params.search_param = inputValue;
+        }
+        const originalPromiseResult = await dispatch(getDoctor(params));
+        const resultAction = unwrapResult(originalPromiseResult);
+        return (resultAction.data.items || []).map((i) => ({
+          label: i.name,
+          value: i.id,
+          id: i.id,
+        }));
+      }),
+    [dispatch]
+  );
 
   const handleCreate = (inputValue) => {
     var customerVal = customerInput;
@@ -517,7 +525,9 @@ const AddEventSidebar = (props) => {
                 //   Option: GuestsComponent,
                 // }}
                 onCreateOption={handleCreate}
-                loadOptions={promiseOptions}
+                loadOptions={customerLoadOptions}
+                cacheOptions
+                defaultOptions
                 isDisabled={!canModify}
                 formatCreateLabel={(inputValue) => {
                   return `Tạo khách hàng "${inputValue}"`;
@@ -536,6 +546,7 @@ const AddEventSidebar = (props) => {
                 theme={selectThemeColors}
                 // className="react-select"
                 defaultOptions
+                cacheOptions
                 classNamePrefix="select"
                 isClearable={false}
                 onChange={(data) => setDoctor([data])}
@@ -543,7 +554,7 @@ const AddEventSidebar = (props) => {
                 //   Option: OptionComponent,
                 // }}
                 isDisabled={!canModify}
-                loadOptions={doctorPromiseOptions}
+                loadOptions={doctorLoadOptions}
               />
             </div>
             <div className="mb-1">
@@ -558,13 +569,14 @@ const AddEventSidebar = (props) => {
                 // className="react-select"
                 classNamePrefix="select"
                 defaultOptions
+                cacheOptions
                 isClearable={true}
                 onChange={(data) => setSecondaryDoctor([data])}
                 // components={{
                 //   Option: OptionComponent,
                 // }}
                 isDisabled={!canModify}
-                loadOptions={doctorPromiseOptions}
+                loadOptions={doctorLoadOptions}
               />
             </div>
 

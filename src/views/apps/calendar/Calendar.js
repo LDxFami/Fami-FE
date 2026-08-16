@@ -23,6 +23,10 @@ import { Menu, Check, Star } from "react-feather";
 import useWindowDimensions from "../../../utility/hooks/useWindowDimensions";
 import { getCustomer } from "../../../redux/customer";
 import { unwrapResult } from "@reduxjs/toolkit";
+import {
+  createDebouncedNameLoader,
+  NAME_SEARCH_LIMIT,
+} from "../../../utility/asyncNameSearch";
 
 const scrollTime = moment().format("HH:mm:ss");
 
@@ -616,24 +620,26 @@ const Calendar = (props) => {
     );
   };
 
-  const setCustomerInputChangeHandler = async (inputValue) => {
-    const originalPromiseResult = await dispatch(
-      getCustomer({ search_param: inputValue })
-    );
-    const resultAction = unwrapResult(originalPromiseResult);
-    return resultAction.data.items;
-  };
-
-  const customerSearchPromiseOption = async (inputValue, callback) => {
-    const rs = await setCustomerInputChangeHandler(inputValue);
-    callback(
-      rs.map((i) => ({
-        label: i.name + " - " + (i.phone ?? "Không có SĐT"),
-        value: i.id,
-        id: i.id,
-      }))
-    );
-  };
+  const customerLoadOptions = useMemo(
+    () =>
+      createDebouncedNameLoader(async (inputValue) => {
+        const params = {
+          limit: NAME_SEARCH_LIMIT,
+          page: 1,
+        };
+        if (inputValue) {
+          params.search_param = inputValue;
+        }
+        const originalPromiseResult = await dispatch(getCustomer(params));
+        const resultAction = unwrapResult(originalPromiseResult);
+        return (resultAction.data.items || []).map((i) => ({
+          label: i.name + " - " + (i.phone ?? "Không có SĐT"),
+          value: i.id,
+          id: i.id,
+        }));
+      }),
+    [dispatch]
+  );
 
   const renderCustomerSearch = () => {
     return (
@@ -645,11 +651,13 @@ const Calendar = (props) => {
         className="react-select"
         classNamePrefix="select"
         isClearable={true}
+        cacheOptions
+        defaultOptions
         onChange={(data) => {
           setCustomerSelect(data);
           onCustomerChange(data);
         }}
-        loadOptions={customerSearchPromiseOption}
+        loadOptions={customerLoadOptions}
       />
     );
   };
