@@ -10,6 +10,18 @@ export const NAME_SEARCH_LIMIT = 20;
 export const AsyncPaginateSelect = withAsyncPaginate(Select);
 export const AsyncPaginateCreatableSelect = withAsyncPaginate(CreatableSelect);
 
+export const mapCustomerOption = (customer) => ({
+  label: `${customer.name} - ${customer.phone ?? "Không có SĐT"}`,
+  value: customer.id,
+  id: customer.id,
+});
+
+export const mapDoctorOption = (doctor) => ({
+  label: doctor.name,
+  value: doctor.id,
+  id: doctor.id,
+});
+
 /**
  * Whether the typed value is worth hitting the API for.
  * Empty input is allowed (defaultOptions / initial list).

@@ -1,6 +1,5 @@
 // ** React Imports
-import { Fragment, useState, useEffect, useMemo } from "react";
-import { unwrapResult } from "@reduxjs/toolkit";
+import { Fragment, useState, useEffect } from "react";
 
 // ** Custom Components
 import Avatar from "@components/avatar";
@@ -14,7 +13,7 @@ import { useSelector } from "react-redux";
 import PerfectScrollbar from "react-perfect-scrollbar";
 import { useForm } from "react-hook-form";
 import moment from "moment";
-import { addCustomer, searchCustomers } from "../../../redux/customer";
+import { addCustomer } from "../../../redux/customer";
 // ** Reactstrap Imports
 import {
   Button,
@@ -29,18 +28,16 @@ import {
 // ** Utils
 import { selectThemeColors, isObjEmpty } from "@utils";
 import {
-  AsyncPaginateSelect,
-  AsyncPaginateCreatableSelect,
-  createPaginatedNameLoadOptions,
-  NAME_SEARCH_LIMIT,
-  NAME_SEARCH_DEBOUNCE_MS,
-} from "../../../utility/asyncNameSearch";
+  CustomerNameSelect,
+  DoctorNameSelect,
+  mapCustomerOption,
+  mapDoctorOption,
+} from "../../../utility/nameAsyncSelect";
 
 // ** Styles Imports
 import "@styles/react/libs/react-select/_react-select.scss";
 import "@styles/react/libs/flatpickr/flatpickr.scss";
 import AddCustomerModal from "../../components/addCustomerModal";
-import { searchDoctors } from "../../../redux/doctor";
 import {
   addAppointment,
   selectAppointment,
@@ -245,33 +242,17 @@ const AddEventSidebar = (props) => {
     );
     setCustomer(
       selectedAppointment.extendedProps?.customer
-        ? {
-            label:
-              selectedAppointment.extendedProps.customer.name +
-              " - " +
-              (selectedAppointment.extendedProps.customer?.phone ??
-                "Không có SDT"),
-            value: selectedAppointment.extendedProps.customer.id,
-            id: selectedAppointment.extendedProps.customer.id,
-          }
+        ? mapCustomerOption(selectedAppointment.extendedProps.customer)
         : null
     );
     setDoctor(
       selectedAppointment.extendedProps?.doctor
-        ? {
-            label: selectedAppointment.extendedProps.doctor.name,
-            value: selectedAppointment.extendedProps.doctor.id,
-            id: selectedAppointment.extendedProps.doctor.id,
-          }
+        ? mapDoctorOption(selectedAppointment.extendedProps.doctor)
         : null
     );
     setSecondaryDoctor(
       selectedAppointment.extendedProps?.secondaryDoctor
-        ? {
-            label: selectedAppointment.extendedProps.secondaryDoctor.name,
-            value: selectedAppointment.extendedProps.secondaryDoctor.id,
-            id: selectedAppointment.extendedProps.secondaryDoctor.id,
-          }
+        ? mapDoctorOption(selectedAppointment.extendedProps.secondaryDoctor)
         : null
     );
   };
@@ -335,14 +316,7 @@ const AddEventSidebar = (props) => {
           }
         );
         setCustomerModal(false);
-        setCustomer({
-          label:
-            rs.data.customer.name +
-            " - " +
-            (rs.data.customer.phone ?? "Không có SĐT"),
-          value: rs.data.customer.id,
-          id: rs.data.customer.id,
-        });
+        setCustomer(mapCustomerOption(rs.data.customer));
       })
       .catch((err) => {
         const { error } = err;
@@ -367,60 +341,6 @@ const AddEventSidebar = (props) => {
 
   const CloseBtn = (
     <X className="cursor-pointer" size={15} onClick={handleAddEventSidebar} />
-  );
-
-  const customerLoadOptions = useMemo(
-    () =>
-      createPaginatedNameLoadOptions(async (inputValue, page, abortSignal) => {
-        const params = {
-          limit: NAME_SEARCH_LIMIT,
-          page,
-          abortSignal,
-        };
-        if (inputValue) {
-          params.search_param = inputValue;
-        }
-        const originalPromiseResult = await dispatch(searchCustomers(params));
-        const resultAction = unwrapResult(originalPromiseResult);
-        const items = resultAction.data.items || [];
-        return {
-          options: items.map((i) => ({
-            label: i.name + " - " + (i.phone ?? "Không có SĐT"),
-            value: i.id,
-            id: i.id,
-          })),
-          hasMore:
-            resultAction.data.has_more ?? items.length >= NAME_SEARCH_LIMIT,
-        };
-      }),
-    [dispatch]
-  );
-
-  const doctorLoadOptions = useMemo(
-    () =>
-      createPaginatedNameLoadOptions(async (inputValue, page, abortSignal) => {
-        const params = {
-          limit: NAME_SEARCH_LIMIT,
-          page,
-          abortSignal,
-        };
-        if (inputValue) {
-          params.search_param = inputValue;
-        }
-        const originalPromiseResult = await dispatch(searchDoctors(params));
-        const resultAction = unwrapResult(originalPromiseResult);
-        const items = resultAction.data.items || [];
-        return {
-          options: items.map((i) => ({
-            label: i.name,
-            value: i.id,
-            id: i.id,
-          })),
-          hasMore:
-            resultAction.data.has_more ?? items.length >= NAME_SEARCH_LIMIT,
-        };
-      }),
-    [dispatch]
   );
 
   const handleCreate = (inputValue) => {
@@ -466,26 +386,15 @@ const AddEventSidebar = (props) => {
               <Label required className="form-label" for="customer">
                 Khách hàng
               </Label>
-              <AsyncPaginateCreatableSelect
+              <CustomerNameSelect
                 required
-                placeholder=""
+                creatable
                 id="customer"
                 value={customer}
-                theme={selectThemeColors}
-                className="react-select"
-                classNamePrefix="select"
                 isClearable={false}
                 onChange={(data) => setCustomer(data)}
                 onCreateOption={handleCreate}
-                loadOptions={customerLoadOptions}
-                additional={{ page: 1 }}
-                debounceTimeout={NAME_SEARCH_DEBOUNCE_MS}
-                defaultOptions
-                filterOption={null}
                 isDisabled={!canModify}
-                formatCreateLabel={(inputValue) => {
-                  return `Tạo khách hàng "${inputValue}"`;
-                }}
               />
             </div>
 
@@ -493,20 +402,12 @@ const AddEventSidebar = (props) => {
               <Label className="form-label" for="doctor">
                 Bác sĩ
               </Label>
-              <AsyncPaginateSelect
-                placeholder=""
+              <DoctorNameSelect
                 id="doctor"
                 value={doctor}
-                theme={selectThemeColors}
-                defaultOptions
-                additional={{ page: 1 }}
-                debounceTimeout={NAME_SEARCH_DEBOUNCE_MS}
-                filterOption={null}
-                classNamePrefix="select"
                 isClearable={false}
                 onChange={(data) => setDoctor(data)}
                 isDisabled={!canModify}
-                loadOptions={doctorLoadOptions}
                 cacheUniqs={["primary-doctor"]}
               />
             </div>
@@ -514,20 +415,12 @@ const AddEventSidebar = (props) => {
               <Label className="form-label" for="secondary-doctor">
                 Bác sĩ 2
               </Label>
-              <AsyncPaginateSelect
-                placeholder=""
+              <DoctorNameSelect
                 id="secondary-doctor"
                 value={secondaryDoctor}
-                theme={selectThemeColors}
-                classNamePrefix="select"
-                defaultOptions
-                additional={{ page: 1 }}
-                debounceTimeout={NAME_SEARCH_DEBOUNCE_MS}
-                filterOption={null}
-                isClearable={true}
+                isClearable
                 onChange={(data) => setSecondaryDoctor(data)}
                 isDisabled={!canModify}
-                loadOptions={doctorLoadOptions}
                 cacheUniqs={["secondary-doctor"]}
               />
             </div>

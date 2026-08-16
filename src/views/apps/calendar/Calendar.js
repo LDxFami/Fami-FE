@@ -12,20 +12,12 @@ import interactionPlugin from "@fullcalendar/interaction";
 import moment from "moment";
 // ** Custom Components
 import SpinnerComponent from "../../../@core/components/spinner/Fallback-spinner";
-import { selectThemeColors } from "@utils";
 
 // ** Third Party Components
 import { Card, CardBody, Input, Label } from "reactstrap";
 import { Menu, Star } from "react-feather";
 import useWindowDimensions from "../../../utility/hooks/useWindowDimensions";
-import { searchCustomers } from "../../../redux/customer";
-import { unwrapResult } from "@reduxjs/toolkit";
-import {
-  AsyncPaginateSelect,
-  createPaginatedNameLoadOptions,
-  NAME_SEARCH_LIMIT,
-  NAME_SEARCH_DEBOUNCE_MS,
-} from "../../../utility/asyncNameSearch";
+import { CustomerNameSelect } from "../../../utility/nameAsyncSelect";
 import {
   createBlankCalendarEvent,
   matchesDoctorFilter,
@@ -185,33 +177,6 @@ const Calendar = (props) => {
     [calendarsColor]
   );
 
-  const customerLoadOptions = useMemo(
-    () =>
-      createPaginatedNameLoadOptions(async (inputValue, page, abortSignal) => {
-        const params = {
-          limit: NAME_SEARCH_LIMIT,
-          page,
-          abortSignal,
-        };
-        if (inputValue) {
-          params.search_param = inputValue;
-        }
-        const originalPromiseResult = await dispatch(searchCustomers(params));
-        const resultAction = unwrapResult(originalPromiseResult);
-        const items = resultAction.data.items || [];
-        return {
-          options: items.map((i) => ({
-            label: i.name + " - " + (i.phone ?? "Không có SĐT"),
-            value: i.id,
-            id: i.id,
-          })),
-          hasMore:
-            resultAction.data.has_more ?? items.length >= NAME_SEARCH_LIMIT,
-        };
-      }),
-    [dispatch]
-  );
-
   useEffect(() => {
     if (calendarApi === null && calendarRef.current) {
       setCalendarApi(calendarRef.current.getApi());
@@ -281,26 +246,17 @@ const Calendar = (props) => {
 
   const customerSearchButton = useMemo(
     () => (
-      <AsyncPaginateSelect
-        placeholder="Tìm khách hàng..."
+      <CustomerNameSelect
         id="customerCalendarSearch"
         value={customerSelect}
-        theme={selectThemeColors}
-        className="react-select"
-        classNamePrefix="select"
-        isClearable={true}
-        defaultOptions
-        additional={{ page: 1 }}
-        debounceTimeout={NAME_SEARCH_DEBOUNCE_MS}
-        filterOption={null}
+        isClearable
         onChange={(data) => {
           setCustomerSelect(data);
           handlersRef.current.onCustomerChange?.(data);
         }}
-        loadOptions={customerLoadOptions}
       />
     ),
-    [customerSelect, customerLoadOptions]
+    [customerSelect]
   );
 
   const showPastCheckBox = useMemo(
