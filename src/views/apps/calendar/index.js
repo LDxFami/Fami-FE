@@ -79,13 +79,18 @@ const CalendarComponent = () => {
     [dateRange.start, dateRange.end, customerId]
   );
 
-  const refetchEvents = useCallback(() => {
-    dispatch(getDoctor({ limit: 200 }));
-    dispatch(getAppointment(appointmentParams));
-    if (calendarApi !== null) {
-      calendarApi.refetchEvents();
-    }
-  }, [dispatch, appointmentParams, calendarApi]);
+  const refetchEvents = useCallback(
+    (options = {}) => {
+      // Doctors list is unchanged by appointment edits — skip that round trip.
+      dispatch(
+        getAppointment({
+          ...appointmentParams,
+          silent: Boolean(options.silent),
+        })
+      );
+    },
+    [dispatch, appointmentParams]
+  );
 
   useEffect(() => {
     dispatch(getUser());

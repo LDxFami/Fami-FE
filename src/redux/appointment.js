@@ -3,12 +3,22 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import instance from "../configs/api";
 // ** Axios Imports
 
+const upsertAppointmentInList = (list, item) => {
+  if (!item?.id) return list;
+  const idx = list.findIndex((a) => a.id === item.id);
+  if (idx === -1) return [...list, item];
+  const next = list.slice();
+  next[idx] = item;
+  return next;
+};
+
 export const getAppointment = createAsyncThunk(
   "appointment/getAppointment",
   async (params, { rejectWithValue, signal }) => {
+    const { silent, ...query } = params || {};
     try {
       const response = await instance.get("/api/appointments", {
-        params: { ...params },
+        params: query,
         signal,
       });
       return response.data;
@@ -25,10 +35,12 @@ export const checkOverlapAppointment = createAsyncThunk(
   "appointment/checkOverlapAppointment",
   async (params, { rejectWithValue }) => {
     try {
-      const response = await instance.post("/api/appointments/check-overlap", { ...params });
+      const response = await instance.post("/api/appointments/check-overlap", {
+        ...params,
+      });
       return response.data;
     } catch (err) {
-      return rejectWithValue(err.response.data);
+      return rejectWithValue(err.response?.data);
     }
   }
 );
@@ -40,7 +52,7 @@ export const addAppointment = createAsyncThunk(
       const response = await instance.post("api/appointments", { ...params });
       return response.data;
     } catch (err) {
-      return rejectWithValue(err.response.data);
+      return rejectWithValue(err.response?.data);
     }
   }
 );
@@ -49,10 +61,12 @@ export const updateAppointment = createAsyncThunk(
   "appointment/updateAppointment",
   async (params, { rejectWithValue }) => {
     try {
-      const response = await instance.put(`api/appointments/${params.id}`, { ...params });
+      const response = await instance.put(`api/appointments/${params.id}`, {
+        ...params,
+      });
       return response.data;
     } catch (err) {
-      return rejectWithValue(err.response.data);
+      return rejectWithValue(err.response?.data);
     }
   }
 );
@@ -65,19 +79,18 @@ export const appointmentSlice = createSlice({
       loading: "pending",
       error: "",
     },
-    isOverlap:{
+    isOverlap: {
       data: false,
       loading: "pending",
       error: "",
     },
     appointment: {},
     selectedAppointment: {},
-
   },
   reducers: {
     selectAppointment: (state, action) => {
-      state.selectedAppointment = action.payload
-    }
+      state.selectedAppointment = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -87,22 +100,24 @@ export const appointmentSlice = createSlice({
         state.appointments.error = null;
       })
       .addCase(getAppointment.pending, (state, action) => {
-        state.appointments.loading = "loading";
+        // Silent refreshes keep the calendar visible (no full-screen spinner)
+        if (!action.meta.arg?.silent) {
+          state.appointments.loading = "loading";
+        }
       })
       .addCase(addAppointment.fulfilled, (state, action) => {
-        // state.appointment.loading = "success";
+        if (action.payload?.is_overlap) return;
+        if (action.payload?.data) {
+          state.appointments.data = upsertAppointmentInList(
+            state.appointments.data,
+            action.payload.data
+          );
+        }
       })
-      .addCase(addAppointment.pending, (state, action) => {
-        // state.appointment.loading = "pending";
-      })
-      .addCase(addAppointment.rejected, (state, action) => {
-        // state.appointment.loading = "error";
-        // state.appointment.error = action.payload;
-      })
-      .addCase(checkOverlapAppointment.fulfilled, (state, action) => {
+      .addCase(checkOverlapAppointment.fulfilled, (state) => {
         state.isOverlap.loading = "success";
       })
-      .addCase(checkOverlapAppointment.pending, (state, action) => {
+      .addCase(checkOverlapAppointment.pending, (state) => {
         state.isOverlap.loading = "pending";
       })
       .addCase(checkOverlapAppointment.rejected, (state, action) => {
@@ -110,12 +125,18 @@ export const appointmentSlice = createSlice({
         state.isOverlap.error = action.payload;
       })
       .addCase(updateAppointment.fulfilled, (state, action) => {
+        if (action.payload?.is_overlap) return;
         state.appointment.loading = "success";
         state.appointment.data = action.payload;
+        if (action.payload?.data) {
+          state.appointments.data = upsertAppointmentInList(
+            state.appointments.data,
+            action.payload.data
+          );
+        }
       })
-      .addCase(updateAppointment.pending, (state, action) => {
+      .addCase(updateAppointment.pending, (state) => {
         state.appointment.loading = "pending";
-      
       })
       .addCase(updateAppointment.rejected, (state, action) => {
         state.appointment.loading = "error";
