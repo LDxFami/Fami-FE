@@ -13,7 +13,7 @@ import moment from "moment";
 // ** Custom Components
 import Avatar from "@components/avatar";
 import SpinnerComponent from "../../../@core/components/spinner/Fallback-spinner";
-import { selectThemeColors, isObjEmpty } from "@utils";
+import { selectThemeColors } from "@utils";
 
 // ** Third Party Components
 import { toast } from "react-toastify";
@@ -58,150 +58,9 @@ const ToastComponent = ({ title, icon, color }) => (
 const Calendar = (props) => {
   // ** Refs
   const calendarRef = useRef(null);
-  const { height, width } = useWindowDimensions();
+  const { width } = useWindowDimensions();
 
-  const defaultOptions = {
-    locale: viLocale,
-    events: [],
-    plugins: [interactionPlugin, dayGridPlugin, timeGridPlugin, listPlugin],
-    initialView: width > 540 ? "dayGridMonth" : "timeGridDay",
-    headerToolbar: {
-      start: "sidebarToggle, prev,next, title",
-      end: "dayGridMonth,timeGridWeek,timeGridDay,listMonth",
-    },
-
-    buttonText: {
-      listMonth: "List",
-    },
-
-    now: new Date(),
-    scrollTime: scrollTime,
-    nowIndicator: true,
-
-    dayHeaderClassNames: "calendar-header",
-    /*
-  Enable dragging and resizing event
-  ? Docs: https://fullcalendar.io/docs/editable
-*/
-    editable: false,
-
-    /*
-  Enable resizing event from start
-  ? Docs: https://fullcalendar.io/docs/eventResizableFromStart
-*/
-    eventResizableFromStart: false,
-
-    /*
-  Automatically scroll the scroll-containers during event drag-and-drop and date selecting
-  ? Docs: https://fullcalendar.io/docs/dragScroll
-*/
-    dragScroll: true,
-
-    /*
-  Max number of events within a given day
-  ? Docs: https://fullcalendar.io/docs/dayMaxEvents
-*/
-    dayMaxEvents: 3,
-
-    /*
-  Determines if day names and week names are clickable
-  ? Docs: https://fullcalendar.io/docs/navLinks
-*/
-    navLinks: true,
-
-    eventClassNames({ event: calendarEvent }) {
-      // eslint-disable-next-line no-underscore-dangle
-      const colorName = calendarsColor[calendarEvent._def.extendedProps.status];
-
-      return [
-        // Background Color
-        `bg-light-${colorName}`,
-      ];
-    },
-
-    eventClick({ event: clickedEvent }) {
-      dispatch(selectEvent(clickedEvent));
-      handleAddEventSidebar();
-
-      // * Only grab required field otherwise it goes in infinity loop
-      // ! Always grab all fields rendered by form (even if it get `undefined`) otherwise due to Vue3/Composition API you might get: "object is not extensible"
-      // event.value = grabEventDataFromEventApi(clickedEvent)
-
-      // eslint-disable-next-line no-use-before-define
-      // isAddNewEventSidebarActive.value = true
-    },
-
-    customButtons: {
-      sidebarToggle: {
-        text: <Menu className="d-xl-none d-block" />,
-        click() {
-          toggleSidebar(true);
-        },
-      },
-    },
-
-    dateClick(info) {
-      const ev = blankEvent;
-      ev.start = info.date;
-      ev.end = info.date;
-      // dispatch(selectEvent(ev));
-      if (role == "admin") {
-        handleAddEventSidebar();
-      }
-    },
-
-    /*
-  Handle event drop (Also include dragged event)
-  ? Docs: https://fullcalendar.io/docs/eventDrop
-  ? We can use `eventDragStop` but it doesn't return updated event so we have to use `eventDrop` which returns updated event
-*/
-    datesSet: handleMonthChange,
-
-    eventDrop({ event: droppedEvent }) {
-      dispatch(updateEvent(droppedEvent));
-      toast.success(
-        <ToastComponent
-          title="Event Updated"
-          color="success"
-          icon={<Check />}
-        />,
-        {
-          icon: false,
-          autoClose: 2000,
-          hideProgressBar: true,
-          closeButton: false,
-        }
-      );
-    },
-
-    /*
-  Handle event resize
-  ? Docs: https://fullcalendar.io/docs/eventResize
-*/
-    eventResize({ event: resizedEvent }) {
-      dispatch(updateEvent(resizedEvent));
-      toast.success(
-        <ToastComponent
-          title="Event Updated"
-          color="success"
-          icon={<Check />}
-        />,
-        {
-          icon: false,
-          autoClose: 2000,
-          hideProgressBar: true,
-          closeButton: false,
-        }
-      );
-    },
-
-    ref: calendarRef,
-
-    // Get direction from app state (store)
-    direction: isRtl ? "rtl" : "ltr",
-  };
-
-  // ** Props
+  // ** Props — declare before any options/handlers that close over them
   const {
     store,
     isRtl,
@@ -225,313 +84,26 @@ const Calendar = (props) => {
   const initialView = width > 540 ? "dayGridMonth" : "timeGridDay";
 
   const [calendarData, setCalendarData] = useState([]);
-  const [calendarOptions, setCalendarOptions] = useState(defaultOptions);
+  const [calendarOptions, setCalendarOptions] = useState({
+    locale: viLocale,
+    events: [],
+    plugins: [interactionPlugin, dayGridPlugin, timeGridPlugin, listPlugin],
+    initialView,
+    headerToolbar: {
+      start: "sidebarToggle, prev,next, title",
+      end: "dayGridMonth,timeGridWeek,timeGridDay,listMonth",
+    },
+    editable: false,
+    ref: calendarRef,
+    direction: isRtl ? "rtl" : "ltr",
+  });
   const [viewCurrent, setviewCurrent] = useState(initialView);
   const [showPast, setShowPast] = useState(false);
   const [customerSelect, setCustomerSelect] = useState("");
   const [noteTooltip, setNoteTooltip] = useState(emptyNoteTooltip);
-  // ** UseEffect checks for CalendarAPI Update
-  useEffect(() => {
-    if (calendarApi === null) {
-      setCalendarApi(calendarRef.current.getApi());
-    }
-  }, [calendarApi, setCalendarApi]);
 
-  useEffect(() => {
-    document
-      .querySelectorAll(".tooltip[role='tooltip'], .tooltip.bs-tooltip-top, .tooltip.bs-tooltip-bottom")
-      .forEach((node) => node.remove());
-  }, []);
-
-  useEffect(() => {
-    setviewCurrent(initialView);
-  }, [initialView]);
-
-  useEffect(() => {
-    var calendarDta = [];
-    if (store.appointments?.data.length > 0) {
-      const matchesDoctorFilter = (appointment) => {
-        if (!profileReady) return false;
-        if (!doctorId.length) return canViewAll;
-        // Sidebar "uncheck all" uses sentinel [0]
-        if (doctorId.length === 1 && doctorId[0] === 0) return false;
-
-        const idSet = new Set(doctorId.map(String));
-        const includeUnassigned = idSet.has("");
-        const primaryId = appointment.doctor_id ?? appointment.doctor?.id;
-        const secondaryId =
-          appointment.secondary_doctor_id ?? appointment.secondary_doctor?.id;
-
-        if (includeUnassigned && (primaryId == null || primaryId === "")) {
-          return true;
-        }
-        if (primaryId != null && idSet.has(String(primaryId))) return true;
-        if (secondaryId != null && idSet.has(String(secondaryId))) return true;
-        return false;
-      };
-
-      const doctorFiltered = store.appointments.data.filter(matchesDoctorFilter);
-
-      if (!showPast && viewCurrent === "listMonth") {
-        var date = new Date();
-        date.setHours(0, 0, 0);
-        calendarDta = doctorFiltered.filter((i) => {
-          return (
-            new Date(i.date + "T" + i.time_start).getTime() > date.getTime()
-          );
-        });
-      } else {
-        calendarDta = doctorFiltered;
-      }
-    }
-    setCalendarData(
-      calendarDta.length > 0
-        ? calendarDta.map((i) => ({
-            id: i.id,
-            url: "",
-            title: i.customer.name,
-            start: new Date(i.date + "T" + i.time_start),
-            end: new Date(i.date + "T" + i.time_end),
-            description: i.description || "",
-            extendedProps: {
-              doctor: i.doctor,
-              secondaryDoctor: i.secondary_doctor,
-              customer: i.customer,
-              description: i.description || "",
-              isImportant: !!i.is_important,
-              startTime: i.time_start,
-              endTime: i.time_end,
-              status: i.status,
-              date: i.date,
-              id: i.id,
-            },
-          }))
-        : []
-    );
-  }, [store, showPast, viewCurrent, doctorId, canViewAll, profileReady]);
-
-  useEffect(() => {
-    const options = {
-      locale: viLocale,
-      events: calendarData,
-      plugins: [interactionPlugin, dayGridPlugin, timeGridPlugin, listPlugin],
-      initialView: initialView,
-      allDaySlot: false,
-      headerToolbar: {
-        start: `sidebarToggle, prev,next, title, ${
-          viewCurrent === "listMonth" ? "showPastCheckBox" : ""
-        }`,
-        center: "customerSearch",
-        end: "dayGridMonth,timeGridWeek,timeGridDay,listMonth",
-      },
-      slotMinTime: "07:00:00",
-      slotMaxTime: "21:30:00",
-
-      now: new Date(),
-      scrollTime: scrollTime,
-      buttonText: {
-        listMonth: "List",
-      },
-      eventContent: function (arg, createElement) {
-        const { event } = arg;
-        if (arg.view.type === "timeGridDay") {
-          return renderEvent(event, arg.view.type);
-        }
-        if (arg.view.type === "listMonth") {
-          return renderAdminList(event, arg.view.type, width);
-        }
-        if (arg.view.type === "dayGridMonth") {
-          return renderDayGridMonth(event, arg.view.type, width);
-        }
-      },
-
-      dayHeaderClassNames: "calendar-header",
-      slotEventOverlap: false,
-      /*
-    Enable dragging and resizing event
-    ? Docs: https://fullcalendar.io/docs/editable
-  */
-      editable: false,
-
-      /*
-    Enable resizing event from start
-    ? Docs: https://fullcalendar.io/docs/eventResizableFromStart
-  */
-      eventResizableFromStart: false,
-
-      /*
-    Automatically scroll the scroll-containers during event drag-and-drop and date selecting
-    ? Docs: https://fullcalendar.io/docs/dragScroll
-  */
-      dragScroll: true,
-
-      /*
-    Max number of events within a given day
-    ? Docs: https://fullcalendar.io/docs/dayMaxEvents
-  */
-      dayMaxEvents: width < 540 ? 30 : 5,
-
-      /*
-    Determines if day names and week names are clickable
-    ? Docs: https://fullcalendar.io/docs/navLinks
-  */
-      navLinks: true,
-
-      eventTimeFormat: {
-        // like '14:30:00'
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      },
-
-      slotLabelFormat: {
-        hour: "2-digit",
-        minute: "2-digit",
-      },
-      listDayFormat: {
-        weekday: "long",
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      },
-      listDaySideFormat: false,
-      nowIndicator: true,
-      eventClassNames({ event: calendarEvent }) {
-        // eslint-disable-next-line no-underscore-dangle
-        const colorName =
-          calendarsColor[calendarEvent._def.extendedProps.status];
-        const classes = [`bg-light-${colorName} bold`];
-
-        if (calendarEvent._def.extendedProps.isImportant) {
-          classes.push("event-important");
-        }
-
-        return classes;
-      },
-
-      eventMouseEnter({ event, el }) {
-        const tooltipText = getAppointmentTooltip(event);
-        if (!tooltipText) {
-          return;
-        }
-
-        const rect = el.getBoundingClientRect();
-        setNoteTooltip({
-          show: true,
-          text: tooltipText,
-          important: !!event.extendedProps?.isImportant,
-          x: rect.left + rect.width / 2,
-          y: rect.top,
-        });
-      },
-
-      eventMouseLeave() {
-        setNoteTooltip(emptyNoteTooltip);
-      },
-
-      eventClick({ event: clickedEvent, view }) {
-        setNoteTooltip(emptyNoteTooltip);
-
-        if (view.type === "dayGridMonth" && width < 54) {
-          calendarApi.changeView("timeGridDay", clickedEvent.start);
-        } else {
-          dispatch(selectEvent(clickedEvent));
-          handleAddEventSidebar();
-        }
-
-        // * Only grab required field otherwise it goes in infinity loop
-        // ! Always grab all fields rendered by form (even if it get `undefined`) otherwise due to Vue3/Composition API you might get: "object is not extensible"
-        // event.value = grabEventDataFromEventApi(clickedEvent)
-
-        // eslint-disable-next-line no-use-before-define
-        // isAddNewEventSidebarActive.value = true
-      },
-
-      customButtons: {
-        sidebarToggle: {
-          text: <Menu className="d-xl-none d-block" />,
-          click() {
-            toggleSidebar(true);
-          },
-        },
-        customerSearch: {
-          text: renderCustomerSearch(),
-        },
-        showPastCheckBox: {
-          text: renderShowPastCheckBox(),
-        },
-      },
-
-      dateClick(info) {
-        if (info.view.type === "dayGridMonth" && width < 540) {
-          calendarApi.changeView("timeGridDay", info.date);
-        } else {
-          const ev = blankEvent;
-          ev.start = info.date;
-          ev.end = info.date;
-          // dispatch(selectEvent(ev));
-          if (role == "admin") {
-            handleAddEventSidebar();
-          }
-        }
-      },
-
-      /*
-    Handle event drop (Also include dragged event)
-    ? Docs: https://fullcalendar.io/docs/eventDrop
-    ? We can use `eventDragStop` but it doesn't return updated event so we have to use `eventDrop` which returns updated event
-  */
-      datesSet: function (info) {
-        handleMonthChange(info);
-        setviewCurrent(info.view.type);
-      },
-      eventDrop({ event: droppedEvent }) {
-        dispatch(updateEvent(droppedEvent));
-        toast.success(
-          <ToastComponent
-            title="Event Updated"
-            color="success"
-            icon={<Check />}
-          />,
-          {
-            icon: false,
-            autoClose: 2000,
-            hideProgressBar: true,
-            closeButton: false,
-          }
-        );
-      },
-
-      /*
-    Handle event resize
-    ? Docs: https://fullcalendar.io/docs/eventResize
-  */
-      eventResize({ event: resizedEvent }) {
-        dispatch(updateEvent(resizedEvent));
-        toast.success(
-          <ToastComponent
-            title="Event Updated"
-            color="success"
-            icon={<Check />}
-          />,
-          {
-            icon: false,
-            autoClose: 2000,
-            hideProgressBar: true,
-            closeButton: false,
-          }
-        );
-      },
-
-      ref: calendarRef,
-
-      // Get direction from app state (store)
-      direction: isRtl ? "rtl" : "ltr",
-    };
-    setCalendarOptions({ ...options });
-  }, [role, calendarData, initialView, customerSelect, showPast, viewCurrent]);
-
-  const renderEvent = (event, view) => {
+  // Helpers must be defined before the options effect closes over them
+  const renderEvent = (event) => {
     const { description, isImportant } = event.extendedProps;
     return (
       <>
@@ -559,10 +131,13 @@ const Calendar = (props) => {
     );
   };
 
-  const renderAdminList = (event, view, width) => {
-    let doctors = [event.extendedProps.doctor?.name, event.extendedProps.secondaryDoctor?.name].filter((i) => i);
-    let doctorText = doctors.length > 0 ? doctors.join(", ") : "Chưa có BS";
-    let description = event.extendedProps.description ?? "";
+  const renderAdminList = (event) => {
+    const doctors = [
+      event.extendedProps.doctor?.name,
+      event.extendedProps.secondaryDoctor?.name,
+    ].filter((i) => i);
+    const doctorText = doctors.length > 0 ? doctors.join(", ") : "Chưa có BS";
+    const description = event.extendedProps.description ?? "";
     const { isImportant } = event.extendedProps;
     return (
       <>
@@ -583,10 +158,10 @@ const Calendar = (props) => {
     );
   };
 
-  const renderDayGridMonth = (event, view, width) => {
+  const renderDayGridMonth = (event, _view, gridWidth) => {
     const { description, isImportant, customer, status } = event.extendedProps;
 
-    if (width < 540) {
+    if (gridWidth < 540) {
       return isImportant ? (
         <Star size={12} className="event-important-star" fill="currentColor" />
       ) : (
@@ -687,6 +262,284 @@ const Calendar = (props) => {
       </Label>
     </div>
   );
+
+  // ** UseEffect checks for CalendarAPI Update
+  useEffect(() => {
+    if (calendarApi === null && calendarRef.current) {
+      setCalendarApi(calendarRef.current.getApi());
+    }
+  }, [calendarApi, setCalendarApi]);
+
+  useEffect(() => {
+    document
+      .querySelectorAll(
+        ".tooltip[role='tooltip'], .tooltip.bs-tooltip-top, .tooltip.bs-tooltip-bottom"
+      )
+      .forEach((node) => node.remove());
+  }, []);
+
+  useEffect(() => {
+    setviewCurrent(initialView);
+  }, [initialView]);
+
+  useEffect(() => {
+    var calendarDta = [];
+    if (store.appointments?.data.length > 0) {
+      const matchesDoctorFilter = (appointment) => {
+        if (!profileReady) return false;
+        if (!doctorId.length) return canViewAll;
+        // Sidebar "uncheck all" uses sentinel [0]
+        if (doctorId.length === 1 && doctorId[0] === 0) return false;
+
+        const idSet = new Set(doctorId.map(String));
+        const includeUnassigned = idSet.has("");
+        const primaryId = appointment.doctor_id ?? appointment.doctor?.id;
+        const secondaryId =
+          appointment.secondary_doctor_id ?? appointment.secondary_doctor?.id;
+
+        if (includeUnassigned && (primaryId == null || primaryId === "")) {
+          return true;
+        }
+        if (primaryId != null && idSet.has(String(primaryId))) return true;
+        if (secondaryId != null && idSet.has(String(secondaryId))) return true;
+        return false;
+      };
+
+      const doctorFiltered = store.appointments.data.filter(matchesDoctorFilter);
+
+      if (!showPast && viewCurrent === "listMonth") {
+        var date = new Date();
+        date.setHours(0, 0, 0);
+        calendarDta = doctorFiltered.filter((i) => {
+          return (
+            new Date(i.date + "T" + i.time_start).getTime() > date.getTime()
+          );
+        });
+      } else {
+        calendarDta = doctorFiltered;
+      }
+    }
+    setCalendarData(
+      calendarDta.length > 0
+        ? calendarDta.map((i) => ({
+            id: i.id,
+            url: "",
+            title: i.customer.name,
+            start: new Date(i.date + "T" + i.time_start),
+            end: new Date(i.date + "T" + i.time_end),
+            description: i.description || "",
+            extendedProps: {
+              doctor: i.doctor,
+              secondaryDoctor: i.secondary_doctor,
+              customer: i.customer,
+              description: i.description || "",
+              isImportant: !!i.is_important,
+              startTime: i.time_start,
+              endTime: i.time_end,
+              status: i.status,
+              date: i.date,
+              id: i.id,
+            },
+          }))
+        : []
+    );
+  }, [store, showPast, viewCurrent, doctorId, canViewAll, profileReady]);
+
+  useEffect(() => {
+    const options = {
+      locale: viLocale,
+      events: calendarData,
+      plugins: [interactionPlugin, dayGridPlugin, timeGridPlugin, listPlugin],
+      initialView: initialView,
+      allDaySlot: false,
+      headerToolbar: {
+        start: `sidebarToggle, prev,next, title, ${
+          viewCurrent === "listMonth" ? "showPastCheckBox" : ""
+        }`,
+        center: "customerSearch",
+        end: "dayGridMonth,timeGridWeek,timeGridDay,listMonth",
+      },
+      slotMinTime: "07:00:00",
+      slotMaxTime: "21:30:00",
+
+      now: new Date(),
+      scrollTime: scrollTime,
+      buttonText: {
+        listMonth: "List",
+      },
+      eventContent: function (arg) {
+        const { event } = arg;
+        if (arg.view.type === "timeGridDay") {
+          return renderEvent(event);
+        }
+        if (arg.view.type === "listMonth") {
+          return renderAdminList(event);
+        }
+        if (arg.view.type === "dayGridMonth") {
+          return renderDayGridMonth(event, arg.view.type, width);
+        }
+      },
+
+      dayHeaderClassNames: "calendar-header",
+      slotEventOverlap: false,
+      editable: false,
+      eventResizableFromStart: false,
+      dragScroll: true,
+      dayMaxEvents: width < 540 ? 30 : 5,
+      navLinks: true,
+
+      eventTimeFormat: {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      },
+
+      slotLabelFormat: {
+        hour: "2-digit",
+        minute: "2-digit",
+      },
+      listDayFormat: {
+        weekday: "long",
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      },
+      listDaySideFormat: false,
+      nowIndicator: true,
+      eventClassNames({ event: calendarEvent }) {
+        const colorName =
+          calendarsColor[calendarEvent._def.extendedProps.status];
+        const classes = [`bg-light-${colorName} bold`];
+
+        if (calendarEvent._def.extendedProps.isImportant) {
+          classes.push("event-important");
+        }
+
+        return classes;
+      },
+
+      eventMouseEnter({ event, el }) {
+        const tooltipText = getAppointmentTooltip(event);
+        if (!tooltipText) {
+          return;
+        }
+
+        const rect = el.getBoundingClientRect();
+        setNoteTooltip({
+          show: true,
+          text: tooltipText,
+          important: !!event.extendedProps?.isImportant,
+          x: rect.left + rect.width / 2,
+          y: rect.top,
+        });
+      },
+
+      eventMouseLeave() {
+        setNoteTooltip(emptyNoteTooltip);
+      },
+
+      eventClick({ event: clickedEvent, view }) {
+        setNoteTooltip(emptyNoteTooltip);
+
+        if (view.type === "dayGridMonth" && width < 54) {
+          calendarApi.changeView("timeGridDay", clickedEvent.start);
+        } else {
+          dispatch(selectEvent(clickedEvent));
+          handleAddEventSidebar();
+        }
+      },
+
+      customButtons: {
+        sidebarToggle: {
+          text: <Menu className="d-xl-none d-block" />,
+          click() {
+            toggleSidebar(true);
+          },
+        },
+        customerSearch: {
+          text: renderCustomerSearch(),
+        },
+        showPastCheckBox: {
+          text: renderShowPastCheckBox(),
+        },
+      },
+
+      dateClick(info) {
+        if (info.view.type === "dayGridMonth" && width < 540) {
+          calendarApi.changeView("timeGridDay", info.date);
+        } else {
+          const ev = blankEvent;
+          ev.start = info.date;
+          ev.end = info.date;
+          if (role == "admin") {
+            handleAddEventSidebar();
+          }
+        }
+      },
+
+      datesSet: function (info) {
+        handleMonthChange(info);
+        setviewCurrent(info.view.type);
+      },
+      eventDrop({ event: droppedEvent }) {
+        dispatch(updateEvent(droppedEvent));
+        toast.success(
+          <ToastComponent
+            title="Event Updated"
+            color="success"
+            icon={<Check />}
+          />,
+          {
+            icon: false,
+            autoClose: 2000,
+            hideProgressBar: true,
+            closeButton: false,
+          }
+        );
+      },
+
+      eventResize({ event: resizedEvent }) {
+        dispatch(updateEvent(resizedEvent));
+        toast.success(
+          <ToastComponent
+            title="Event Updated"
+            color="success"
+            icon={<Check />}
+          />,
+          {
+            icon: false,
+            autoClose: 2000,
+            hideProgressBar: true,
+            closeButton: false,
+          }
+        );
+      },
+
+      ref: calendarRef,
+      direction: isRtl ? "rtl" : "ltr",
+    };
+    setCalendarOptions({ ...options });
+  }, [
+    role,
+    calendarData,
+    initialView,
+    customerSelect,
+    showPast,
+    viewCurrent,
+    width,
+    calendarsColor,
+    calendarApi,
+    dispatch,
+    selectEvent,
+    handleAddEventSidebar,
+    toggleSidebar,
+    blankEvent,
+    handleMonthChange,
+    updateEvent,
+    isRtl,
+    customerLoadOptions,
+  ]);
+
   return (
     <Card className="shadow-none border-0 mb-0 rounded-0">
       {store.appointments.loading !== "success" ? (
