@@ -1,6 +1,5 @@
 // ** React Import
 import { useEffect, useRef, memo, Fragment, useMemo, useState } from "react";
-import AsyncSelect from "react-select/async";
 
 // ** Full Calendar & it's Plugins
 import FullCalendar from "@fullcalendar/react";
@@ -24,8 +23,10 @@ import useWindowDimensions from "../../../utility/hooks/useWindowDimensions";
 import { getCustomer } from "../../../redux/customer";
 import { unwrapResult } from "@reduxjs/toolkit";
 import {
-  createDebouncedNameLoader,
+  AsyncPaginateSelect,
+  createPaginatedNameLoadOptions,
   NAME_SEARCH_LIMIT,
+  NAME_SEARCH_DEBOUNCE_MS,
 } from "../../../utility/asyncNameSearch";
 
 const scrollTime = moment().format("HH:mm:ss");
@@ -622,10 +623,10 @@ const Calendar = (props) => {
 
   const customerLoadOptions = useMemo(
     () =>
-      createDebouncedNameLoader(async (inputValue) => {
+      createPaginatedNameLoadOptions(async (inputValue, page) => {
         const params = {
           limit: NAME_SEARCH_LIMIT,
-          page: 1,
+          page,
           typeahead: 1,
         };
         if (inputValue) {
@@ -633,18 +634,23 @@ const Calendar = (props) => {
         }
         const originalPromiseResult = await dispatch(getCustomer(params));
         const resultAction = unwrapResult(originalPromiseResult);
-        return (resultAction.data.items || []).map((i) => ({
-          label: i.name + " - " + (i.phone ?? "Không có SĐT"),
-          value: i.id,
-          id: i.id,
-        }));
+        const items = resultAction.data.items || [];
+        return {
+          options: items.map((i) => ({
+            label: i.name + " - " + (i.phone ?? "Không có SĐT"),
+            value: i.id,
+            id: i.id,
+          })),
+          hasMore:
+            resultAction.data.has_more ?? items.length >= NAME_SEARCH_LIMIT,
+        };
       }),
     [dispatch]
   );
 
   const renderCustomerSearch = () => {
     return (
-      <AsyncSelect
+      <AsyncPaginateSelect
         placeholder="Tìm khách hàng..."
         id="customerCalendarSearch"
         value={customerSelect}
@@ -652,8 +658,10 @@ const Calendar = (props) => {
         className="react-select"
         classNamePrefix="select"
         isClearable={true}
-        cacheOptions
         defaultOptions
+        additional={{ page: 1 }}
+        debounceTimeout={NAME_SEARCH_DEBOUNCE_MS}
+        filterOption={null}
         onChange={(data) => {
           setCustomerSelect(data);
           onCustomerChange(data);

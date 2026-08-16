@@ -70,6 +70,7 @@
     "react-router-dom": "^5.2.0",
     "react-scripts": "^4.0.2",
     "react-select": "^5.4.0",
+    "react-select-async-paginate": "^0.7.11",
     "react-shepherd": "^3.3.6",
     "react-slidedown": "^2.4.5",
     "react-sortablejs": "^6.0.0",

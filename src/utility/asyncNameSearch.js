@@ -1,7 +1,14 @@
+import { withAsyncPaginate } from "react-select-async-paginate";
+import Select from "react-select";
+import CreatableSelect from "react-select/creatable";
+
 export const NAME_SEARCH_MIN_CHARS = 2;
 export const NAME_SEARCH_PHONE_MIN_DIGITS = 3;
 export const NAME_SEARCH_DEBOUNCE_MS = 300;
 export const NAME_SEARCH_LIMIT = 20;
+
+export const AsyncPaginateSelect = withAsyncPaginate(Select);
+export const AsyncPaginateCreatableSelect = withAsyncPaginate(CreatableSelect);
 
 /**
  * Whether the typed value is worth hitting the API for.
@@ -17,53 +24,36 @@ export const shouldSearchName = (inputValue = "") => {
 };
 
 /**
- * Debounced + stale-safe loader for react-select AsyncSelect / AsyncCreatableSelect.
- * Always returns a Promise so older in-flight selects settle instead of hanging.
+ * loadOptions for react-select-async-paginate (scroll loads next page).
  *
- * @param {(inputValue: string) => Promise<Array>} fetchItems resolves to option objects
- * @param {{ debounceMs?: number }} [options]
- * @returns {(inputValue: string) => Promise<Array>}
+ * @param {(inputValue: string, page: number) => Promise<{ options: Array, hasMore: boolean }>} fetchPage
  */
-export const createDebouncedNameLoader = (fetchItems, options = {}) => {
-  const debounceMs = options.debounceMs ?? NAME_SEARCH_DEBOUNCE_MS;
-  let requestId = 0;
-  let timer = null;
-  let pendingResolve = null;
-
-  return (inputValue) => {
+export const createPaginatedNameLoadOptions = (fetchPage) => {
+  return async (inputValue, _loadedOptions, additional) => {
+    const page = additional?.page ?? 1;
     const trimmed = String(inputValue ?? "").trim();
 
     if (!shouldSearchName(trimmed)) {
-      return Promise.resolve([]);
+      return {
+        options: [],
+        hasMore: false,
+        additional: { page: 1 },
+      };
     }
 
-    const currentRequestId = ++requestId;
-
-    if (pendingResolve) {
-      pendingResolve([]);
-      pendingResolve = null;
+    try {
+      const result = await fetchPage(trimmed, page);
+      return {
+        options: Array.isArray(result?.options) ? result.options : [],
+        hasMore: Boolean(result?.hasMore),
+        additional: { page: page + 1 },
+      };
+    } catch {
+      return {
+        options: [],
+        hasMore: false,
+        additional: { page },
+      };
     }
-    if (timer) {
-      clearTimeout(timer);
-      timer = null;
-    }
-
-    return new Promise((resolve) => {
-      pendingResolve = resolve;
-      timer = setTimeout(async () => {
-        pendingResolve = null;
-        timer = null;
-        try {
-          const items = await fetchItems(trimmed);
-          if (currentRequestId !== requestId) {
-            resolve([]);
-            return;
-          }
-          resolve(Array.isArray(items) ? items : []);
-        } catch {
-          resolve([]);
-        }
-      }, debounceMs);
-    });
   };
 };
