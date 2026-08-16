@@ -1,7 +1,7 @@
 export const NAME_SEARCH_MIN_CHARS = 2;
 export const NAME_SEARCH_PHONE_MIN_DIGITS = 3;
 export const NAME_SEARCH_DEBOUNCE_MS = 300;
-export const NAME_SEARCH_LIMIT = 25;
+export const NAME_SEARCH_LIMIT = 20;
 
 /**
  * Whether the typed value is worth hitting the API for.

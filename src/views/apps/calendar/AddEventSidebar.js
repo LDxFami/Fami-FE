@@ -404,6 +404,7 @@ const AddEventSidebar = (props) => {
         const params = {
           limit: NAME_SEARCH_LIMIT,
           page: 1,
+          typeahead: 1,
         };
         if (inputValue) {
           params.search_param = inputValue;
@@ -425,6 +426,7 @@ const AddEventSidebar = (props) => {
         const params = {
           limit: NAME_SEARCH_LIMIT,
           page: 1,
+          typeahead: 1,
         };
         if (inputValue) {
           params.search_param = inputValue;
