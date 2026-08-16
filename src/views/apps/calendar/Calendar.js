@@ -62,7 +62,7 @@ const Calendar = (props) => {
 
   const defaultOptions = {
     locale: viLocale,
-    events: calendarData,
+    events: [],
     plugins: [interactionPlugin, dayGridPlugin, timeGridPlugin, listPlugin],
     initialView: width > 540 ? "dayGridMonth" : "timeGridDay",
     headerToolbar: {
