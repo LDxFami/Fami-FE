@@ -5,14 +5,18 @@ import instance from "../configs/api";
 
 export const getAppointment = createAsyncThunk(
   "appointment/getAppointment",
-  async (params, { rejectWithValue }) => {
+  async (params, { rejectWithValue, signal }) => {
     try {
       const response = await instance.get("/api/appointments", {
         params: { ...params },
+        signal,
       });
       return response.data;
     } catch (err) {
-      return rejectWithValue(err.response.data);
+      if (err?.name === "CanceledError" || err?.code === "ERR_CANCELED") {
+        throw err;
+      }
+      return rejectWithValue(err.response?.data);
     }
   }
 );

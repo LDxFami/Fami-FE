@@ -25,15 +25,20 @@ export const shouldSearchName = (inputValue = "") => {
 
 /**
  * loadOptions for react-select-async-paginate (scroll loads next page).
+ * Supports AbortController via the 4th callback arg when the consumer passes signal.
  *
- * @param {(inputValue: string, page: number) => Promise<{ options: Array, hasMore: boolean }>} fetchPage
+ * @param {(inputValue: string, page: number, signal?: AbortSignal) => Promise<{ options: Array, hasMore: boolean }>} fetchPage
  */
 export const createPaginatedNameLoadOptions = (fetchPage) => {
+  let abortController = null;
+
   return async (inputValue, _loadedOptions, additional) => {
     const page = additional?.page ?? 1;
     const trimmed = String(inputValue ?? "").trim();
 
     if (!shouldSearchName(trimmed)) {
+      abortController?.abort();
+      abortController = null;
       return {
         options: [],
         hasMore: false,
@@ -41,14 +46,32 @@ export const createPaginatedNameLoadOptions = (fetchPage) => {
       };
     }
 
+    abortController?.abort();
+    abortController = new AbortController();
+    const { signal } = abortController;
+
     try {
-      const result = await fetchPage(trimmed, page);
+      const result = await fetchPage(trimmed, page, signal);
+      if (signal.aborted) {
+        return {
+          options: [],
+          hasMore: false,
+          additional: { page },
+        };
+      }
       return {
         options: Array.isArray(result?.options) ? result.options : [],
         hasMore: Boolean(result?.hasMore),
         additional: { page: page + 1 },
       };
-    } catch {
+    } catch (err) {
+      if (err?.name === "CanceledError" || err?.code === "ERR_CANCELED" || signal.aborted) {
+        return {
+          options: [],
+          hasMore: false,
+          additional: { page },
+        };
+      }
       return {
         options: [],
         hasMore: false,

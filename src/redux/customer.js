@@ -5,14 +5,38 @@ import instance from "../configs/api";
 
 export const getCustomer = createAsyncThunk(
   "customer/getCustomer",
-  async (params, { rejectWithValue }) => {
+  async (params, { rejectWithValue, signal }) => {
     try {
       const response = await instance.get("/api/customers", {
         params: { ...params },
+        signal,
       });
       return response.data;
     } catch (err) {
-      return rejectWithValue(err.response.data);
+      if (err?.name === "CanceledError" || err?.code === "ERR_CANCELED") {
+        throw err;
+      }
+      return rejectWithValue(err.response?.data);
+    }
+  }
+);
+
+/** Typeahead / async-select — does not overwrite the customers table store. */
+export const searchCustomers = createAsyncThunk(
+  "customer/searchCustomers",
+  async (params = {}, { rejectWithValue, signal }) => {
+    const { abortSignal, ...query } = params;
+    try {
+      const response = await instance.get("/api/customers", {
+        params: { typeahead: 1, ...query },
+        signal: abortSignal ?? signal,
+      });
+      return response.data;
+    } catch (err) {
+      if (err?.name === "CanceledError" || err?.code === "ERR_CANCELED") {
+        throw err;
+      }
+      return rejectWithValue(err.response?.data);
     }
   }
 );
@@ -83,12 +107,20 @@ export const customerSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(getCustomer.fulfilled, (state, action) => {
+        // Typeahead callers should use searchCustomers; ignore if they slip through
+        if (action.meta.arg?.typeahead) return;
         state.customers.data = action.payload.data;
         state.customers.loading = "success";
         state.customers.error = null;
       })
       .addCase(getCustomer.pending, (state, action) => {
+        if (action.meta.arg?.typeahead) return;
         state.customers.loading = "loading";
+      })
+      .addCase(getCustomer.rejected, (state, action) => {
+        if (action.meta.aborted || action.meta.arg?.typeahead) return;
+        state.customers.loading = "error";
+        state.customers.error = action.payload;
       })
       .addCase(addCustomer.fulfilled, (state, action) => {
         state.customer.loading = "success";

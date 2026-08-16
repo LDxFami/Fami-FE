@@ -1,5 +1,5 @@
 // ** React Imports
-import { Fragment, useMemo, useState, useEffect } from "react";
+import { Fragment, useMemo, useState, useEffect, useRef } from "react";
 
 // ** Custom Components
 import classnames from "classnames";
@@ -11,81 +11,66 @@ import { CardBody, Button, Input, Label } from "reactstrap";
 import illustration from "@src/assets/images/pages/calendar-illustration.png";
 import { useSelector } from "react-redux";
 
-// ** Filters Checkbox Array
-
 const SidebarLeft = (props) => {
-  // ** Props
   const {
     handleAddEventSidebar,
     toggleSidebar,
     updateFilter,
-    updateAllFilters,
-    dispatch,
     doctorId,
     onCheckAll,
-    role = "",
-    canCreateAppointment = false
+    canCreateAppointment = false,
   } = props;
 
   const [filters, setFilters] = useState([]);
+  const didInitCheckAll = useRef(false);
 
   const doctorStore = useSelector((state) => state.doctor);
-  const appointmentStore = useSelector((state) => state.appointment);
-
-  const { doctors } = doctorStore;
-
-  const hasNextPage = useMemo(() => {
-    return doctors?.data?.total > doctors?.data?.items.length;
-  }, [doctors]);
+  const doctorItems = useMemo(
+    () => doctorStore.doctors?.data?.items ?? [],
+    [doctorStore.doctors?.data?.items]
+  );
+  const doctorItemsKey = useMemo(
+    () => doctorItems.map((i) => i.id).join(","),
+    [doctorItems]
+  );
 
   useEffect(() => {
-    if (filters.length == 0) {
-      const tmpData = doctors?.data?.items.map((i) => ({
-        label: i.name,
-        id: i.id,
-        color: "primary",
-        className: "form-check-primary mb-1",
-      }));
-      if (doctors.data.items.length > 0) {
-        tmpData.push({
-          label: "Chưa có bác sĩ",
-          id: "",
-          color: "primary",
-          className: "form-check-primary mb-1",
-        });
-      }
-      setFilters(tmpData);
-      if (canCreateAppointment) {
-        onCheckAll(tmpData.map((i) => i.id));
-      }
+    if (!doctorItems.length) return;
+
+    const tmpData = doctorItems.map((i) => ({
+      label: i.name,
+      id: i.id,
+      color: "primary",
+      className: "form-check-primary mb-1",
+    }));
+    tmpData.push({
+      label: "Chưa có bác sĩ",
+      id: "",
+      color: "primary",
+      className: "form-check-primary mb-1",
+    });
+    setFilters(tmpData);
+
+    if (canCreateAppointment && !didInitCheckAll.current) {
+      didInitCheckAll.current = true;
+      onCheckAll(tmpData.map((i) => i.id));
     }
-  }, [doctors]);
+  }, [doctorItems, doctorItemsKey, canCreateAppointment, onCheckAll]);
 
-  // const filters = useMemo(() => {
-  //   const data = doctors?.data?.items.map((i) => ({
-  //     label: i.name,
-  //     id: i.id,
-  //     color: "primary",
-  //     className: "form-check-primary mb-1",
-  //   }));
-  //   return [...data];
-  // }, [doctors]);
-
-  // ** Function to handle Add Event Click
   const handleAddEventClick = () => {
     toggleSidebar(false);
     handleAddEventSidebar();
   };
+
   return (
     <Fragment>
       <div className="sidebar-wrapper">
         <CardBody className="card-body d-flex justify-content-center my-sm-0 mb-3">
-            {
-              canCreateAppointment && 
-              <Button color="primary" block onClick={handleAddEventClick}>
-                <span className="align-middle">Thêm lịch hẹn</span>
-              </Button>
-            }
+          {canCreateAppointment && (
+            <Button color="primary" block onClick={handleAddEventClick}>
+              <span className="align-middle">Thêm lịch hẹn</span>
+            </Button>
+          )}
         </CardBody>
         <CardBody>
           <h5 className="section-label mb-1">
@@ -97,8 +82,8 @@ const SidebarLeft = (props) => {
               type="checkbox"
               label="View All"
               className="select-all"
-              checked={filters.length === doctorId.length}
-              onChange={(e) => {
+              checked={filters.length > 0 && filters.length === doctorId.length}
+              onChange={() => {
                 if (filters.length !== doctorId.length) {
                   onCheckAll(filters.map((i) => i.id));
                 } else {
@@ -130,7 +115,6 @@ const SidebarLeft = (props) => {
                       checked={doctorId.includes(filter.id)}
                       onChange={() => {
                         updateFilter(filter.id);
-                        // toggleSidebar();
                       }}
                     />
                     <Label

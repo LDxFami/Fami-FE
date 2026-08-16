@@ -1,5 +1,5 @@
 // ** React Import
-import { useEffect, useRef, memo, Fragment, useMemo, useState } from "react";
+import { useEffect, useRef, memo, useMemo, useState, useCallback } from "react";
 
 // ** Full Calendar & it's Plugins
 import FullCalendar from "@fullcalendar/react";
@@ -11,16 +11,14 @@ import interactionPlugin from "@fullcalendar/interaction";
 
 import moment from "moment";
 // ** Custom Components
-import Avatar from "@components/avatar";
 import SpinnerComponent from "../../../@core/components/spinner/Fallback-spinner";
 import { selectThemeColors } from "@utils";
 
 // ** Third Party Components
-import { toast } from "react-toastify";
 import { Card, CardBody, Input, Label } from "reactstrap";
-import { Menu, Check, Star } from "react-feather";
+import { Menu, Star } from "react-feather";
 import useWindowDimensions from "../../../utility/hooks/useWindowDimensions";
-import { getCustomer } from "../../../redux/customer";
+import { searchCustomers } from "../../../redux/customer";
 import { unwrapResult } from "@reduxjs/toolkit";
 import {
   AsyncPaginateSelect,
@@ -28,8 +26,13 @@ import {
   NAME_SEARCH_LIMIT,
   NAME_SEARCH_DEBOUNCE_MS,
 } from "../../../utility/asyncNameSearch";
+import {
+  createBlankCalendarEvent,
+  matchesDoctorFilter,
+} from "./calendarHelpers";
 
 const scrollTime = moment().format("HH:mm:ss");
+const PLUGINS = [interactionPlugin, dayGridPlugin, timeGridPlugin, listPlugin];
 
 const getAppointmentTooltip = (event) => {
   return event.extendedProps?.description?.trim() || "";
@@ -43,24 +46,11 @@ const emptyNoteTooltip = {
   y: 0,
 };
 
-// ** Toast Component
-const ToastComponent = ({ title, icon, color }) => (
-  <Fragment>
-    <div className="toastify-header pb-0">
-      <div className="title-wrapper">
-        <Avatar size="sm" color={color} icon={icon} />
-        <h6 className="toast-title">{title}</h6>
-      </div>
-    </div>
-  </Fragment>
-);
-
 const Calendar = (props) => {
-  // ** Refs
   const calendarRef = useRef(null);
+  const handlersRef = useRef({});
   const { width } = useWindowDimensions();
 
-  // ** Props — declare before any options/handlers that close over them
   const {
     store,
     isRtl,
@@ -69,11 +59,9 @@ const Calendar = (props) => {
     calendarApi,
     setCalendarApi,
     handleAddEventSidebar,
-    handleMonthChange,
-    blankEvent,
-    toggleSidebar,
+    handleDatesSet,
     selectEvent,
-    updateEvent,
+    toggleSidebar,
     role,
     onCustomerChange,
     doctorId = [],
@@ -84,26 +72,24 @@ const Calendar = (props) => {
   const initialView = width > 540 ? "dayGridMonth" : "timeGridDay";
 
   const [calendarData, setCalendarData] = useState([]);
-  const [calendarOptions, setCalendarOptions] = useState({
-    locale: viLocale,
-    events: [],
-    plugins: [interactionPlugin, dayGridPlugin, timeGridPlugin, listPlugin],
-    initialView,
-    headerToolbar: {
-      start: "sidebarToggle, prev,next, title",
-      end: "dayGridMonth,timeGridWeek,timeGridDay,listMonth",
-    },
-    editable: false,
-    ref: calendarRef,
-    direction: isRtl ? "rtl" : "ltr",
-  });
-  const [viewCurrent, setviewCurrent] = useState(initialView);
+  const [viewCurrent, setViewCurrent] = useState(initialView);
   const [showPast, setShowPast] = useState(false);
-  const [customerSelect, setCustomerSelect] = useState("");
+  const [customerSelect, setCustomerSelect] = useState(null);
   const [noteTooltip, setNoteTooltip] = useState(emptyNoteTooltip);
 
-  // Helpers must be defined before the options effect closes over them
-  const renderEvent = (event) => {
+  handlersRef.current = {
+    dispatch,
+    selectEvent,
+    handleAddEventSidebar,
+    handleDatesSet,
+    toggleSidebar,
+    onCustomerChange,
+    role,
+    calendarApi,
+    width,
+  };
+
+  const renderEvent = useCallback((event) => {
     const { description, isImportant } = event.extendedProps;
     return (
       <>
@@ -129,9 +115,9 @@ const Calendar = (props) => {
         </div>
       </>
     );
-  };
+  }, []);
 
-  const renderAdminList = (event) => {
+  const renderAdminList = useCallback((event) => {
     const doctors = [
       event.extendedProps.doctor?.name,
       event.extendedProps.secondaryDoctor?.name,
@@ -156,58 +142,61 @@ const Calendar = (props) => {
         ) : null}
       </>
     );
-  };
+  }, []);
 
-  const renderDayGridMonth = (event, _view, gridWidth) => {
-    const { description, isImportant, customer, status } = event.extendedProps;
+  const renderDayGridMonth = useCallback(
+    (event, gridWidth) => {
+      const { description, isImportant, customer, status } = event.extendedProps;
 
-    if (gridWidth < 540) {
-      return isImportant ? (
-        <Star size={12} className="event-important-star" fill="currentColor" />
-      ) : (
-        <div className="fc-daygrid-event-dot" />
-      );
-    }
-
-    return (
-      <>
-        {isImportant ? (
-          <Star size={12} className="event-important-star me-25" fill="currentColor" />
+      if (gridWidth < 540) {
+        return isImportant ? (
+          <Star size={12} className="event-important-star" fill="currentColor" />
         ) : (
-          <div
-            className={`fc-daygrid-event-dot border-color-${
-              calendarsColor[status ?? 1]
-            }`}
-          ></div>
-        )}
-        <div className="fc-event-time">
-          {moment(event.startStr).format("HH:mm")}
-        </div>
-        <div className="fc-event-title">
-          {customer?.name}
-          {isImportant && description ? (
-            <span className="fc-event-description note-important">
-              {" "}
-              - {description}
-            </span>
-          ) : null}
-        </div>
-      </>
-    );
-  };
+          <div className="fc-daygrid-event-dot" />
+        );
+      }
+
+      return (
+        <>
+          {isImportant ? (
+            <Star size={12} className="event-important-star me-25" fill="currentColor" />
+          ) : (
+            <div
+              className={`fc-daygrid-event-dot border-color-${
+                calendarsColor[status ?? 1]
+              }`}
+            ></div>
+          )}
+          <div className="fc-event-time">
+            {moment(event.startStr).format("HH:mm")}
+          </div>
+          <div className="fc-event-title">
+            {customer?.name}
+            {isImportant && description ? (
+              <span className="fc-event-description note-important">
+                {" "}
+                - {description}
+              </span>
+            ) : null}
+          </div>
+        </>
+      );
+    },
+    [calendarsColor]
+  );
 
   const customerLoadOptions = useMemo(
     () =>
-      createPaginatedNameLoadOptions(async (inputValue, page) => {
+      createPaginatedNameLoadOptions(async (inputValue, page, abortSignal) => {
         const params = {
           limit: NAME_SEARCH_LIMIT,
           page,
-          typeahead: 1,
+          abortSignal,
         };
         if (inputValue) {
           params.search_param = inputValue;
         }
-        const originalPromiseResult = await dispatch(getCustomer(params));
+        const originalPromiseResult = await dispatch(searchCustomers(params));
         const resultAction = unwrapResult(originalPromiseResult);
         const items = resultAction.data.items || [];
         return {
@@ -223,47 +212,6 @@ const Calendar = (props) => {
     [dispatch]
   );
 
-  const renderCustomerSearch = () => {
-    return (
-      <AsyncPaginateSelect
-        placeholder="Tìm khách hàng..."
-        id="customerCalendarSearch"
-        value={customerSelect}
-        theme={selectThemeColors}
-        className="react-select"
-        classNamePrefix="select"
-        isClearable={true}
-        defaultOptions
-        additional={{ page: 1 }}
-        debounceTimeout={NAME_SEARCH_DEBOUNCE_MS}
-        filterOption={null}
-        onChange={(data) => {
-          setCustomerSelect(data);
-          onCustomerChange(data);
-        }}
-        loadOptions={customerLoadOptions}
-      />
-    );
-  };
-
-  const renderShowPastCheckBox = () => (
-    <div className="fc-button-group">
-      <Input
-        type="checkbox"
-        key={"showpast"}
-        label={"Hiển thị cuộc hẹn trong quá khứ"}
-        className="input-filter"
-        id={`showpast-event`}
-        checked={showPast}
-        onChange={() => setShowPast(!showPast)}
-      />
-      <Label className="form-check-label" for={"showpast-event"}>
-        &nbsp;Hiển thị cuộc hẹn trong quá khứ
-      </Label>
-    </div>
-  );
-
-  // ** UseEffect checks for CalendarAPI Update
   useEffect(() => {
     if (calendarApi === null && calendarRef.current) {
       setCalendarApi(calendarRef.current.getApi());
@@ -279,36 +227,22 @@ const Calendar = (props) => {
   }, []);
 
   useEffect(() => {
-    setviewCurrent(initialView);
+    setViewCurrent(initialView);
   }, [initialView]);
 
   useEffect(() => {
-    var calendarDta = [];
+    let calendarDta = [];
     if (store.appointments?.data.length > 0) {
-      const matchesDoctorFilter = (appointment) => {
-        if (!profileReady) return false;
-        if (!doctorId.length) return canViewAll;
-        // Sidebar "uncheck all" uses sentinel [0]
-        if (doctorId.length === 1 && doctorId[0] === 0) return false;
-
-        const idSet = new Set(doctorId.map(String));
-        const includeUnassigned = idSet.has("");
-        const primaryId = appointment.doctor_id ?? appointment.doctor?.id;
-        const secondaryId =
-          appointment.secondary_doctor_id ?? appointment.secondary_doctor?.id;
-
-        if (includeUnassigned && (primaryId == null || primaryId === "")) {
-          return true;
-        }
-        if (primaryId != null && idSet.has(String(primaryId))) return true;
-        if (secondaryId != null && idSet.has(String(secondaryId))) return true;
-        return false;
-      };
-
-      const doctorFiltered = store.appointments.data.filter(matchesDoctorFilter);
+      const doctorFiltered = store.appointments.data.filter((appointment) =>
+        matchesDoctorFilter(appointment, {
+          doctorId,
+          canViewAll,
+          profileReady,
+        })
+      );
 
       if (!showPast && viewCurrent === "listMonth") {
-        var date = new Date();
+        const date = new Date();
         date.setHours(0, 0, 0);
         calendarDta = doctorFiltered.filter((i) => {
           return (
@@ -345,12 +279,55 @@ const Calendar = (props) => {
     );
   }, [store, showPast, viewCurrent, doctorId, canViewAll, profileReady]);
 
-  useEffect(() => {
-    const options = {
+  const customerSearchButton = useMemo(
+    () => (
+      <AsyncPaginateSelect
+        placeholder="Tìm khách hàng..."
+        id="customerCalendarSearch"
+        value={customerSelect}
+        theme={selectThemeColors}
+        className="react-select"
+        classNamePrefix="select"
+        isClearable={true}
+        defaultOptions
+        additional={{ page: 1 }}
+        debounceTimeout={NAME_SEARCH_DEBOUNCE_MS}
+        filterOption={null}
+        onChange={(data) => {
+          setCustomerSelect(data);
+          handlersRef.current.onCustomerChange?.(data);
+        }}
+        loadOptions={customerLoadOptions}
+      />
+    ),
+    [customerSelect, customerLoadOptions]
+  );
+
+  const showPastCheckBox = useMemo(
+    () => (
+      <div className="fc-button-group">
+        <Input
+          type="checkbox"
+          key={"showpast"}
+          label={"Hiển thị cuộc hẹn trong quá khứ"}
+          className="input-filter"
+          id={`showpast-event`}
+          checked={showPast}
+          onChange={() => setShowPast((prev) => !prev)}
+        />
+        <Label className="form-check-label" for={"showpast-event"}>
+          &nbsp;Hiển thị cuộc hẹn trong quá khứ
+        </Label>
+      </div>
+    ),
+    [showPast]
+  );
+
+  const calendarOptions = useMemo(
+    () => ({
       locale: viLocale,
-      events: calendarData,
-      plugins: [interactionPlugin, dayGridPlugin, timeGridPlugin, listPlugin],
-      initialView: initialView,
+      plugins: PLUGINS,
+      initialView,
       allDaySlot: false,
       headerToolbar: {
         start: `sidebarToggle, prev,next, title, ${
@@ -361,13 +338,12 @@ const Calendar = (props) => {
       },
       slotMinTime: "07:00:00",
       slotMaxTime: "21:30:00",
-
       now: new Date(),
-      scrollTime: scrollTime,
+      scrollTime,
       buttonText: {
         listMonth: "List",
       },
-      eventContent: function (arg) {
+      eventContent(arg) {
         const { event } = arg;
         if (arg.view.type === "timeGridDay") {
           return renderEvent(event);
@@ -376,10 +352,9 @@ const Calendar = (props) => {
           return renderAdminList(event);
         }
         if (arg.view.type === "dayGridMonth") {
-          return renderDayGridMonth(event, arg.view.type, width);
+          return renderDayGridMonth(event, handlersRef.current.width);
         }
       },
-
       dayHeaderClassNames: "calendar-header",
       slotEventOverlap: false,
       editable: false,
@@ -387,13 +362,11 @@ const Calendar = (props) => {
       dragScroll: true,
       dayMaxEvents: width < 540 ? 30 : 5,
       navLinks: true,
-
       eventTimeFormat: {
         hour: "2-digit",
         minute: "2-digit",
         hour12: false,
       },
-
       slotLabelFormat: {
         hour: "2-digit",
         minute: "2-digit",
@@ -410,20 +383,14 @@ const Calendar = (props) => {
         const colorName =
           calendarsColor[calendarEvent._def.extendedProps.status];
         const classes = [`bg-light-${colorName} bold`];
-
         if (calendarEvent._def.extendedProps.isImportant) {
           classes.push("event-important");
         }
-
         return classes;
       },
-
       eventMouseEnter({ event, el }) {
         const tooltipText = getAppointmentTooltip(event);
-        if (!tooltipText) {
-          return;
-        }
-
+        if (!tooltipText) return;
         const rect = el.getBoundingClientRect();
         setNoteTooltip({
           show: true,
@@ -433,112 +400,66 @@ const Calendar = (props) => {
           y: rect.top,
         });
       },
-
       eventMouseLeave() {
         setNoteTooltip(emptyNoteTooltip);
       },
-
       eventClick({ event: clickedEvent, view }) {
         setNoteTooltip(emptyNoteTooltip);
-
-        if (view.type === "dayGridMonth" && width < 54) {
-          calendarApi.changeView("timeGridDay", clickedEvent.start);
+        const { width: w, calendarApi: api, dispatch: d, selectEvent: sel, handleAddEventSidebar: open } =
+          handlersRef.current;
+        if (view.type === "dayGridMonth" && w < 540) {
+          api?.changeView("timeGridDay", clickedEvent.start);
         } else {
-          dispatch(selectEvent(clickedEvent));
-          handleAddEventSidebar();
+          d(sel(clickedEvent));
+          open();
         }
       },
-
       customButtons: {
         sidebarToggle: {
           text: <Menu className="d-xl-none d-block" />,
           click() {
-            toggleSidebar(true);
+            handlersRef.current.toggleSidebar(true);
           },
         },
         customerSearch: {
-          text: renderCustomerSearch(),
+          text: customerSearchButton,
         },
         showPastCheckBox: {
-          text: renderShowPastCheckBox(),
+          text: showPastCheckBox,
         },
       },
-
       dateClick(info) {
-        if (info.view.type === "dayGridMonth" && width < 540) {
-          calendarApi.changeView("timeGridDay", info.date);
-        } else {
-          const ev = blankEvent;
-          ev.start = info.date;
-          ev.end = info.date;
-          if (role == "admin") {
-            handleAddEventSidebar();
-          }
+        const { width: w, calendarApi: api, dispatch: d, selectEvent: sel, handleAddEventSidebar: open, role: r } =
+          handlersRef.current;
+        if (info.view.type === "dayGridMonth" && w < 540) {
+          api?.changeView("timeGridDay", info.date);
+          return;
+        }
+        if (r === "admin") {
+          d(sel(createBlankCalendarEvent(info.date)));
+          open();
         }
       },
-
-      datesSet: function (info) {
-        handleMonthChange(info);
-        setviewCurrent(info.view.type);
+      datesSet(info) {
+        handlersRef.current.handleDatesSet?.(info);
+        setViewCurrent(info.view.type);
       },
-      eventDrop({ event: droppedEvent }) {
-        dispatch(updateEvent(droppedEvent));
-        toast.success(
-          <ToastComponent
-            title="Event Updated"
-            color="success"
-            icon={<Check />}
-          />,
-          {
-            icon: false,
-            autoClose: 2000,
-            hideProgressBar: true,
-            closeButton: false,
-          }
-        );
-      },
-
-      eventResize({ event: resizedEvent }) {
-        dispatch(updateEvent(resizedEvent));
-        toast.success(
-          <ToastComponent
-            title="Event Updated"
-            color="success"
-            icon={<Check />}
-          />,
-          {
-            icon: false,
-            autoClose: 2000,
-            hideProgressBar: true,
-            closeButton: false,
-          }
-        );
-      },
-
       ref: calendarRef,
       direction: isRtl ? "rtl" : "ltr",
-    };
-    setCalendarOptions({ ...options });
-  }, [
-    role,
-    calendarData,
-    initialView,
-    customerSelect,
-    showPast,
-    viewCurrent,
-    width,
-    calendarsColor,
-    calendarApi,
-    dispatch,
-    selectEvent,
-    handleAddEventSidebar,
-    toggleSidebar,
-    blankEvent,
-    handleMonthChange,
-    updateEvent,
-    isRtl,
-    customerLoadOptions,
-  ]);
+    }),
+    [
+      initialView,
+      viewCurrent,
+      width,
+      isRtl,
+      calendarsColor,
+      customerSearchButton,
+      showPastCheckBox,
+      renderEvent,
+      renderAdminList,
+      renderDayGridMonth,
+    ]
+  );
 
   return (
     <Card className="shadow-none border-0 mb-0 rounded-0">
@@ -548,7 +469,7 @@ const Calendar = (props) => {
         </div>
       ) : null}
       <CardBody className="pb-0">
-        <FullCalendar {...calendarOptions} />{" "}
+        <FullCalendar {...calendarOptions} events={calendarData} />
         {noteTooltip.show ? (
           <div
             className={`appointment-note-tooltip${

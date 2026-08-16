@@ -13,9 +13,8 @@ import Select from "react-select";
 import { useSelector } from "react-redux";
 import PerfectScrollbar from "react-perfect-scrollbar";
 import { useForm } from "react-hook-form";
-import _ from "lodash";
 import moment from "moment";
-import { addCustomer, getCustomer } from "../../../redux/customer";
+import { addCustomer, searchCustomers } from "../../../redux/customer";
 // ** Reactstrap Imports
 import {
   Button,
@@ -41,7 +40,7 @@ import {
 import "@styles/react/libs/react-select/_react-select.scss";
 import "@styles/react/libs/flatpickr/flatpickr.scss";
 import AddCustomerModal from "../../components/addCustomerModal";
-import { getDoctor } from "../../../redux/doctor";
+import { searchDoctors } from "../../../redux/doctor";
 import {
   addAppointment,
   selectAppointment,
@@ -50,7 +49,6 @@ import {
 } from "../../../redux/appointment";
 import OverlapModal from "../../components/overlapModal";
 
-// ** Toast Component
 const ToastComponent = ({ title, icon, color, message = "" }) => (
   <Fragment>
     <div className="toastify-header pb-0">
@@ -65,47 +63,39 @@ const ToastComponent = ({ title, icon, color, message = "" }) => (
   </Fragment>
 );
 
-const AddEventSidebar = (props) => {
-  // ** Props
-  const {
-    canModify,
-    open,
-    dispatch,
-    refetchEvents,
-    handleAddEventSidebar,
-  } = props;
+const optionId = (option) => option?.id ?? option?.value ?? "";
 
-  // ** Vars & Hooks
+const AddEventSidebar = (props) => {
+  const { canModify, open, dispatch, refetchEvents, handleAddEventSidebar } =
+    props;
+
   const { setError, handleSubmit } = useForm({
     defaultValues: { title: "" },
   });
 
   const appointmentStore = useSelector((state) => state.appointment);
-
   const { selectedAppointment } = appointmentStore;
 
-  // ** States
   const [desc, setDesc] = useState("");
   const [isImportant, setIsImportant] = useState(false);
   const [status, setStatus] = useState({ value: 1, label: "Hiệu lực" });
   const [startTime, setStartTime] = useState(new Date().setHours(8, 0, 0, 0));
   const [endTime, setEndTime] = useState(new Date().setHours(8, 30, 0, 0));
   const [startPicker, setStartPicker] = useState(new Date());
-  const [customer, setCustomer] = useState();
-  const [doctor, setDoctor] = useState();
-  const [secondaryDoctor, setSecondaryDoctor] = useState();
+  const [customer, setCustomer] = useState(null);
+  const [doctor, setDoctor] = useState(null);
+  const [secondaryDoctor, setSecondaryDoctor] = useState(null);
   const [customerModal, setCustomerModal] = useState(false);
   const [customerInput, setCustomerInput] = useState({ phone: "", name: "" });
   const [isUpdate, setUpdate] = useState(false);
   const [overlapModal, setoverlapModal] = useState(false);
   const [overlapMsg, setoverlapMsg] = useState("");
 
-  //** Effects
   useEffect(() => {
     setUpdate(
       !(
         isObjEmpty(selectedAppointment) ||
-        (!isObjEmpty(selectedAppointment) && !selectedAppointment.title.length)
+        (!isObjEmpty(selectedAppointment) && !selectedAppointment.title?.length)
       )
     );
   }, [selectedAppointment]);
@@ -116,16 +106,15 @@ const AddEventSidebar = (props) => {
     { value: 2, label: "Đã hoàn thành" },
   ];
 
-  // ** Adds New Event
   const handleAddEvent = () => {
     const appointmentInfo = {
-      doctor_id: doctor && doctor.length > 0 ? doctor[0].id : "",
-      customer_id: customer && customer.length > 0 ? customer[0].id : "",
-      secondary_doctor_id: secondaryDoctor && secondaryDoctor.length > 0 ? secondaryDoctor[0].id : "",
+      doctor_id: optionId(doctor),
+      customer_id: optionId(customer),
+      secondary_doctor_id: optionId(secondaryDoctor),
       date: moment(startPicker).format("YYYY-MM-DD"),
       time_start: moment(startTime).format("HH:mm:00"),
       time_end: moment(endTime).format("HH:mm:00"),
-      status,
+      status: status?.value ?? 1,
       description: desc,
       is_important: isImportant,
     };
@@ -167,9 +156,7 @@ const AddEventSidebar = (props) => {
       });
   };
 
-  // ** Reset Input Values on Close
   const handleResetInputValues = () => {
-    // dispatch(selectEvent({}));
     setDesc("");
     setIsImportant(false);
     setCustomer(null);
@@ -182,79 +169,104 @@ const AddEventSidebar = (props) => {
     setStatus({ value: 1, label: "Hiệu lực" });
   };
 
-  // ** Set sidebar fields
   const handleSelectedEvent = () => {
-    if (!isObjEmpty(selectedAppointment)) {
-      setDesc(selectedAppointment.extendedProps?.description || desc);
+    if (isObjEmpty(selectedAppointment)) return;
+
+    const start = selectedAppointment.start
+      ? new Date(selectedAppointment.start)
+      : new Date();
+    setStartPicker(start);
+
+    const hasExisting = Boolean(selectedAppointment.title?.length);
+    if (!hasExisting) {
+      // New appointment from dateClick — apply clicked date/time defaults
+      const startT =
+        selectedAppointment.extendedProps?.startTime ||
+        moment(start).format("HH:mm:00");
+      const endT =
+        selectedAppointment.extendedProps?.endTime ||
+        moment(start).add(30, "minutes").format("HH:mm:00");
+      const dateStr =
+        selectedAppointment.extendedProps?.date ||
+        moment(start).format("YYYY-MM-DD");
+      setStartTime(new Date(`${dateStr}T${startT}`));
+      setEndTime(new Date(`${dateStr}T${endT}`));
+      setDesc(selectedAppointment.extendedProps?.description || "");
       setIsImportant(!!selectedAppointment.extendedProps?.isImportant);
-      setStartPicker(new Date(selectedAppointment.start) || startPicker);
-      setStatus(
-        statusOptions.filter(
-          (i) => i.value === selectedAppointment.extendedProps.status
-        )
-      );
-      setStartTime(
-        new Date(
-          selectedAppointment.extendedProps.date +
-            "T" +
-            selectedAppointment.extendedProps?.startTime
-        ) || startTime
-      );
-      setEndTime(
-        new Date(
-          selectedAppointment.extendedProps.date +
-            "T" +
-            selectedAppointment.extendedProps?.endTime
-        ) || endTime
-      );
-      setCustomer(
-        [
-          {
-            label:
-              selectedAppointment.extendedProps?.customer.name +
-              " - " +
-              (selectedAppointment.extendedProps?.customer?.phone ??
-                "Không có SDT"),
-            value: selectedAppointment.extendedProps?.customer.id,
-            id: selectedAppointment.extendedProps?.customer.id,
-          },
-        ] || null
-      );
-      setDoctor(
-        [
-          {
-            label: selectedAppointment.extendedProps?.doctor?.name,
-            value: selectedAppointment.extendedProps?.doctor?.id,
-            id: selectedAppointment.extendedProps?.doctor?.id,
-          },
-        ] || null
-      );
-      setSecondaryDoctor(
-        [
-          {
-            label: selectedAppointment.extendedProps?.secondaryDoctor?.name,
-            value: selectedAppointment.extendedProps?.secondaryDoctor?.id,
-            id: selectedAppointment.extendedProps?.secondaryDoctor?.id,
-          },
-        ] || null
-      );
+      setStatus({ value: 1, label: "Hiệu lực" });
+      setCustomer(null);
+      setDoctor(null);
+      setSecondaryDoctor(null);
+      return;
     }
+
+    setDesc(selectedAppointment.extendedProps?.description || "");
+    setIsImportant(!!selectedAppointment.extendedProps?.isImportant);
+    setStatus(
+      statusOptions.find(
+        (i) => i.value === selectedAppointment.extendedProps.status
+      ) || statusOptions[1]
+    );
+    setStartTime(
+      new Date(
+        selectedAppointment.extendedProps.date +
+          "T" +
+          selectedAppointment.extendedProps?.startTime
+      )
+    );
+    setEndTime(
+      new Date(
+        selectedAppointment.extendedProps.date +
+          "T" +
+          selectedAppointment.extendedProps?.endTime
+      )
+    );
+    setCustomer(
+      selectedAppointment.extendedProps?.customer
+        ? {
+            label:
+              selectedAppointment.extendedProps.customer.name +
+              " - " +
+              (selectedAppointment.extendedProps.customer?.phone ??
+                "Không có SDT"),
+            value: selectedAppointment.extendedProps.customer.id,
+            id: selectedAppointment.extendedProps.customer.id,
+          }
+        : null
+    );
+    setDoctor(
+      selectedAppointment.extendedProps?.doctor
+        ? {
+            label: selectedAppointment.extendedProps.doctor.name,
+            value: selectedAppointment.extendedProps.doctor.id,
+            id: selectedAppointment.extendedProps.doctor.id,
+          }
+        : null
+    );
+    setSecondaryDoctor(
+      selectedAppointment.extendedProps?.secondaryDoctor
+        ? {
+            label: selectedAppointment.extendedProps.secondaryDoctor.name,
+            value: selectedAppointment.extendedProps.secondaryDoctor.id,
+            id: selectedAppointment.extendedProps.secondaryDoctor.id,
+          }
+        : null
+    );
   };
 
-  // ** Updates Event in Store
   const handleUpdateEvent = () => {
-    if (!isObjEmpty(selectedAppointment)) {
+    if (!isObjEmpty(selectedAppointment) && selectedAppointment.title?.length) {
       const appointmentInfo = {
         id: selectedAppointment.extendedProps.id,
-        doctor_id: doctor && doctor.length > 0 ? doctor[0].id : "",
-        secondary_doctor_id: secondaryDoctor && secondaryDoctor.length > 0 && secondaryDoctor[0] ? secondaryDoctor[0].id : "",
-        customer_id: customer && customer.length ? customer[0].id : "",
+        doctor_id: optionId(doctor),
+        secondary_doctor_id: optionId(secondaryDoctor),
+        customer_id: optionId(customer),
         date: moment(startPicker).format("YYYY-MM-DD"),
         time_start: moment(startTime).format("HH:mm:00"),
         time_end: moment(endTime).format("HH:mm:00"),
         description: desc,
         is_important: isImportant,
-        status: status[0].value,
+        status: status?.value ?? 1,
       };
       dispatch(updateAppointment(appointmentInfo))
         .unwrap()
@@ -298,44 +310,37 @@ const AddEventSidebar = (props) => {
     }
   };
 
-
-  // ** Event Action buttons
   const EventActions = () => {
-    if (canModify) {
-      if (
-        isObjEmpty(selectedAppointment) ||
-        (!isObjEmpty(selectedAppointment) && !selectedAppointment.title.length)
-      ) {
-        return (
-          <Fragment>
-            <Button className="me-1" type="submit" color="primary">
-              Thêm
-            </Button>
-            <Button
-              color="secondary"
-              type="reset"
-              onClick={handleAddEventSidebar}
-              outline
-            >
-              Huỷ
-            </Button>
-          </Fragment>
-        );
-      } else {
-        return (
-          <Fragment>
-            <Button className="me-1" color="primary" onClick={onCheckOverlap}>
-              Cập nhật
-            </Button>
-            {/* <Button color="danger" onClick={handleDeleteEvent} outline>
-            Xoá
-          </Button> */}
-          </Fragment>
-        );
-      }
-    } else {
-      return <Fragment></Fragment>;
+    if (!canModify) return <Fragment></Fragment>;
+
+    if (
+      isObjEmpty(selectedAppointment) ||
+      (!isObjEmpty(selectedAppointment) && !selectedAppointment.title?.length)
+    ) {
+      return (
+        <Fragment>
+          <Button className="me-1" type="submit" color="primary">
+            Thêm
+          </Button>
+          <Button
+            color="secondary"
+            type="reset"
+            onClick={handleAddEventSidebar}
+            outline
+          >
+            Huỷ
+          </Button>
+        </Fragment>
+      );
     }
+
+    return (
+      <Fragment>
+        <Button className="me-1" color="primary" onClick={onCheckOverlap}>
+          Cập nhật
+        </Button>
+      </Fragment>
+    );
   };
 
   const handleToggleModal = () => {
@@ -364,17 +369,18 @@ const AddEventSidebar = (props) => {
           }
         );
         setCustomerModal(false);
-
-        const customerOptionItem = {
-          label: rs.data.customer.name + " - " + (rs.data.customer.phone ?? "Không có SĐT"),
+        setCustomer({
+          label:
+            rs.data.customer.name +
+            " - " +
+            (rs.data.customer.phone ?? "Không có SĐT"),
           value: rs.data.customer.id,
           id: rs.data.customer.id,
-        };
-        setCustomer([customerOptionItem]);
+        });
       })
       .catch((err) => {
         const { error } = err;
-        var errorMsg = error ? error : "";
+        let errorMsg = error ? error : "";
         errorMsg = errorMsg.charAt(0).toUpperCase() + errorMsg.slice(1);
         toast.error(
           <ToastComponent
@@ -393,23 +399,22 @@ const AddEventSidebar = (props) => {
       });
   };
 
-  // ** Close BTN
   const CloseBtn = (
     <X className="cursor-pointer" size={15} onClick={handleAddEventSidebar} />
   );
 
   const customerLoadOptions = useMemo(
     () =>
-      createPaginatedNameLoadOptions(async (inputValue, page) => {
+      createPaginatedNameLoadOptions(async (inputValue, page, abortSignal) => {
         const params = {
           limit: NAME_SEARCH_LIMIT,
           page,
-          typeahead: 1,
+          abortSignal,
         };
         if (inputValue) {
           params.search_param = inputValue;
         }
-        const originalPromiseResult = await dispatch(getCustomer(params));
+        const originalPromiseResult = await dispatch(searchCustomers(params));
         const resultAction = unwrapResult(originalPromiseResult);
         const items = resultAction.data.items || [];
         return {
@@ -427,16 +432,16 @@ const AddEventSidebar = (props) => {
 
   const doctorLoadOptions = useMemo(
     () =>
-      createPaginatedNameLoadOptions(async (inputValue, page) => {
+      createPaginatedNameLoadOptions(async (inputValue, page, abortSignal) => {
         const params = {
           limit: NAME_SEARCH_LIMIT,
           page,
-          typeahead: 1,
+          abortSignal,
         };
         if (inputValue) {
           params.search_param = inputValue;
         }
-        const originalPromiseResult = await dispatch(getDoctor(params));
+        const originalPromiseResult = await dispatch(searchDoctors(params));
         const resultAction = unwrapResult(originalPromiseResult);
         const items = resultAction.data.items || [];
         return {
@@ -453,8 +458,8 @@ const AddEventSidebar = (props) => {
   );
 
   const handleCreate = (inputValue) => {
-    var customerVal = customerInput;
-    var rxNumber = new RegExp("^([0-9])+$");
+    let customerVal = customerInput;
+    const rxNumber = new RegExp("^([0-9])+$");
     if (rxNumber.test(inputValue)) {
       customerVal = { ...customerInput, phone: inputValue };
     } else {
@@ -465,18 +470,17 @@ const AddEventSidebar = (props) => {
   };
 
   const onCheckOverlap = async () => {
-    var isOverlap = false;
     const appointmentInfo = {
       id: isUpdate ? selectedAppointment?.extendedProps?.id : null,
-      doctor_id: doctor && doctor.length > 0 ? doctor[0].id : "",
-      secondary_doctor_id: secondaryDoctor && secondaryDoctor.length > 0 ? secondaryDoctor[0]?.id : null,
-      customer_id: customer && customer.length ? customer[0].id : "",
+      doctor_id: optionId(doctor),
+      secondary_doctor_id: optionId(secondaryDoctor) || null,
+      customer_id: optionId(customer),
       date: moment(startPicker).format("YYYY-MM-DD"),
       time_start: moment(startTime).format("HH:mm:00"),
       time_end: moment(endTime).format("HH:mm:00"),
       description: desc,
       is_important: isImportant,
-      status: status.length ? status[0].value : 1,
+      status: status?.value ?? 1,
     };
     await dispatch(checkOverlapAppointment(appointmentInfo))
       .unwrap()
@@ -489,7 +493,6 @@ const AddEventSidebar = (props) => {
         }
       })
       .catch(() => {});
-    return isOverlap;
   };
 
   return (
@@ -532,7 +535,7 @@ const AddEventSidebar = (props) => {
                 className="react-select"
                 classNamePrefix="select"
                 isClearable={false}
-                onChange={(data) => setCustomer([data])}
+                onChange={(data) => setCustomer(data)}
                 onCreateOption={handleCreate}
                 loadOptions={customerLoadOptions}
                 additional={{ page: 1 }}
@@ -561,9 +564,10 @@ const AddEventSidebar = (props) => {
                 filterOption={null}
                 classNamePrefix="select"
                 isClearable={false}
-                onChange={(data) => setDoctor([data])}
+                onChange={(data) => setDoctor(data)}
                 isDisabled={!canModify}
                 loadOptions={doctorLoadOptions}
+                cacheUniqs={["primary-doctor"]}
               />
             </div>
             <div className="mb-1">
@@ -581,9 +585,10 @@ const AddEventSidebar = (props) => {
                 debounceTimeout={NAME_SEARCH_DEBOUNCE_MS}
                 filterOption={null}
                 isClearable={true}
-                onChange={(data) => setSecondaryDoctor([data])}
+                onChange={(data) => setSecondaryDoctor(data)}
                 isDisabled={!canModify}
                 loadOptions={doctorLoadOptions}
+                cacheUniqs={["secondary-doctor"]}
               />
             </div>
 
@@ -691,10 +696,9 @@ const AddEventSidebar = (props) => {
                 value={status}
                 options={statusOptions}
                 theme={selectThemeColors}
-                // className="react-select"
                 classNamePrefix="select"
                 isClearable={false}
-                onChange={(data) => setStatus([data])}
+                onChange={(data) => setStatus(data)}
                 isDisabled={!isUpdate || !canModify}
               />
             </div>

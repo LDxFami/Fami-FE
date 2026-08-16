@@ -1,9 +1,10 @@
 // ** React Imports
-import { Fragment, useState, useEffect } from "react";
+import { Fragment, useState, useEffect, useCallback, useMemo } from "react";
 
 // ** Third Party Components
 import classnames from "classnames";
 import { Row, Col } from "reactstrap";
+import moment from "moment";
 
 // ** Calendar App Component Imports
 import Calendar from "./Calendar";
@@ -12,17 +13,20 @@ import AddEventSidebar from "./AddEventSidebar";
 
 // ** Custom Hooks
 import { useRTL } from "@hooks/useRTL";
+import { useCalendarPermissions } from "../../../utility/hooks/useCalendarPermissions";
+import {
+  visibleDateRangeFromDatesSet,
+  dateRangesEqual,
+} from "./calendarHelpers";
 
 // ** Store & Actions
 import { useSelector, useDispatch } from "react-redux";
-import { updateEvent, addEvent, removeEvent } from "./store";
-
-import { selectAppointment } from "../../../redux/appointment";
-// ** Styles
-import "@styles/react/apps/app-calendar.scss";
-import { getAppointment } from "../../../redux/appointment";
+import { selectAppointment, getAppointment } from "../../../redux/appointment";
 import { getDoctor } from "../../../redux/doctor";
 import { getUser } from "../../../redux/user";
+
+// ** Styles
+import "@styles/react/apps/app-calendar.scss";
 
 // ** CalendarColors
 const calendarsColor = {
@@ -31,108 +35,95 @@ const calendarsColor = {
   0: "danger",
 };
 
+const initialDateRange = () => {
+  const start = moment().startOf("month").format("YYYY-MM-DD");
+  const end = moment().endOf("month").format("YYYY-MM-DD");
+  return { start, end };
+};
+
 const CalendarComponent = () => {
-  // ** Variables
   const dispatch = useDispatch();
   const store = useSelector((state) => state.appointment);
   const userStore = useSelector((state) => state.user);
-
   const { userData } = userStore;
 
-  // ** states
+  const {
+    roleName,
+    profileReady,
+    canViewAll,
+    canCreateAppointment,
+    canModify,
+    showDoctorFilters,
+  } = useCalendarPermissions(userData);
+
   const [calendarApi, setCalendarApi] = useState(null);
   const [addSidebarOpen, setAddSidebarOpen] = useState(false);
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
-  const [month, setMonth] = useState(new Date().getMonth() + 1);
-  const [year, setYear] = useState(new Date().getFullYear());
+  const [dateRange, setDateRange] = useState(initialDateRange);
   const [doctorId, setDoctorId] = useState([]);
   const [customerId, setCustomerId] = useState("");
-  // ** Hooks
   const [isRtl] = useRTL();
-  // ** AddEventSidebar Toggle Function
-  const handleAddEventSidebar = () => setAddSidebarOpen(!addSidebarOpen);
 
-  // ** LeftSidebar Toggle Function
-  const toggleSidebar = (val) => setLeftSidebarOpen(val);
+  const handleAddEventSidebar = useCallback(
+    () => setAddSidebarOpen((open) => !open),
+    []
+  );
+  const toggleSidebar = useCallback((val) => setLeftSidebarOpen(val), []);
 
-  const profileReady = Boolean(userData?.roles);
-  const canViewAll =
-    userData?.roles?.[0]?.name === "admin" ||
-    userData?.group?.slug === "medic";
+  const appointmentParams = useMemo(
+    () => ({
+      start_date: dateRange.start,
+      end_date: dateRange.end,
+      customer_id: customerId !== "" ? customerId : null,
+    }),
+    [dateRange.start, dateRange.end, customerId]
+  );
 
-  // ** Blank Event Object
-  const blankEvent = {
-    title: "",
-    start: "",
-    end: "",
-    allDay: false,
-    url: "",
-    extendedProps: {
-      calendar: "",
-      guests: [],
-      location: "",
-      description: "",
-    },
-  };
-
-  const appointmentParams = {
-    month,
-    year,
-    customer_id: customerId !== "" ? customerId : null,
-  };
-
-  // ** refetchEvents
-  const refetchEvents = () => {
-    dispatch(getDoctor());
+  const refetchEvents = useCallback(() => {
+    dispatch(getDoctor({ limit: 200 }));
     dispatch(getAppointment(appointmentParams));
     if (calendarApi !== null) {
       calendarApi.refetchEvents();
     }
-  };
+  }, [dispatch, appointmentParams, calendarApi]);
 
   useEffect(() => {
     dispatch(getUser());
-    dispatch(getDoctor());
-  }, []);
+    dispatch(getDoctor({ limit: 200 }));
+  }, [dispatch]);
 
-  // Fetch month appointments in parallel with doctors/profile — doctor
-  // filtering is done client-side so we don't wait on sidebar check-all.
   useEffect(() => {
     dispatch(getAppointment(appointmentParams));
-  }, [month, year, customerId]);
+  }, [dispatch, appointmentParams]);
 
   useEffect(() => {
     if (!userData?.roles) return;
-    const isAdmin = userData.roles[0]?.name === "admin";
-    const isMedic = userData?.group?.slug === "medic";
-    if (!isAdmin && !isMedic) {
+    if (!canViewAll) {
       setDoctorId([userData.id]);
     }
-  }, [userData]);
-  const handleMonthChange = (payload) => {
-    var middate = new Date(
-      (new Date(payload.startStr).getTime() +
-        new Date(payload.endStr).getTime()) /
-        2
-    );
-    setMonth(middate.getMonth() + 1);
-    setYear(middate.getFullYear());
-  };
+  }, [userData, canViewAll]);
 
-  const updateFilter = (id) => {
-    const tempArr = [...doctorId];
-    if (!tempArr.includes(id)) {
-      //checking weather array contain the id
-      tempArr.push(id); //adding to array because value doesnt exists
-    } else {
-      tempArr.splice(tempArr.indexOf(id), 1); //deleting
-    }
-    setDoctorId(tempArr);
-  };
+  const handleDatesSet = useCallback((payload) => {
+    const next = visibleDateRangeFromDatesSet(payload);
+    setDateRange((prev) => (dateRangesEqual(prev, next) ? prev : next));
+  }, []);
 
-  const handleCheckAllFilter = (filters) => {
+  const updateFilter = useCallback((id) => {
+    setDoctorId((prev) => {
+      const tempArr = [...prev];
+      const idx = tempArr.indexOf(id);
+      if (idx === -1) {
+        tempArr.push(id);
+      } else {
+        tempArr.splice(idx, 1);
+      }
+      return tempArr;
+    });
+  }, []);
+
+  const handleCheckAllFilter = useCallback((filters) => {
     setDoctorId(filters);
-  };
+  }, []);
 
   return (
     <Fragment>
@@ -147,46 +138,36 @@ const CalendarComponent = () => {
               }
             )}
           >
-            {userData &&
-            userData.roles &&
-            (userData?.roles[0]?.name === "admin" ||
-              userData?.roles[0]?.name === "doctor") ? (
+            {userData && userData.roles && showDoctorFilters ? (
               <SidebarLeft
-                doctorId={[...doctorId]}
-                store={store}
-                dispatch={dispatch}
+                doctorId={doctorId}
                 updateFilter={updateFilter}
                 toggleSidebar={toggleSidebar}
                 handleAddEventSidebar={handleAddEventSidebar}
                 onCheckAll={handleCheckAllFilter}
-                canCreateAppointment={
-                  userData?.roles[0]?.name === "admin" ||
-                  userData?.group?.slug == "medic"
-                }
+                canCreateAppointment={canCreateAppointment}
               />
             ) : null}
           </Col>
 
           <Col className="position-relative">
             <Calendar
-              role={userData?.roles ? userData?.roles[0]?.name : ""}
+              role={roleName}
               isRtl={isRtl}
               store={store}
               doctorId={doctorId}
               canViewAll={canViewAll}
               profileReady={profileReady}
-              handleMonthChange={handleMonthChange}
+              handleDatesSet={handleDatesSet}
               dispatch={dispatch}
-              blankEvent={blankEvent}
               calendarApi={calendarApi}
               selectEvent={selectAppointment}
-              updateEvent={updateEvent}
               toggleSidebar={toggleSidebar}
               calendarsColor={calendarsColor}
               setCalendarApi={setCalendarApi}
               handleAddEventSidebar={handleAddEventSidebar}
               onCustomerChange={(customer) => {
-                setCustomerId(customer? customer.id : "");
+                setCustomerId(customer ? customer.id : "");
               }}
             />
           </Col>
@@ -200,17 +181,10 @@ const CalendarComponent = () => {
       </div>
       <AddEventSidebar
         store={store}
-        role={userData?.roles ? userData?.roles[0]?.name : ""}
-        canModify={
-          (userData?.roles ? userData?.roles[0]?.name : "") == "admin" ||
-          userData?.group?.slug == "medic"
-        }
+        role={roleName}
+        canModify={canModify}
         dispatch={dispatch}
-        addEvent={addEvent}
         open={addSidebarOpen}
-        selectEvent={selectAppointment}
-        updateEvent={updateEvent}
-        removeEvent={removeEvent}
         calendarApi={calendarApi}
         refetchEvents={refetchEvents}
         calendarsColor={calendarsColor}
