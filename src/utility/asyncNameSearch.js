@@ -6,6 +6,9 @@ export const NAME_SEARCH_MIN_CHARS = 2;
 export const NAME_SEARCH_PHONE_MIN_DIGITS = 3;
 export const NAME_SEARCH_DEBOUNCE_MS = 300;
 export const NAME_SEARCH_LIMIT = 20;
+/** Doctors list is small — search from the first character, less debounce. */
+export const DOCTOR_SEARCH_MIN_CHARS = 0;
+export const DOCTOR_SEARCH_DEBOUNCE_MS = 100;
 
 export const AsyncPaginateSelect = withAsyncPaginate(Select);
 export const AsyncPaginateCreatableSelect = withAsyncPaginate(CreatableSelect);
@@ -25,14 +28,19 @@ export const mapDoctorOption = (doctor) => ({
 /**
  * Whether the typed value is worth hitting the API for.
  * Empty input is allowed (defaultOptions / initial list).
+ *
+ * @param {string} inputValue
+ * @param {{ minChars?: number, phoneMinDigits?: number }} [options]
  */
-export const shouldSearchName = (inputValue = "") => {
+export const shouldSearchName = (inputValue = "", options = {}) => {
+  const minChars = options.minChars ?? NAME_SEARCH_MIN_CHARS;
+  const phoneMinDigits = options.phoneMinDigits ?? NAME_SEARCH_PHONE_MIN_DIGITS;
   const trimmed = String(inputValue).trim();
   if (trimmed.length === 0) return true;
   if (/^\d+$/.test(trimmed)) {
-    return trimmed.length >= NAME_SEARCH_PHONE_MIN_DIGITS;
+    return trimmed.length >= phoneMinDigits;
   }
-  return trimmed.length >= NAME_SEARCH_MIN_CHARS;
+  return trimmed.length >= minChars;
 };
 
 /**
@@ -40,15 +48,16 @@ export const shouldSearchName = (inputValue = "") => {
  * Supports AbortController via the 4th callback arg when the consumer passes signal.
  *
  * @param {(inputValue: string, page: number, signal?: AbortSignal) => Promise<{ options: Array, hasMore: boolean }>} fetchPage
+ * @param {{ minChars?: number, phoneMinDigits?: number }} [searchOptions]
  */
-export const createPaginatedNameLoadOptions = (fetchPage) => {
+export const createPaginatedNameLoadOptions = (fetchPage, searchOptions = {}) => {
   let abortController = null;
 
   return async (inputValue, _loadedOptions, additional) => {
     const page = additional?.page ?? 1;
     const trimmed = String(inputValue ?? "").trim();
 
-    if (!shouldSearchName(trimmed)) {
+    if (!shouldSearchName(trimmed, searchOptions)) {
       abortController?.abort();
       abortController = null;
       return {

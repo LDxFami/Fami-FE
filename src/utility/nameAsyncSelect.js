@@ -12,6 +12,8 @@ import {
   mapDoctorOption,
   NAME_SEARCH_LIMIT,
   NAME_SEARCH_DEBOUNCE_MS,
+  DOCTOR_SEARCH_MIN_CHARS,
+  DOCTOR_SEARCH_DEBOUNCE_MS,
 } from "./asyncNameSearch";
 
 export { mapCustomerOption, mapDoctorOption };
@@ -51,25 +53,31 @@ export const useDoctorNameLoadOptions = () => {
   const dispatch = useDispatch();
   return useMemo(
     () =>
-      createPaginatedNameLoadOptions(async (inputValue, page, abortSignal) => {
-        const params = {
-          limit: NAME_SEARCH_LIMIT,
-          page,
-          abortSignal,
-        };
-        if (inputValue) {
-          params.search_param = inputValue;
+      createPaginatedNameLoadOptions(
+        async (inputValue, page, abortSignal) => {
+          const params = {
+            limit: NAME_SEARCH_LIMIT,
+            page,
+            abortSignal,
+          };
+          if (inputValue) {
+            params.search_param = inputValue;
+          }
+          const resultAction = unwrapResult(
+            await dispatch(searchDoctors(params))
+          );
+          const items = resultAction.data.items || [];
+          return {
+            options: items.map(mapDoctorOption),
+            hasMore:
+              resultAction.data.has_more ?? items.length >= NAME_SEARCH_LIMIT,
+          };
+        },
+        {
+          minChars: DOCTOR_SEARCH_MIN_CHARS,
+          phoneMinDigits: DOCTOR_SEARCH_MIN_CHARS,
         }
-        const resultAction = unwrapResult(
-          await dispatch(searchDoctors(params))
-        );
-        const items = resultAction.data.items || [];
-        return {
-          options: items.map(mapDoctorOption),
-          hasMore:
-            resultAction.data.has_more ?? items.length >= NAME_SEARCH_LIMIT,
-        };
-      }),
+      ),
     [dispatch]
   );
 };
@@ -126,7 +134,7 @@ export const CustomerNameSelect = ({
 };
 
 /**
- * Doctor typeahead — same search stack as customer selects.
+ * Doctor typeahead — opens with the full list and searches from the first character.
  */
 export const DoctorNameSelect = ({
   placeholder = "Tìm bác sĩ...",
@@ -140,6 +148,7 @@ export const DoctorNameSelect = ({
   return (
     <AsyncPaginateSelect
       {...sharedSelectProps}
+      debounceTimeout={DOCTOR_SEARCH_DEBOUNCE_MS}
       placeholder={placeholder}
       loadOptions={loadOptions}
       cacheUniqs={cacheUniqs}

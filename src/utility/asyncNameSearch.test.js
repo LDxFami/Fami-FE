@@ -26,6 +26,11 @@ describe("shouldSearchName", () => {
       shouldSearchName("1".repeat(NAME_SEARCH_PHONE_MIN_DIGITS))
     ).toBe(true);
   });
+  it("allows configurable minChars (doctors search from first character)", () => {
+    expect(shouldSearchName("a", { minChars: 0 })).toBe(true);
+    expect(shouldSearchName("a", { minChars: 1 })).toBe(true);
+    expect(shouldSearchName("a", { minChars: 2 })).toBe(false);
+  });
 });
 
 describe("createPaginatedNameLoadOptions", () => {
@@ -39,6 +44,17 @@ describe("createPaginatedNameLoadOptions", () => {
       hasMore: false,
       additional: { page: 1 },
     });
+  });
+
+  it("fetches immediately for doctor minChars 0", async () => {
+    const fetchPage = jest.fn().mockResolvedValue({
+      options: [{ label: "BS A", value: 1 }],
+      hasMore: false,
+    });
+    const load = createPaginatedNameLoadOptions(fetchPage, { minChars: 0 });
+    const result = await load("b", [], { page: 1 });
+    expect(fetchPage).toHaveBeenCalledWith("b", 1, expect.any(AbortSignal));
+    expect(result.options).toHaveLength(1);
   });
 
   it("fetches page and advances additional.page", async () => {
