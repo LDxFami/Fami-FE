@@ -325,6 +325,7 @@ const Calendar = (props) => {
         year: "numeric",
       },
       listDaySideFormat: false,
+      height: "calc(100vh - 12.5rem)",
       nowIndicator: true,
       eventClassNames({ event: calendarEvent }) {
         const colorName =
