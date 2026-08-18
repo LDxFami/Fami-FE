@@ -106,12 +106,14 @@ const Sidebar = props => {
                 <li className='nav-item'>
                   <a
                     className='d-flex align-items-center'
-                    style={{ cursor: 'pointer', padding: '10px 18px' }}
+                    style={{ cursor: 'pointer', padding: '10px 15px' }}
                     onClick={() => setSkin(currentSkin === 'dark' ? 'light' : 'dark')}
                   >
-                    {currentSkin === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+                    {currentSkin === 'dark'
+                      ? <Sun size={20} style={{ marginRight: '1.1rem', flexShrink: 0 }} />
+                      : <Moon size={20} style={{ marginRight: '1.1rem', flexShrink: 0 }} />}
                     {isExpanded && (
-                      <span className='menu-title ms-75'>
+                      <span className='menu-title'>
                         {currentSkin === 'dark' ? 'Giao diện sáng' : 'Giao diện tối'}
                       </span>
                     )}
