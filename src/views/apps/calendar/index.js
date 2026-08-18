@@ -4,7 +4,6 @@ import { Fragment, useState, useEffect, useCallback, useMemo } from "react";
 // ** Third Party Components
 import classnames from "classnames";
 import { Row, Col } from "reactstrap";
-import moment from "moment";
 
 // ** Calendar App Component Imports
 import Calendar from "./Calendar";
@@ -35,12 +34,6 @@ const calendarsColor = {
   0: "danger",
 };
 
-const initialDateRange = () => {
-  const start = moment().startOf("month").format("YYYY-MM-DD");
-  const end = moment().endOf("month").format("YYYY-MM-DD");
-  return { start, end };
-};
-
 const CalendarComponent = () => {
   const dispatch = useDispatch();
   const store = useSelector((state) => state.appointment);
@@ -59,7 +52,7 @@ const CalendarComponent = () => {
   const [calendarApi, setCalendarApi] = useState(null);
   const [addSidebarOpen, setAddSidebarOpen] = useState(false);
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
-  const [dateRange, setDateRange] = useState(initialDateRange);
+  const [dateRange, setDateRange] = useState(null);
   const [doctorId, setDoctorId] = useState([]);
   const [customerId, setCustomerId] = useState("");
   const [isRtl] = useRTL();
@@ -71,17 +64,20 @@ const CalendarComponent = () => {
   const toggleSidebar = useCallback((val) => setLeftSidebarOpen(val), []);
 
   const appointmentParams = useMemo(
-    () => ({
-      start_date: dateRange.start,
-      end_date: dateRange.end,
-      customer_id: customerId !== "" ? customerId : null,
-    }),
-    [dateRange.start, dateRange.end, customerId]
+    () =>
+      dateRange
+        ? {
+            start_date: dateRange.start,
+            end_date: dateRange.end,
+            customer_id: customerId !== "" ? customerId : null,
+          }
+        : null,
+    [dateRange, customerId]
   );
 
   const refetchEvents = useCallback(
     (options = {}) => {
-      // Doctors list is unchanged by appointment edits — skip that round trip.
+      if (!appointmentParams) return;
       dispatch(
         getAppointment({
           ...appointmentParams,
@@ -98,6 +94,7 @@ const CalendarComponent = () => {
   }, [dispatch]);
 
   useEffect(() => {
+    if (!appointmentParams) return;
     dispatch(getAppointment(appointmentParams));
   }, [dispatch, appointmentParams]);
 
