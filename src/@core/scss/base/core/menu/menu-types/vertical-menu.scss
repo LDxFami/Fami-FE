@@ -295,9 +295,24 @@
 // Import vertical-overlay-menu.scss for small screen support
 @import 'vertical-overlay-menu.scss';
 
+// Make the sidebar a flex column so the footer sticks to the bottom.
+// .main-menu-content has height: calc(...) !important from the navigation mixin;
+// overriding it here lets PerfectScrollbar fill the remaining flex space.
+.main-menu {
+  display: flex !important;
+  flex-direction: column !important;
+
+  .main-menu-content {
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+  }
+}
+
 // Sidebar footer (theme toggle + user)
 .main-menu-footer {
   flex-shrink: 0;
+  border-top: 1px solid rgba(34, 41, 47, 0.08);
 
   // User dropdown — hide name/role when sidebar is collapsed
   .sidebar-user-footer {
