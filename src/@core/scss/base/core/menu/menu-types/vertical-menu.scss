@@ -294,3 +294,25 @@
 }
 // Import vertical-overlay-menu.scss for small screen support
 @import 'vertical-overlay-menu.scss';
+
+// Sidebar footer (theme toggle + user)
+.main-menu-footer {
+  flex-shrink: 0;
+
+  // User dropdown — hide name/role when sidebar is collapsed
+  .sidebar-user-footer {
+    .dropdown-user-link {
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+
+      .user-nav {
+        display: none;
+      }
+    }
+
+    &.expanded .dropdown-user-link .user-nav {
+      display: flex;
+    }
+  }
+}

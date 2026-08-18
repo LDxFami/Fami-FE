@@ -4,6 +4,13 @@ import { Fragment, useState, useRef } from 'react'
 // ** Third Party Components
 import classnames from 'classnames'
 import PerfectScrollbar from 'react-perfect-scrollbar'
+import { Sun, Moon } from 'react-feather'
+
+// ** Hooks
+import { useSkin } from '@hooks/useSkin'
+
+// ** Navbar components
+import UserDropdown from '../../navbar/UserDropdown'
 
 // ** Vertical Menu Components
 import VerticalMenuHeader from './VerticalMenuHeader'
@@ -24,6 +31,11 @@ const Sidebar = props => {
 
   // ** Ref
   const shadowRef = useRef(null)
+
+  // ** Skin
+  const { skin: currentSkin, setSkin } = useSkin()
+
+  const isExpanded = menuHover || menuCollapsed === false
 
   // ** Function to handle Mouse Enter
   const onMouseEnter = () => {
@@ -47,7 +59,7 @@ const Sidebar = props => {
     <Fragment>
       <div
         className={classnames('main-menu menu-fixed menu-accordion menu-shadow', {
-          expanded: menuHover || menuCollapsed === false,
+          expanded: isExpanded,
           'menu-light': skin !== 'semi-dark' && skin !== 'dark',
           'menu-dark': skin === 'semi-dark' || skin === 'dark'
         })}
@@ -87,6 +99,29 @@ const Sidebar = props => {
                 />
               </ul>
             </PerfectScrollbar>
+
+            {/* Sidebar Footer — theme toggle + user dropdown */}
+            <div className='main-menu-footer border-top'>
+              <ul className='navigation navigation-main'>
+                <li className='nav-item'>
+                  <a
+                    className='d-flex align-items-center'
+                    style={{ cursor: 'pointer', padding: '10px 18px' }}
+                    onClick={() => setSkin(currentSkin === 'dark' ? 'light' : 'dark')}
+                  >
+                    {currentSkin === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+                    {isExpanded && (
+                      <span className='menu-title ms-75'>
+                        {currentSkin === 'dark' ? 'Giao diện sáng' : 'Giao diện tối'}
+                      </span>
+                    )}
+                  </a>
+                </li>
+              </ul>
+              <div className={classnames('sidebar-user-footer', { expanded: isExpanded })}>
+                <UserDropdown />
+              </div>
+            </div>
           </Fragment>
         )}
       </div>

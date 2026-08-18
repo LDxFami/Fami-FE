@@ -243,7 +243,7 @@ const Calendar = (props) => {
       slotMaxTime: "21:30:00",
       now: new Date(),
       scrollTime,
-      height: "calc(100vh - 12.5rem)",
+      height: "calc(100vh - 6rem)",
       nowIndicator: true,
       eventContent(arg) {
         const { event } = arg;
