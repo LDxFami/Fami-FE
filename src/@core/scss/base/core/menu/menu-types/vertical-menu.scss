@@ -321,13 +321,22 @@
       display: flex;
       align-items: center;
 
+      // Override Bootstrap's d-sm-flex !important
       .user-nav {
-        display: none;
+        display: none !important;
+        width: 0;
+        overflow: hidden;
       }
     }
 
-    &.expanded .dropdown-user-link .user-nav {
-      display: flex;
+    &.expanded .dropdown-user-link {
+      .user-nav {
+        display: flex !important;
+        flex-direction: column;
+        width: auto;
+        overflow: visible;
+        margin-right: 0.5rem;
+      }
     }
   }
 }
