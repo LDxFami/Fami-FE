@@ -13,6 +13,7 @@ import { ChevronLeft, ChevronRight } from "react-feather";
 // ** Customer search
 import { CustomerNameSelect } from "../../../utility/nameAsyncSelect";
 
+import illustration from "@src/assets/images/pages/calendar-illustration.png";
 import { useSelector } from "react-redux";
 
 const VIEWS = [
@@ -207,6 +208,9 @@ const SidebarLeft = (props) => {
             </div>
           </div>
         )}
+      </div>
+      <div className="mt-auto">
+        <img className="img-fluid" src={illustration} alt="illustration" />
       </div>
     </Fragment>
   );
