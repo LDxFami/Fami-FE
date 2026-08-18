@@ -55,6 +55,9 @@ const CalendarComponent = () => {
   const [dateRange, setDateRange] = useState(null);
   const [doctorId, setDoctorId] = useState([]);
   const [customerId, setCustomerId] = useState("");
+  const [viewCurrent, setViewCurrent] = useState("dayGridMonth");
+  const [showPast, setShowPast] = useState(false);
+  const [calendarTitle, setCalendarTitle] = useState("");
   const [isRtl] = useRTL();
 
   const handleAddEventSidebar = useCallback(
@@ -108,6 +111,8 @@ const CalendarComponent = () => {
   const handleDatesSet = useCallback((payload) => {
     const next = visibleDateRangeFromDatesSet(payload);
     setDateRange((prev) => (dateRangesEqual(prev, next) ? prev : next));
+    setViewCurrent(payload.view.type);
+    setCalendarTitle(payload.view.title);
   }, []);
 
   const updateFilter = useCallback((id) => {
@@ -140,7 +145,7 @@ const CalendarComponent = () => {
               }
             )}
           >
-            {userData && userData.roles && showDoctorFilters ? (
+            {userData && userData.roles ? (
               <SidebarLeft
                 doctorId={doctorId}
                 updateFilter={updateFilter}
@@ -148,6 +153,13 @@ const CalendarComponent = () => {
                 handleAddEventSidebar={handleAddEventSidebar}
                 onCheckAll={handleCheckAllFilter}
                 canCreateAppointment={canCreateAppointment}
+                showDoctorFilters={showDoctorFilters}
+                calendarApi={calendarApi}
+                calendarTitle={calendarTitle}
+                viewCurrent={viewCurrent}
+                showPast={showPast}
+                setShowPast={setShowPast}
+                setCustomerId={setCustomerId}
               />
             ) : null}
           </Col>
@@ -168,9 +180,8 @@ const CalendarComponent = () => {
               calendarsColor={calendarsColor}
               setCalendarApi={setCalendarApi}
               handleAddEventSidebar={handleAddEventSidebar}
-              onCustomerChange={(customer) => {
-                setCustomerId(customer ? customer.id : "");
-              }}
+              viewCurrent={viewCurrent}
+              showPast={showPast}
             />
           </Col>
           <div

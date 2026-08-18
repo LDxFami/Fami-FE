@@ -1,5 +1,5 @@
 // ** React Import
-import { useEffect, useRef, memo, useMemo, useState, useCallback } from "react";
+import { useEffect, useRef, memo, useMemo, useCallback, useState } from "react";
 
 // ** Full Calendar & it's Plugins
 import FullCalendar from "@fullcalendar/react";
@@ -14,10 +14,9 @@ import moment from "moment";
 import SpinnerComponent from "../../../@core/components/spinner/Fallback-spinner";
 
 // ** Third Party Components
-import { Card, CardBody, Input, Label } from "reactstrap";
+import { Card, CardBody } from "reactstrap";
 import { Menu, Star } from "react-feather";
 import useWindowDimensions from "../../../utility/hooks/useWindowDimensions";
-import { CustomerNameSelect } from "../../../utility/nameAsyncSelect";
 import {
   createBlankCalendarEvent,
   matchesDoctorFilter,
@@ -55,17 +54,15 @@ const Calendar = (props) => {
     selectEvent,
     toggleSidebar,
     role,
-    onCustomerChange,
     doctorId = [],
     canViewAll = false,
     profileReady = false,
+    viewCurrent,
+    showPast,
   } = props;
 
   const initialView = width > 540 ? "dayGridMonth" : "timeGridDay";
 
-  const [viewCurrent, setViewCurrent] = useState(initialView);
-  const [showPast, setShowPast] = useState(false);
-  const [customerSelect, setCustomerSelect] = useState(null);
   const [noteTooltip, setNoteTooltip] = useState(emptyNoteTooltip);
 
   handlersRef.current = {
@@ -74,7 +71,6 @@ const Calendar = (props) => {
     handleAddEventSidebar,
     handleDatesSet,
     toggleSidebar,
-    onCustomerChange,
     role,
     calendarApi,
     width,
@@ -190,10 +186,6 @@ const Calendar = (props) => {
       .forEach((node) => node.remove());
   }, []);
 
-  useEffect(() => {
-    setViewCurrent(initialView);
-  }, [initialView]);
-
   // Derive calendar events synchronously — avoids the extra render cycle that
   // the previous useState + useEffect pattern caused on every store change.
   const calendarData = useMemo(() => {
@@ -235,61 +227,24 @@ const Calendar = (props) => {
     }));
   }, [store.appointments?.data, showPast, viewCurrent, doctorId, canViewAll, profileReady]);
 
-  const customerSearchButton = useMemo(
-    () => (
-      <CustomerNameSelect
-        id="customerCalendarSearch"
-        value={customerSelect}
-        isClearable
-        onChange={(data) => {
-          setCustomerSelect(data);
-          handlersRef.current.onCustomerChange?.(data);
-        }}
-      />
-    ),
-    [customerSelect]
-  );
-
-  const showPastCheckBox = useMemo(
-    () => (
-      <div className="fc-button-group">
-        <Input
-          type="checkbox"
-          key={"showpast"}
-          label={"Hiển thị cuộc hẹn trong quá khứ"}
-          className="input-filter"
-          id={`showpast-event`}
-          checked={showPast}
-          onChange={() => setShowPast((prev) => !prev)}
-        />
-        <Label className="form-check-label" for={"showpast-event"}>
-          &nbsp;Hiển thị cuộc hẹn trong quá khứ
-        </Label>
-      </div>
-    ),
-    [showPast]
-  );
-
   const calendarOptions = useMemo(
     () => ({
       locale: viLocale,
       plugins: PLUGINS,
       initialView,
       allDaySlot: false,
+      // Only keep the sidebar toggle for mobile; all other controls are in SidebarLeft
       headerToolbar: {
-        start: `sidebarToggle, prev,next, title, ${
-          viewCurrent === "listMonth" ? "showPastCheckBox" : ""
-        }`,
-        center: "customerSearch",
-        end: "dayGridMonth,timeGridWeek,timeGridDay,listMonth",
+        start: "sidebarToggle",
+        center: "",
+        end: "",
       },
       slotMinTime: "07:00:00",
       slotMaxTime: "21:30:00",
       now: new Date(),
       scrollTime,
-      buttonText: {
-        listMonth: "List",
-      },
+      height: "calc(100vh - 12.5rem)",
+      nowIndicator: true,
       eventContent(arg) {
         const { event } = arg;
         if (arg.view.type === "timeGridDay") {
@@ -325,8 +280,6 @@ const Calendar = (props) => {
         year: "numeric",
       },
       listDaySideFormat: false,
-      height: "calc(100vh - 12.5rem)",
-      nowIndicator: true,
       eventClassNames({ event: calendarEvent }) {
         const colorName =
           calendarsColor[calendarEvent._def.extendedProps.status];
@@ -369,12 +322,6 @@ const Calendar = (props) => {
             handlersRef.current.toggleSidebar(true);
           },
         },
-        customerSearch: {
-          text: customerSearchButton,
-        },
-        showPastCheckBox: {
-          text: showPastCheckBox,
-        },
       },
       dateClick(info) {
         const { width: w, calendarApi: api, dispatch: d, selectEvent: sel, handleAddEventSidebar: open, role: r } =
@@ -390,19 +337,15 @@ const Calendar = (props) => {
       },
       datesSet(info) {
         handlersRef.current.handleDatesSet?.(info);
-        setViewCurrent(info.view.type);
       },
       ref: calendarRef,
       direction: isRtl ? "rtl" : "ltr",
     }),
     [
       initialView,
-      viewCurrent,
       width,
       isRtl,
       calendarsColor,
-      customerSearchButton,
-      showPastCheckBox,
       renderEvent,
       renderAdminList,
       renderDayGridMonth,

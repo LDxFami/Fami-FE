@@ -427,7 +427,7 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
     }
   }
   .fc-header-toolbar {
-    margin-bottom: 1.75rem !important;
+    margin-bottom: 0.75rem !important;
   }
   .fc-view-harness {
     margin: 0 -1.6rem;
@@ -532,6 +532,10 @@ $fc-day-toggle-btn-padding: 0.55rem 1.5rem;
 @media (min-width: 992px) {
   .fc {
     .fc-sidebarToggle-button {
+      display: none;
+    }
+    // All toolbar controls moved to the sidebar — hide the empty toolbar on desktop
+    .fc-header-toolbar {
       display: none;
     }
   }
