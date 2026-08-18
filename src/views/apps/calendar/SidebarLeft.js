@@ -5,7 +5,7 @@ import { Fragment, useMemo, useState, useEffect, useRef } from "react";
 import classnames from "classnames";
 
 // ** Reactstrap Imports
-import { CardBody, Button, Input, Label } from "reactstrap";
+import { Button, Input, Label } from "reactstrap";
 
 // ** Icons
 import { ChevronLeft, ChevronRight } from "react-feather";
@@ -13,8 +13,6 @@ import { ChevronLeft, ChevronRight } from "react-feather";
 // ** Customer search
 import { CustomerNameSelect } from "../../../utility/nameAsyncSelect";
 
-// ** illustration import
-import illustration from "@src/assets/images/pages/calendar-illustration.png";
 import { useSelector } from "react-redux";
 
 const VIEWS = [
@@ -84,88 +82,84 @@ const SidebarLeft = (props) => {
 
   return (
     <Fragment>
-      <div className="sidebar-wrapper">
+      <div className="sidebar-wrapper px-75 py-75 d-flex flex-column gap-75">
         {/* Add appointment button */}
         {canCreateAppointment && (
-          <CardBody className="card-body d-flex justify-content-center my-sm-0 mb-1">
-            <Button color="primary" block onClick={handleAddEventClick}>
-              <span className="align-middle">Thêm lịch hẹn</span>
-            </Button>
-          </CardBody>
+          <Button color="primary" block onClick={handleAddEventClick}>
+            <span className="align-middle">Thêm lịch hẹn</span>
+          </Button>
         )}
 
         {/* Calendar navigation */}
-        <CardBody className="pt-0 pb-75">
-          <div className="d-flex align-items-center justify-content-between mb-75">
+        <div className="d-flex align-items-center justify-content-between">
+          <Button
+            color="flat-secondary"
+            className="btn-icon p-25"
+            onClick={() => calendarApi?.prev()}
+          >
+            <ChevronLeft size={16} />
+          </Button>
+          <span
+            className="fw-bold text-center text-capitalize"
+            style={{ fontSize: "0.85rem", flex: 1 }}
+          >
+            {calendarTitle}
+          </span>
+          <Button
+            color="flat-secondary"
+            className="btn-icon p-25"
+            onClick={() => calendarApi?.next()}
+          >
+            <ChevronRight size={16} />
+          </Button>
+        </div>
+
+        {/* View switcher */}
+        <div className="d-flex flex-wrap gap-50">
+          {VIEWS.map(({ key, label }) => (
             <Button
-              color="flat-secondary"
-              className="btn-icon p-25"
-              onClick={() => calendarApi?.prev()}
+              key={key}
+              size="sm"
+              color="primary"
+              outline={viewCurrent !== key}
+              className="px-75 py-25"
+              onClick={() => calendarApi?.changeView(key)}
             >
-              <ChevronLeft size={16} />
+              {label}
             </Button>
-            <span
-              className="fw-bold text-center text-capitalize"
-              style={{ fontSize: "0.85rem", flex: 1 }}
-            >
-              {calendarTitle}
-            </span>
-            <Button
-              color="flat-secondary"
-              className="btn-icon p-25"
-              onClick={() => calendarApi?.next()}
-            >
-              <ChevronRight size={16} />
-            </Button>
+          ))}
+        </div>
+
+        {/* Customer search */}
+        <CustomerNameSelect
+          id="sidebarCustomerSearch"
+          isClearable
+          placeholder="Tìm khách hàng..."
+          onChange={(data) => setCustomerId(data ? data.id : "")}
+        />
+
+        {/* Show past (list view only) */}
+        {viewCurrent === "listMonth" && (
+          <div className="form-check">
+            <Input
+              type="checkbox"
+              id="sidebar-showpast"
+              checked={showPast}
+              onChange={() => setShowPast((p) => !p)}
+            />
+            <Label className="form-check-label" for="sidebar-showpast">
+              Hiển thị cuộc hẹn trong quá khứ
+            </Label>
           </div>
-
-          {/* View switcher */}
-          <div className="d-flex flex-wrap gap-50 mb-75">
-            {VIEWS.map(({ key, label }) => (
-              <Button
-                key={key}
-                size="sm"
-                color="primary"
-                outline={viewCurrent !== key}
-                className="px-75 py-25"
-                onClick={() => calendarApi?.changeView(key)}
-              >
-                {label}
-              </Button>
-            ))}
-          </div>
-
-          {/* Customer search */}
-          <CustomerNameSelect
-            id="sidebarCustomerSearch"
-            isClearable
-            placeholder="Tìm khách hàng..."
-            onChange={(data) => setCustomerId(data ? data.id : "")}
-          />
-
-          {/* Show past (list view only) */}
-          {viewCurrent === "listMonth" && (
-            <div className="form-check mt-75">
-              <Input
-                type="checkbox"
-                id="sidebar-showpast"
-                checked={showPast}
-                onChange={() => setShowPast((p) => !p)}
-              />
-              <Label className="form-check-label" for="sidebar-showpast">
-                Hiển thị cuộc hẹn trong quá khứ
-              </Label>
-            </div>
-          )}
-        </CardBody>
+        )}
 
         {/* Doctor filters */}
         {showDoctorFilters && (
-          <CardBody className="pt-0">
-            <h5 className="section-label mb-1">
+          <div>
+            <h5 className="section-label mb-50">
               <span className="align-middle">Bộ lọc</span>
             </h5>
-            <div className="form-check mb-1">
+            <div className="form-check mb-50">
               <Input
                 id="view-all"
                 type="checkbox"
@@ -186,37 +180,33 @@ const SidebarLeft = (props) => {
               </Label>
             </div>
             <div className="calendar-events-filter">
-              {filters.length > 0 &&
-                filters.map((filter) => (
-                  <div
-                    key={`${filter.label}-key`}
-                    className={classnames("form-check", {
-                      [filter.className]: filter.className,
-                    })}
+              {filters.map((filter) => (
+                <div
+                  key={`${filter.label}-key`}
+                  className={classnames("form-check mb-50", {
+                    [filter.className]: filter.className,
+                  })}
+                >
+                  <Input
+                    type="checkbox"
+                    key={filter.id}
+                    label={filter.label}
+                    className="input-filter"
+                    id={`${filter.id}-event`}
+                    checked={doctorId.includes(filter.id)}
+                    onChange={() => updateFilter(filter.id)}
+                  />
+                  <Label
+                    className="form-check-label"
+                    for={`${filter.id}-event`}
                   >
-                    <Input
-                      type="checkbox"
-                      key={filter.id}
-                      label={filter.label}
-                      className="input-filter"
-                      id={`${filter.id}-event`}
-                      checked={doctorId.includes(filter.id)}
-                      onChange={() => updateFilter(filter.id)}
-                    />
-                    <Label
-                      className="form-check-label"
-                      for={`${filter.id}-event`}
-                    >
-                      {filter.label}
-                    </Label>
-                  </div>
-                ))}
+                    {filter.label}
+                  </Label>
+                </div>
+              ))}
             </div>
-          </CardBody>
+          </div>
         )}
-      </div>
-      <div className="mt-auto">
-        <img className="img-fluid" src={illustration} alt="illustration" />
       </div>
     </Fragment>
   );
