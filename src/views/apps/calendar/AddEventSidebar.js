@@ -23,6 +23,7 @@ import {
   Label,
   Input,
   Form,
+  Spinner,
 } from "reactstrap";
 
 // ** Utils
@@ -86,6 +87,7 @@ const AddEventSidebar = (props) => {
   const [isUpdate, setUpdate] = useState(false);
   const [overlapModal, setoverlapModal] = useState(false);
   const [overlapMsg, setoverlapMsg] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     setUpdate(
@@ -140,6 +142,7 @@ const AddEventSidebar = (props) => {
       ? updateAppointment(appointmentInfo)
       : addAppointment(appointmentInfo);
 
+    setIsSubmitting(true);
     return dispatch(action)
       .unwrap()
       .then((rs) => {
@@ -172,7 +175,8 @@ const AddEventSidebar = (props) => {
         if (isUpdate) {
           setError("title", { type: "manual" });
         }
-      });
+      })
+      .finally(() => setIsSubmitting(false));
   };
 
   const handleResetInputValues = () => {
@@ -266,7 +270,8 @@ const AddEventSidebar = (props) => {
     ) {
       return (
         <Fragment>
-          <Button className="me-1" type="submit" color="primary">
+          <Button className="me-1" type="submit" color="primary" disabled={isSubmitting}>
+            {isSubmitting && <Spinner size="sm" className="me-50" />}
             Thêm
           </Button>
           <Button
@@ -274,6 +279,7 @@ const AddEventSidebar = (props) => {
             type="reset"
             onClick={handleAddEventSidebar}
             outline
+            disabled={isSubmitting}
           >
             Huỷ
           </Button>
@@ -283,7 +289,8 @@ const AddEventSidebar = (props) => {
 
     return (
       <Fragment>
-        <Button className="me-1" color="primary" onClick={() => saveAppointment(false)}>
+        <Button className="me-1" color="primary" onClick={() => saveAppointment(false)} disabled={isSubmitting}>
+          {isSubmitting && <Spinner size="sm" className="me-50" />}
           Cập nhật
         </Button>
       </Fragment>
@@ -502,7 +509,13 @@ const AddEventSidebar = (props) => {
                 onChange={(e) => setDesc(e.target.value)}
                 placeholder=""
                 disabled={!canModify}
+                maxLength={5000}
               />
+              {desc.length > 4800 && (
+                <small className="text-muted d-block text-end mt-25">
+                  {desc.length}/5000
+                </small>
+              )}
             </div>
 
             <div className="form-check form-switch mb-1">

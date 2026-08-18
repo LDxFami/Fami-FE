@@ -153,11 +153,16 @@ const LoginBasic = () => {
           .catch((err) => {
             delay(300);
             const { response } = err;
+            const is429 = response?.status === 429;
             toast.update(toastId.current, {
               render: (
                 <ToastContent
                   name={"Uh oh"}
-                  message={response.data.message}
+                  message={
+                    is429
+                      ? "Quá nhiều lần đăng nhập. Vui lòng thử lại sau 1 phút."
+                      : response?.data?.message ?? "Đăng nhập thất bại"
+                  }
                   type="warning"
                 />
               ),
@@ -165,7 +170,7 @@ const LoginBasic = () => {
               icon: false,
               transition: Flip,
               hideProgressBar: true,
-              autoClose: 1000,
+              autoClose: is429 ? 4000 : 1000,
             });
             setIsLogin(false);
           });

@@ -1,5 +1,5 @@
 // ** React Imports
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 // ** Custom Components
 import Sidebar from "@components/sidebar";
@@ -11,7 +11,7 @@ import { useForm, Controller } from "react-hook-form";
 import { Check } from "react-feather";
 
 // ** Reactstrap Imports
-import { Button, Label, Form, Input, FormFeedback } from "reactstrap";
+import { Button, Label, Form, Input, FormFeedback, Spinner } from "reactstrap";
 
 // ** Store & Actions
 import { useDispatch } from "react-redux";
@@ -26,6 +26,7 @@ const defaultValues = {
 const SidebarUser = ({ open, toggleSidebar, selectedUser }) => {
   const isUpdate = selectedUser !== null;
   const dispatch = useDispatch();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     control,
@@ -56,7 +57,10 @@ const SidebarUser = ({ open, toggleSidebar, selectedUser }) => {
       if (data.password && data.password.length > 0) {
         payload.password = data.password;
       }
+    } else {
+      payload.password = data.password;
     }
+    setIsSubmitting(true);
     dispatch(isUpdate ? updateUser(payload) : addUser(payload))
       .unwrap()
       .then(() => {
@@ -81,7 +85,8 @@ const SidebarUser = ({ open, toggleSidebar, selectedUser }) => {
           />,
           { icon: false, autoClose: 3000, hideProgressBar: true, closeButton: false }
         );
-      });
+      })
+      .finally(() => setIsSubmitting(false));
   };
 
   return (
@@ -146,50 +151,48 @@ const SidebarUser = ({ open, toggleSidebar, selectedUser }) => {
           )}
         </div>
 
-        {isUpdate && (
-          <div className="mb-1">
-            <Label className="form-label" for="password">
-              Mật khẩu mới{" "}
-              <small className="text-muted">(để trống nếu không thay đổi)</small>
-            </Label>
-            <Controller
-              name="password"
-              control={control}
-              rules={{
-                minLength: {
-                  value: 6,
-                  message: "Mật khẩu phải có ít nhất 6 ký tự",
-                },
-              }}
-              render={({ field }) => (
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Nhập mật khẩu mới"
-                  invalid={!!errors.password}
-                  {...field}
-                />
-              )}
-            />
-            {errors.password && (
-              <FormFeedback>{errors.password.message}</FormFeedback>
+        <div className="mb-1">
+          <Label className="form-label" for="password">
+            {isUpdate ? (
+              <>
+                Mật khẩu mới{" "}
+                <small className="text-muted">(để trống nếu không thay đổi)</small>
+              </>
+            ) : (
+              <>Mật khẩu <span className="text-danger">*</span></>
             )}
-          </div>
-        )}
-
-        {!isUpdate && (
-          <div className="mb-1">
-            <small className="text-muted">
-              Mật khẩu mặc định sẽ được đặt là <strong>password</strong>. Người dùng có thể đổi sau khi đăng nhập.
-            </small>
-          </div>
-        )}
+          </Label>
+          <Controller
+            name="password"
+            control={control}
+            rules={{
+              required: isUpdate ? false : "Mật khẩu không được bỏ trống",
+              minLength: {
+                value: 8,
+                message: "Mật khẩu phải có ít nhất 8 ký tự",
+              },
+            }}
+            render={({ field }) => (
+              <Input
+                id="password"
+                type="password"
+                placeholder={isUpdate ? "Nhập mật khẩu mới" : "Nhập mật khẩu"}
+                invalid={!!errors.password}
+                {...field}
+              />
+            )}
+          />
+          {errors.password && (
+            <FormFeedback>{errors.password.message}</FormFeedback>
+          )}
+        </div>
 
         <div className="d-flex mt-2">
-          <Button type="submit" className="me-1" color="primary">
+          <Button type="submit" className="me-1" color="primary" disabled={isSubmitting}>
+            {isSubmitting && <Spinner size="sm" className="me-50" />}
             {isUpdate ? "Cập nhật" : "Thêm mới"}
           </Button>
-          <Button type="button" color="secondary" outline onClick={toggleSidebar}>
+          <Button type="button" color="secondary" outline onClick={toggleSidebar} disabled={isSubmitting}>
             Huỷ
           </Button>
         </div>

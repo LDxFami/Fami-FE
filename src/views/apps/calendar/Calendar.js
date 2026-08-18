@@ -63,7 +63,6 @@ const Calendar = (props) => {
 
   const initialView = width > 540 ? "dayGridMonth" : "timeGridDay";
 
-  const [calendarData, setCalendarData] = useState([]);
   const [viewCurrent, setViewCurrent] = useState(initialView);
   const [showPast, setShowPast] = useState(false);
   const [customerSelect, setCustomerSelect] = useState(null);
@@ -195,54 +194,46 @@ const Calendar = (props) => {
     setViewCurrent(initialView);
   }, [initialView]);
 
-  useEffect(() => {
-    let calendarDta = [];
-    if (store.appointments?.data.length > 0) {
-      const doctorFiltered = store.appointments.data.filter((appointment) =>
-        matchesDoctorFilter(appointment, {
-          doctorId,
-          canViewAll,
-          profileReady,
-        })
-      );
+  // Derive calendar events synchronously — avoids the extra render cycle that
+  // the previous useState + useEffect pattern caused on every store change.
+  const calendarData = useMemo(() => {
+    const appointments = store.appointments?.data;
+    if (!appointments?.length) return [];
 
-      if (!showPast && viewCurrent === "listMonth") {
-        const date = new Date();
-        date.setHours(0, 0, 0);
-        calendarDta = doctorFiltered.filter((i) => {
-          return (
-            new Date(i.date + "T" + i.time_start).getTime() > date.getTime()
-          );
-        });
-      } else {
-        calendarDta = doctorFiltered;
-      }
-    }
-    setCalendarData(
-      calendarDta.length > 0
-        ? calendarDta.map((i) => ({
-            id: i.id,
-            url: "",
-            title: i.customer.name,
-            start: new Date(i.date + "T" + i.time_start),
-            end: new Date(i.date + "T" + i.time_end),
-            description: i.description || "",
-            extendedProps: {
-              doctor: i.doctor,
-              secondaryDoctor: i.secondary_doctor,
-              customer: i.customer,
-              description: i.description || "",
-              isImportant: !!i.is_important,
-              startTime: i.time_start,
-              endTime: i.time_end,
-              status: i.status,
-              date: i.date,
-              id: i.id,
-            },
-          }))
-        : []
+    const doctorFiltered = appointments.filter((appointment) =>
+      matchesDoctorFilter(appointment, { doctorId, canViewAll, profileReady })
     );
-  }, [store, showPast, viewCurrent, doctorId, canViewAll, profileReady]);
+
+    let filtered = doctorFiltered;
+    if (!showPast && viewCurrent === "listMonth") {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      filtered = doctorFiltered.filter(
+        (i) => new Date(i.date + "T" + i.time_start).getTime() > today.getTime()
+      );
+    }
+
+    return filtered.map((i) => ({
+      id: i.id,
+      url: "",
+      title: i.customer.name,
+      start: new Date(i.date + "T" + i.time_start),
+      end: new Date(i.date + "T" + i.time_end),
+      description: i.description || "",
+      extendedProps: {
+        doctor: i.doctor,
+        secondaryDoctor: i.secondary_doctor,
+        customer: i.customer,
+        description: i.description || "",
+        isImportant: !!i.is_important,
+        startTime: i.time_start,
+        endTime: i.time_end,
+        status: i.status,
+        date: i.date,
+        id: i.id,
+      },
+    }));
+  }, [store.appointments?.data, showPast, viewCurrent, doctorId, canViewAll, profileReady]);
 
   const customerSearchButton = useMemo(
     () => (
