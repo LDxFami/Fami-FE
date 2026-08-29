@@ -1,68 +1,221 @@
 // ** React Imports
-import { Fragment, useState, useEffect } from 'react'
+import { Fragment, useState } from "react";
 
 // ** Third Party Components
-import axios from 'axios'
+import { toast } from "react-toastify";
+import { Controller, useForm } from "react-hook-form";
+import { Check } from "react-feather";
 
 // ** Reactstrap Imports
-import { Row, Col, TabContent, TabPane } from 'reactstrap'
+import {
+  Row,
+  Col,
+  Card,
+  CardBody,
+  CardHeader,
+  CardTitle,
+  Form,
+  Label,
+  Button,
+  FormFeedback,
+  Spinner,
+} from "reactstrap";
 
-// ** Demo Components
-import Tabs from './Tabs'
-import Breadcrumbs from '@components/breadcrumbs'
-import BillingTabContent from './BillingTabContent'
-import AccountTabContent from './AccountTabContent'
-import SecurityTabContent from './SecurityTabContent'
-import ConnectionsTabContent from './ConnectionsTabContent'
-import NotificationsTabContent from './NotificationsTabContent'
+// ** Custom Components
+import Breadcrumbs from "@components/breadcrumbs";
+import InputPasswordToggle from "@components/input-password-toggle";
+import ToastComponent from "../../components/toastComponent";
 
-// ** Styles
-import '@styles/react/libs/flatpickr/flatpickr.scss'
-import '@styles/react/pages/page-account-settings.scss'
+// ** Store & Actions
+import { useDispatch } from "react-redux";
+import { updatePassword } from "../../../redux/user";
+
+const MIN_PASSWORD_LENGTH = 8;
+
+const defaultValues = {
+  current_password: "",
+  password: "",
+  password_confirmation: "",
+};
 
 const AccountSettings = () => {
-  // ** States
-  const [activeTab, setActiveTab] = useState('1')
-  const [data, setData] = useState(null)
+  const dispatch = useDispatch();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const toggleTab = tab => {
-    setActiveTab(tab)
-  }
+  const {
+    control,
+    reset,
+    watch,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({ defaultValues });
 
-  useEffect(() => {
-    axios.get('/account-setting/data').then(response => setData(response.data))
-  }, [])
+  const newPassword = watch("password");
+  const currentPassword = watch("current_password");
+
+  const onSubmit = (data) => {
+    setIsSubmitting(true);
+    dispatch(updatePassword(data))
+      .unwrap()
+      .then(() => {
+        reset(defaultValues);
+        toast.success(
+          <ToastComponent
+            title="Đã đổi mật khẩu"
+            color="success"
+            icon={<Check />}
+          />,
+          {
+            icon: false,
+            autoClose: 2000,
+            hideProgressBar: true,
+            closeButton: false,
+          }
+        );
+      })
+      .catch((err) => {
+        const errorMsg = err?.error ?? err?.message ?? "Đã có lỗi xảy ra";
+        toast.error(
+          <ToastComponent
+            title="Có lỗi xảy ra"
+            color="warning"
+            message={
+              typeof errorMsg === "string" ? errorMsg : JSON.stringify(errorMsg)
+            }
+            icon={<Check />}
+          />,
+          {
+            icon: false,
+            autoClose: 3000,
+            hideProgressBar: true,
+            closeButton: false,
+          }
+        );
+      })
+      .finally(() => setIsSubmitting(false));
+  };
 
   return (
     <Fragment>
-      <Breadcrumbs breadCrumbTitle='Account Settings' breadCrumbParent='Pages' breadCrumbActive='Account Settings' />
-      {data !== null ? (
-        <Row>
-          <Col xs={12}>
-            <Tabs className='mb-2' activeTab={activeTab} toggleTab={toggleTab} />
+      <Breadcrumbs
+        breadCrumbTitle="Tài khoản"
+        breadCrumbParent="Trang cá nhân"
+        breadCrumbActive="Đổi mật khẩu"
+      />
+      <Row>
+        <Col md="8" lg="6">
+          <Card>
+            <CardHeader>
+              <CardTitle tag="h4">Đổi mật khẩu</CardTitle>
+            </CardHeader>
+            <CardBody>
+              <Form onSubmit={handleSubmit(onSubmit)}>
+                <div className="mb-1">
+                  <Label className="form-label" for="current_password">
+                    Mật khẩu hiện tại <span className="text-danger">*</span>
+                  </Label>
+                  <Controller
+                    name="current_password"
+                    control={control}
+                    rules={{
+                      required: "Mật khẩu hiện tại không được bỏ trống",
+                    }}
+                    render={({ field }) => (
+                      <InputPasswordToggle
+                        id="current_password"
+                        className="input-group-merge"
+                        invalid={!!errors.current_password}
+                        {...field}
+                      />
+                    )}
+                  />
+                  {errors.current_password && (
+                    <FormFeedback className="d-block">
+                      {errors.current_password.message}
+                    </FormFeedback>
+                  )}
+                </div>
 
-            <TabContent activeTab={activeTab}>
-              <TabPane tabId='1'>
-                <AccountTabContent data={data.general} />
-              </TabPane>
-              <TabPane tabId='2'>
-                <SecurityTabContent />
-              </TabPane>
-              <TabPane tabId='3'>
-                <BillingTabContent />
-              </TabPane>
-              <TabPane tabId='4'>
-                <NotificationsTabContent />
-              </TabPane>
-              <TabPane tabId='5'>
-                <ConnectionsTabContent />
-              </TabPane>
-            </TabContent>
-          </Col>
-        </Row>
-      ) : null}
+                <div className="mb-1">
+                  <Label className="form-label" for="password">
+                    Mật khẩu mới <span className="text-danger">*</span>
+                  </Label>
+                  <Controller
+                    name="password"
+                    control={control}
+                    rules={{
+                      required: "Mật khẩu mới không được bỏ trống",
+                      minLength: {
+                        value: MIN_PASSWORD_LENGTH,
+                        message: `Mật khẩu phải có ít nhất ${MIN_PASSWORD_LENGTH} ký tự`,
+                      },
+                      validate: (value) =>
+                        value !== currentPassword ||
+                        "Mật khẩu mới phải khác mật khẩu hiện tại",
+                    }}
+                    render={({ field }) => (
+                      <InputPasswordToggle
+                        id="password"
+                        className="input-group-merge"
+                        invalid={!!errors.password}
+                        {...field}
+                      />
+                    )}
+                  />
+                  {errors.password && (
+                    <FormFeedback className="d-block">
+                      {errors.password.message}
+                    </FormFeedback>
+                  )}
+                </div>
+
+                <div className="mb-1">
+                  <Label className="form-label" for="password_confirmation">
+                    Xác nhận mật khẩu mới{" "}
+                    <span className="text-danger">*</span>
+                  </Label>
+                  <Controller
+                    name="password_confirmation"
+                    control={control}
+                    rules={{
+                      required: "Xác nhận mật khẩu không được bỏ trống",
+                      validate: (value) =>
+                        value === newPassword ||
+                        "Xác nhận mật khẩu không khớp",
+                    }}
+                    render={({ field }) => (
+                      <InputPasswordToggle
+                        id="password_confirmation"
+                        className="input-group-merge"
+                        invalid={!!errors.password_confirmation}
+                        {...field}
+                      />
+                    )}
+                  />
+                  {errors.password_confirmation && (
+                    <FormFeedback className="d-block">
+                      {errors.password_confirmation.message}
+                    </FormFeedback>
+                  )}
+                </div>
+
+                <div className="d-flex mt-2">
+                  <Button
+                    type="submit"
+                    color="primary"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting && <Spinner size="sm" className="me-50" />}
+                    Đổi mật khẩu
+                  </Button>
+                </div>
+              </Form>
+            </CardBody>
+          </Card>
+        </Col>
+      </Row>
     </Fragment>
-  )
-}
+  );
+};
 
-export default AccountSettings
+export default AccountSettings;

@@ -19,6 +19,20 @@ export const getUser = createAsyncThunk(
   }
 );
 
+export const updatePassword = createAsyncThunk(
+  "user/updatePassword",
+  async (params, { rejectWithValue }) => {
+    try {
+      const response = await instance.put("/api/profile/password", {
+        ...params,
+      });
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data);
+    }
+  }
+);
+
 export const userSlice = createSlice({
   name: "user",
   initialState: {

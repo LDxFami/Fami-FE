@@ -31,7 +31,8 @@ const renderRoleBadge = (roles = []) => {
   ));
 };
 
-export const columns = (onEdit, onDelete) => [
+// Managing other users (including their passwords) is admin-only
+export const columns = (onEdit, onDelete, isAdmin = false) => [
   {
     name: "Tên",
     sortable: true,
@@ -62,43 +63,47 @@ export const columns = (onEdit, onDelete) => [
       <Fragment>{renderRoleBadge(row.roles)}</Fragment>
     ),
   },
-  {
-    name: "Hành động",
-    maxWidth: "120px",
-    cell: (row) => (
-      <div className="column-action">
-        <UncontrolledDropdown>
-          <DropdownToggle tag="div" className="btn btn-sm">
-            <MoreVertical size={14} className="cursor-pointer" />
-          </DropdownToggle>
-          <DropdownMenu end>
-            <DropdownItem
-              tag="a"
-              href="#"
-              className="w-100"
-              onClick={(e) => {
-                e.preventDefault();
-                onEdit(row);
-              }}
-            >
-              <Edit2 size={14} className="me-50" />
-              <span className="align-middle">Chỉnh sửa</span>
-            </DropdownItem>
-            <DropdownItem
-              tag="a"
-              href="#"
-              className="w-100 text-danger"
-              onClick={(e) => {
-                e.preventDefault();
-                onDelete(row);
-              }}
-            >
-              <Trash2 size={14} className="me-50" />
-              <span className="align-middle">Xoá</span>
-            </DropdownItem>
-          </DropdownMenu>
-        </UncontrolledDropdown>
-      </div>
-    ),
-  },
+  ...(isAdmin
+    ? [
+        {
+          name: "Hành động",
+          maxWidth: "120px",
+          cell: (row) => (
+            <div className="column-action">
+              <UncontrolledDropdown>
+                <DropdownToggle tag="div" className="btn btn-sm">
+                  <MoreVertical size={14} className="cursor-pointer" />
+                </DropdownToggle>
+                <DropdownMenu end>
+                  <DropdownItem
+                    tag="a"
+                    href="#"
+                    className="w-100"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onEdit(row);
+                    }}
+                  >
+                    <Edit2 size={14} className="me-50" />
+                    <span className="align-middle">Chỉnh sửa</span>
+                  </DropdownItem>
+                  <DropdownItem
+                    tag="a"
+                    href="#"
+                    className="w-100 text-danger"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onDelete(row);
+                    }}
+                  >
+                    <Trash2 size={14} className="me-50" />
+                    <span className="align-middle">Xoá</span>
+                  </DropdownItem>
+                </DropdownMenu>
+              </UncontrolledDropdown>
+            </div>
+          ),
+        },
+      ]
+    : []),
 ];

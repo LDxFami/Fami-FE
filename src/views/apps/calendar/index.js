@@ -13,6 +13,7 @@ import AddEventSidebar from "./AddEventSidebar";
 // ** Custom Hooks
 import { useRTL } from "@hooks/useRTL";
 import { useCalendarPermissions } from "../../../utility/hooks/useCalendarPermissions";
+import { useCurrentUser } from "../../../utility/hooks/useCurrentUser";
 import {
   visibleDateRangeFromDatesSet,
   dateRangesEqual,
@@ -22,7 +23,6 @@ import {
 import { useSelector, useDispatch } from "react-redux";
 import { selectAppointment, getAppointment } from "../../../redux/appointment";
 import { getDoctor } from "../../../redux/doctor";
-import { getUser } from "../../../redux/user";
 
 // ** Styles
 import "@styles/react/apps/app-calendar.scss";
@@ -37,8 +37,7 @@ const calendarsColor = {
 const CalendarComponent = () => {
   const dispatch = useDispatch();
   const store = useSelector((state) => state.appointment);
-  const userStore = useSelector((state) => state.user);
-  const { userData } = userStore;
+  const { userData } = useCurrentUser();
 
   const {
     roleName,
@@ -92,7 +91,6 @@ const CalendarComponent = () => {
   );
 
   useEffect(() => {
-    dispatch(getUser());
     dispatch(getDoctor({ limit: 200 }));
   }, [dispatch]);
 

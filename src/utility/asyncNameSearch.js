@@ -13,8 +13,11 @@ export const DOCTOR_SEARCH_DEBOUNCE_MS = 100;
 export const AsyncPaginateSelect = withAsyncPaginate(Select);
 export const AsyncPaginateCreatableSelect = withAsyncPaginate(CreatableSelect);
 
-export const mapCustomerOption = (customer) => ({
-  label: `${customer.name} - ${customer.phone ?? "Không có SĐT"}`,
+/** Phone is admin-only, so the label falls back to the name alone. */
+export const mapCustomerOption = (customer, { showPhone = false } = {}) => ({
+  label: showPhone
+    ? `${customer.name} - ${customer.phone ?? "Không có SĐT"}`
+    : customer.name,
   value: customer.id,
   id: customer.id,
 });

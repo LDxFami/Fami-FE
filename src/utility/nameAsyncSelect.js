@@ -4,6 +4,7 @@ import { useDispatch } from "react-redux";
 import { selectThemeColors } from "@utils";
 import { searchCustomers } from "../redux/customer";
 import { searchDoctors } from "../redux/doctor";
+import { useIsAdmin } from "./hooks/useCurrentUser";
 import {
   AsyncPaginateSelect,
   AsyncPaginateCreatableSelect,
@@ -24,6 +25,7 @@ const menuPortalStyles = {
 
 export const useCustomerNameLoadOptions = () => {
   const dispatch = useDispatch();
+  const { isAdmin } = useIsAdmin();
   return useMemo(
     () =>
       createPaginatedNameLoadOptions(async (inputValue, page, abortSignal) => {
@@ -40,12 +42,14 @@ export const useCustomerNameLoadOptions = () => {
         );
         const items = resultAction.data.items || [];
         return {
-          options: items.map(mapCustomerOption),
+          options: items.map((item) =>
+            mapCustomerOption(item, { showPhone: isAdmin })
+          ),
           hasMore:
             resultAction.data.has_more ?? items.length >= NAME_SEARCH_LIMIT,
         };
       }),
-    [dispatch]
+    [dispatch, isAdmin]
   );
 };
 
@@ -106,9 +110,11 @@ export const CustomerNameSelect = ({
   onCreateOption,
   placeholder = "Tìm khách hàng...",
   loadOptions: loadOptionsProp,
+  cacheUniqs = [],
   ...props
 }) => {
   const defaultLoadOptions = useCustomerNameLoadOptions();
+  const { isAdmin } = useIsAdmin();
   const loadOptions = loadOptionsProp ?? defaultLoadOptions;
   const SelectComponent = creatable
     ? AsyncPaginateCreatableSelect
@@ -119,6 +125,8 @@ export const CustomerNameSelect = ({
       {...sharedSelectProps}
       placeholder={placeholder}
       loadOptions={loadOptions}
+      // Relabel cached options once the profile (and phone visibility) resolves
+      cacheUniqs={[...cacheUniqs, isAdmin]}
       {...(creatable
         ? {
             onCreateOption,

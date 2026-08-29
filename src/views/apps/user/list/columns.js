@@ -45,7 +45,13 @@ const renderClient = (row) => {
   return <div>{row.name}</div>;
 };
 
-export const columns = (toggleSidebar, setSelectedItem, toggleDelete) => [
+// Phone and customer management are admin-only
+export const columns = (
+  toggleSidebar,
+  setSelectedItem,
+  toggleDelete,
+  isAdmin = false
+) => [
   {
     name: "Tên",
     sortable: true,
@@ -68,55 +74,63 @@ export const columns = (toggleSidebar, setSelectedItem, toggleDelete) => [
       </div>
     ),
   },
-  {
-    name: "Số điện thoại",
-    minWidth: "138px",
-    sortable: true,
-    sortField: "phone",
-    selector: (row) => row.phone,
-    cell: (row) => (
-      <span>{row?.phone ? row?.phone : "Chưa có số điện thoại"}</span>
-    ),
-  },
-  {
-    name: "Hành động",
-    maxWidth: "150px",
-    cell: (row) => (
-      <div className="column-action">
-        <UncontrolledDropdown>
-          <DropdownToggle tag="div" className="btn btn-sm">
-            <MoreVertical size={14} className="cursor-pointer" />
-          </DropdownToggle>
-          <DropdownMenu>
-            <DropdownItem
-              tag="a"
-              href={`/user/list?id=${row.id}`}
-              className="w-100"
-              onClick={(e) => {
-                e.preventDefault();
-                toggleSidebar();
-                setSelectedItem(row);
-              }}
-            >
-              <Archive size={14} className="me-50" />
-              <span className="align-middle">Chỉnh sửa</span>
-            </DropdownItem>
-            <DropdownItem
-              tag="a"
-              href="/"
-              className="w-100"
-              onClick={(e) => {
-                e.preventDefault();
-                store.dispatch(deleteCustomer(row.id));
-                toggleDelete();
-              }}
-            >
-              <Trash2 size={14} className="me-50" />
-              <span className="align-middle">Xoá</span>
-            </DropdownItem>
-          </DropdownMenu>
-        </UncontrolledDropdown>
-      </div>
-    ),
-  },
+  ...(isAdmin
+    ? [
+        {
+          name: "Số điện thoại",
+          minWidth: "138px",
+          sortable: true,
+          sortField: "phone",
+          selector: (row) => row.phone,
+          cell: (row) => (
+            <span>{row?.phone ? row?.phone : "Chưa có số điện thoại"}</span>
+          ),
+        },
+      ]
+    : []),
+  ...(isAdmin
+    ? [
+        {
+          name: "Hành động",
+          maxWidth: "150px",
+          cell: (row) => (
+            <div className="column-action">
+              <UncontrolledDropdown>
+                <DropdownToggle tag="div" className="btn btn-sm">
+                  <MoreVertical size={14} className="cursor-pointer" />
+                </DropdownToggle>
+                <DropdownMenu>
+                  <DropdownItem
+                    tag="a"
+                    href={`/user/list?id=${row.id}`}
+                    className="w-100"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      toggleSidebar();
+                      setSelectedItem(row);
+                    }}
+                  >
+                    <Archive size={14} className="me-50" />
+                    <span className="align-middle">Chỉnh sửa</span>
+                  </DropdownItem>
+                  <DropdownItem
+                    tag="a"
+                    href="/"
+                    className="w-100"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      store.dispatch(deleteCustomer(row.id));
+                      toggleDelete();
+                    }}
+                  >
+                    <Trash2 size={14} className="me-50" />
+                    <span className="align-middle">Xoá</span>
+                  </DropdownItem>
+                </DropdownMenu>
+              </UncontrolledDropdown>
+            </div>
+          ),
+        },
+      ]
+    : []),
 ];

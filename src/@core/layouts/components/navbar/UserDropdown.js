@@ -56,6 +56,10 @@ const UserDropdown = () => {
           <User size={14} className='me-75' />
           <span className='align-middle'>Trang cá nhân</span>
         </DropdownItem>
+        <DropdownItem tag={Link} to='/pages/account-settings'>
+          <Settings size={14} className='me-75' />
+          <span className='align-middle'>Đổi mật khẩu</span>
+        </DropdownItem>
         {/* <DropdownItem tag={Link} to='/apps/email'>
           <Mail size={14} className='me-75' />
           <span className='align-middle'>Inbox</span>

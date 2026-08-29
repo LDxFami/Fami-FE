@@ -34,6 +34,7 @@ import {
   mapCustomerOption,
   mapDoctorOption,
 } from "../../../utility/nameAsyncSelect";
+import { useIsAdmin } from "../../../utility/hooks/useCurrentUser";
 
 // ** Styles Imports
 import "@styles/react/libs/react-select/_react-select.scss";
@@ -72,6 +73,9 @@ const AddEventSidebar = (props) => {
 
   const appointmentStore = useSelector((state) => state.appointment);
   const { selectedAppointment } = appointmentStore;
+
+  // Phone and customer creation are admin-only
+  const { isAdmin } = useIsAdmin();
 
   const [desc, setDesc] = useState("");
   const [isImportant, setIsImportant] = useState(false);
@@ -246,7 +250,9 @@ const AddEventSidebar = (props) => {
     );
     setCustomer(
       selectedAppointment.extendedProps?.customer
-        ? mapCustomerOption(selectedAppointment.extendedProps.customer)
+        ? mapCustomerOption(selectedAppointment.extendedProps.customer, {
+            showPhone: isAdmin,
+          })
         : null
     );
     setDoctor(
@@ -323,7 +329,7 @@ const AddEventSidebar = (props) => {
           }
         );
         setCustomerModal(false);
-        setCustomer(mapCustomerOption(rs.data.customer));
+        setCustomer(mapCustomerOption(rs.data.customer, { showPhone: isAdmin }));
       })
       .catch((err) => {
         const { error } = err;
@@ -395,7 +401,7 @@ const AddEventSidebar = (props) => {
               </Label>
               <CustomerNameSelect
                 required
-                creatable
+                creatable={isAdmin}
                 id="customer"
                 value={customer}
                 isClearable={false}
@@ -554,14 +560,16 @@ const AddEventSidebar = (props) => {
             </div>
           </Form>
         </ModalBody>
-        <AddCustomerModal
-          isShow={customerModal}
-          onShowToggle={handleToggleModal}
-          value={customerInput}
-          handleAddCustomer={(customerInfo) => {
-            handleAddCustomer(customerInfo);
-          }}
-        />
+        {isAdmin && (
+          <AddCustomerModal
+            isShow={customerModal}
+            onShowToggle={handleToggleModal}
+            value={customerInput}
+            handleAddCustomer={(customerInfo) => {
+              handleAddCustomer(customerInfo);
+            }}
+          />
+        )}
         <OverlapModal
           onShowToggle={handleToggleOverlap}
           handleOverlap={() => {

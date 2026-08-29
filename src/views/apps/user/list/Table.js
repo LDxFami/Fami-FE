@@ -12,6 +12,7 @@ import { columns } from "./columns";
 // ** Store & Actions
 import { getCustomer } from "../../../../redux/customer";
 import { useDispatch } from "react-redux";
+import { useIsAdmin } from "../../../../utility/hooks/useCurrentUser";
 
 // ** Third Party Components
 import Select from "react-select";
@@ -63,6 +64,7 @@ const CustomHeader = ({
   handleFilter,
   searchTerm,
   data,
+  canManageCustomers,
 }) => {
   const { items } = data;
   // ** Converts table to CSV
@@ -177,18 +179,20 @@ const CustomHeader = ({
             />
           </div>
 
-          <div className="d-flex align-items-center table-header-actions">
-            <Button
-              className="add-new-user"
-              color="primary"
-              onClick={() => {
-                toggleSidebar();
-                setSelectedItem(null);
-              }}
-            >
-              Thêm khách hàng
-            </Button>
-          </div>
+          {canManageCustomers && (
+            <div className="d-flex align-items-center table-header-actions">
+              <Button
+                className="add-new-user"
+                color="primary"
+                onClick={() => {
+                  toggleSidebar();
+                  setSelectedItem(null);
+                }}
+              >
+                Thêm khách hàng
+              </Button>
+            </div>
+          )}
         </Col>
       </Row>
     </div>
@@ -199,6 +203,7 @@ const MySwal = withReactContent(Swal);
 const UsersList = ({ data, loading }) => {
   // ** Store Vars
   const dispatch = useDispatch();
+  const { isAdmin } = useIsAdmin();
 
   // ** States
   const [sort, setSort] = useState("asc");
@@ -537,7 +542,12 @@ const UsersList = ({ data, loading }) => {
             pagination
             responsive
             paginationServer
-            columns={columns(toggleSidebar, setSelectedItem, toggleDelete)}
+            columns={columns(
+              toggleSidebar,
+              setSelectedItem,
+              toggleDelete,
+              isAdmin
+            )}
             onSort={handleSort}
             sortIcon={<ChevronDown />}
             className="react-dataTable"
@@ -555,17 +565,20 @@ const UsersList = ({ data, loading }) => {
                 handlePerPage={handlePerPage}
                 toggleSidebar={toggleSidebar}
                 setSelectedItem={(id) => setSelectedItem(id)}
+                canManageCustomers={isAdmin}
               />
             }
           />
         </div>
       </Card>
 
-      <Sidebar
-        open={sidebarOpen}
-        toggleSidebar={toggleSidebar}
-        item={selectedItem}
-      />
+      {isAdmin && (
+        <Sidebar
+          open={sidebarOpen}
+          toggleSidebar={toggleSidebar}
+          item={selectedItem}
+        />
+      )}
     </Fragment>
   );
 };

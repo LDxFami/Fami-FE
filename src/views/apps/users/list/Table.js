@@ -31,13 +31,14 @@ import {
 
 // ** Custom Components
 import ToastComponent from "../../../components/toastComponent";
+import { useIsAdmin } from "../../../../utility/hooks/useCurrentUser";
 
 // ** Styles
 import "@styles/react/libs/tables/react-dataTable-component.scss";
 
 const MySwal = withReactContent(Swal);
 
-const CustomHeader = ({ searchTerm, handleFilter, rowsPerPage, handlePerPage, toggleSidebar, total }) => (
+const CustomHeader = ({ searchTerm, handleFilter, rowsPerPage, handlePerPage, toggleSidebar, total, canManageUsers }) => (
   <div className="invoice-list-table-header w-100 me-1 ms-50 mt-2 mb-75">
     <Row>
       <Col xl="6" className="d-flex align-items-center p-0">
@@ -74,15 +75,17 @@ const CustomHeader = ({ searchTerm, handleFilter, rowsPerPage, handlePerPage, to
             onChange={(e) => handleFilter(e.target.value)}
           />
         </div>
-        <div className="d-flex align-items-center table-header-actions">
-          <Button
-            className="add-new-user"
-            color="primary"
-            onClick={() => toggleSidebar(null)}
-          >
-            Thêm người dùng
-          </Button>
-        </div>
+        {canManageUsers && (
+          <div className="d-flex align-items-center table-header-actions">
+            <Button
+              className="add-new-user"
+              color="primary"
+              onClick={() => toggleSidebar(null)}
+            >
+              Thêm người dùng
+            </Button>
+          </div>
+        )}
       </Col>
     </Row>
   </div>
@@ -92,6 +95,7 @@ const UsersTable = () => {
   const dispatch = useDispatch();
   const store = useSelector((state) => state.users);
   const { data, loading } = store.users;
+  const { isAdmin } = useIsAdmin();
 
   const [sort, setSort] = useState("asc");
   const [searchTerm, setSearchTerm] = useState("");
@@ -282,7 +286,8 @@ const UsersTable = () => {
             paginationServer
             columns={columns(
               (row) => toggleSidebar(row),
-              handleDelete
+              handleDelete,
+              isAdmin
             )}
             onSort={handleSort}
             sortIcon={<ChevronDown />}
@@ -300,17 +305,20 @@ const UsersTable = () => {
                 handleFilter={handleFilter}
                 handlePerPage={handlePerPage}
                 toggleSidebar={() => toggleSidebar(null)}
+                canManageUsers={isAdmin}
               />
             }
           />
         </div>
       </Card>
 
-      <Sidebar
-        open={sidebarOpen}
-        toggleSidebar={() => setSidebarOpen(false)}
-        selectedUser={selectedUser}
-      />
+      {isAdmin && (
+        <Sidebar
+          open={sidebarOpen}
+          toggleSidebar={() => setSidebarOpen(false)}
+          selectedUser={selectedUser}
+        />
+      )}
     </Fragment>
   );
 };
