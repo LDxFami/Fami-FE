@@ -63,6 +63,19 @@ export const deleteUser = createAsyncThunk(
   }
 );
 
+// Admin only: ends every session of another user in the same clinic
+export const forceLogoutUser = createAsyncThunk(
+  "users/forceLogoutUser",
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await instance.post(`/api/users/${id}/logout`);
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data);
+    }
+  }
+);
+
 export const usersSlice = createSlice({
   name: "users",
   initialState: {

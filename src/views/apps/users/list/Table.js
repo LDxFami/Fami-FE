@@ -6,7 +6,7 @@ import Sidebar from "./Sidebar";
 import { columns } from "./columns";
 
 // ** Store & Actions
-import { getUsers, deleteUser } from "../../../../redux/users";
+import { getUsers, deleteUser, forceLogoutUser } from "../../../../redux/users";
 import { useDispatch, useSelector } from "react-redux";
 
 // ** Third Party
@@ -31,7 +31,7 @@ import {
 
 // ** Custom Components
 import ToastComponent from "../../../components/toastComponent";
-import { useIsAdmin } from "../../../../utility/hooks/useCurrentUser";
+import { useCurrentUser, useIsAdmin } from "../../../../utility/hooks/useCurrentUser";
 
 // ** Styles
 import "@styles/react/libs/tables/react-dataTable-component.scss";
@@ -96,6 +96,7 @@ const UsersTable = () => {
   const store = useSelector((state) => state.users);
   const { data, loading } = store.users;
   const { isAdmin } = useIsAdmin();
+  const { userData: currentUser } = useCurrentUser();
 
   const [sort, setSort] = useState("asc");
   const [searchTerm, setSearchTerm] = useState("");
@@ -226,13 +227,52 @@ const UsersTable = () => {
               })
             );
           })
-          .catch(() => {
+          .catch((err) => {
             toast.error(
-              <ToastComponent title="Xoá thất bại" color="warning" message="Đã có lỗi xảy ra" icon={<Check />} />,
-              { icon: false, autoClose: 2000, hideProgressBar: true, closeButton: false }
+              <ToastComponent title="Xoá thất bại" color="warning" message={err?.error ?? "Đã có lỗi xảy ra"} icon={<Check />} />,
+              { icon: false, autoClose: 3000, hideProgressBar: true, closeButton: false }
             );
           });
       }
+    });
+  };
+
+  const handleForceLogout = (row) => {
+    MySwal.fire({
+      title: "Đăng xuất người dùng",
+      html: `Đăng xuất <strong>${row.name}</strong> khỏi tất cả thiết bị? Người dùng sẽ phải đăng nhập lại.`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Đăng xuất",
+      cancelButtonText: "Huỷ",
+      customClass: {
+        confirmButton: "btn btn-danger",
+        cancelButton: "btn btn-outline-secondary ms-1",
+      },
+      buttonsStyling: false,
+    }).then((result) => {
+      if (!result.isConfirmed) return;
+
+      dispatch(forceLogoutUser(row.id))
+        .unwrap()
+        .then((res) => {
+          const count = res?.data?.revoked_sessions ?? 0;
+          toast.success(
+            <ToastComponent
+              title="Đã đăng xuất người dùng"
+              color="success"
+              message={count > 0 ? `Đã kết thúc ${count} phiên đăng nhập` : "Người dùng không có phiên đăng nhập nào"}
+              icon={<Check />}
+            />,
+            { icon: false, autoClose: 2500, hideProgressBar: true, closeButton: false }
+          );
+        })
+        .catch((err) => {
+          toast.error(
+            <ToastComponent title="Đăng xuất thất bại" color="warning" message={err?.error ?? "Đã có lỗi xảy ra"} icon={<Check />} />,
+            { icon: false, autoClose: 3000, hideProgressBar: true, closeButton: false }
+          );
+        });
     });
   };
 
@@ -287,7 +327,9 @@ const UsersTable = () => {
             columns={columns(
               (row) => toggleSidebar(row),
               handleDelete,
-              isAdmin
+              isAdmin,
+              handleForceLogout,
+              currentUser?.id
             )}
             onSort={handleSort}
             sortIcon={<ChevronDown />}

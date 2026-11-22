@@ -5,8 +5,8 @@ export default class JwtService {
   // ** jwtConfig <= Will be used by this service
   jwtConfig = { ...jwtDefaultConfig };
 
-  // ** For Refreshing Token
-  isAlreadyFetchingAccessToken = false;
+  // ** Prevents several failing requests from triggering several redirects
+  isRedirectingToLogin = false;
 
   // ** For Refreshing Token
   subscribers = [];
@@ -30,43 +30,41 @@ export default class JwtService {
     );
 
     // ** Add request/response interceptor
+    // The API has no refresh tokens: a 401 means the session was ended
+    // (logged out elsewhere, force-logged out by an admin, user deleted or
+    // password reset). Clear the local session and send the user to login.
     instance.interceptors.response.use(
       (response) => response,
       (error) => {
-        // ** const { config, response: { status } } = error
         const { config, response } = error;
+        const isLoginRequest = config?.url?.includes(this.jwtConfig.loginEndpoint);
 
-        const originalRequest = config;
-
-        // ** if (status === 401) {
-        if (response && response.status === 401) {
-          if (!this.isAlreadyFetchingAccessToken) {
-            this.isAlreadyFetchingAccessToken = true;
-            this.refreshToken().then((r) => {
-              this.isAlreadyFetchingAccessToken = false;
-
-              // ** Update accessToken in localStorage
-              this.setToken(r.data.accessToken);
-              this.setRefreshToken(r.data.refreshToken);
-
-              this.onAccessTokenFetched(r.data.accessToken);
-            });
-          }
-          const retryOriginalRequest = new Promise((resolve) => {
-            this.addSubscriber((accessToken) => {
-              // ** Make sure to assign accessToken according to your response.
-              // ** Check: https://pixinvent.ticksy.com/ticket/2413870
-              // ** Change Authorization header
-              originalRequest.headers.Authorization = `${this.jwtConfig.tokenType} ${accessToken}`;
-              resolve(this.axios(originalRequest));
-            });
-          });
-          return retryOriginalRequest;
+        if (response && response.status === 401 && !isLoginRequest) {
+          this.handleSessionExpired();
         }
 
         return Promise.reject(error);
       }
     );
+  }
+
+  handleSessionExpired() {
+    if (this.isRedirectingToLogin) return;
+    this.isRedirectingToLogin = true;
+
+    localStorage.removeItem("userData");
+    localStorage.removeItem(this.jwtConfig.storageTokenKeyName);
+    localStorage.removeItem(this.jwtConfig.storageRefreshTokenKeyName);
+
+    const basename = (process.env.REACT_APP_BASENAME || "").replace(/\/$/, "");
+    const loginPath = `${basename}/login`;
+
+    // Full reload so every piece of in-memory state (Redux, caches) is dropped.
+    if (window.location.pathname !== loginPath) {
+      window.location.replace(loginPath);
+    } else {
+      this.isRedirectingToLogin = false;
+    }
   }
 
   onAccessTokenFetched(accessToken) {

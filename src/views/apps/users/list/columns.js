@@ -2,7 +2,7 @@
 import { Fragment } from "react";
 
 // ** Icons Imports
-import { Edit2, Trash2, MoreVertical } from "react-feather";
+import { Edit2, Trash2, MoreVertical, LogOut } from "react-feather";
 
 // ** Reactstrap Imports
 import {
@@ -31,8 +31,8 @@ const renderRoleBadge = (roles = []) => {
   ));
 };
 
-// Managing other users (including their passwords) is admin-only
-export const columns = (onEdit, onDelete, isAdmin = false) => [
+// Managing other users (including their passwords and sessions) is admin-only
+export const columns = (onEdit, onDelete, isAdmin = false, onForceLogout, currentUserId) => [
   {
     name: "Tên",
     sortable: true,
@@ -87,6 +87,21 @@ export const columns = (onEdit, onDelete, isAdmin = false) => [
                     <Edit2 size={14} className="me-50" />
                     <span className="align-middle">Chỉnh sửa</span>
                   </DropdownItem>
+                  {/* Own sessions are managed from account settings */}
+                  {row.id !== currentUserId && (
+                    <DropdownItem
+                      tag="a"
+                      href="#"
+                      className="w-100"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        onForceLogout(row);
+                      }}
+                    >
+                      <LogOut size={14} className="me-50" />
+                      <span className="align-middle">Đăng xuất khỏi mọi thiết bị</span>
+                    </DropdownItem>
+                  )}
                   <DropdownItem
                     tag="a"
                     href="#"

@@ -33,6 +33,19 @@ export const updatePassword = createAsyncThunk(
   }
 );
 
+// Ends every session of the current user except this one
+export const logoutOtherDevices = createAsyncThunk(
+  "user/logoutOtherDevices",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await instance.post("/api/auth/logout-other-devices");
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data);
+    }
+  }
+);
+
 export const userSlice = createSlice({
   name: "user",
   initialState: {

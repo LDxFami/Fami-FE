@@ -5,6 +5,8 @@ import { Fragment, useState } from "react";
 import { toast } from "react-toastify";
 import { Controller, useForm } from "react-hook-form";
 import { Check } from "react-feather";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
 
 // ** Reactstrap Imports
 import {
@@ -28,9 +30,18 @@ import ToastComponent from "../../components/toastComponent";
 
 // ** Store & Actions
 import { useDispatch } from "react-redux";
-import { updatePassword } from "../../../redux/user";
+import { updatePassword, logoutOtherDevices } from "../../../redux/user";
+
+const MySwal = withReactContent(Swal);
 
 const MIN_PASSWORD_LENGTH = 8;
+
+const toastOptions = (autoClose) => ({
+  icon: false,
+  autoClose,
+  hideProgressBar: true,
+  closeButton: false,
+});
 
 const defaultValues = {
   current_password: "",
@@ -41,6 +52,7 @@ const defaultValues = {
 const AccountSettings = () => {
   const dispatch = useDispatch();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoggingOutOthers, setIsLoggingOutOthers] = useState(false);
 
   const {
     control,
@@ -63,6 +75,7 @@ const AccountSettings = () => {
           <ToastComponent
             title="Đã đổi mật khẩu"
             color="success"
+            message="Các thiết bị khác đã được đăng xuất"
             icon={<Check />}
           />,
           {
@@ -93,6 +106,56 @@ const AccountSettings = () => {
         );
       })
       .finally(() => setIsSubmitting(false));
+  };
+
+  const onLogoutOtherDevices = () => {
+    MySwal.fire({
+      title: "Đăng xuất khỏi các thiết bị khác",
+      text: "Mọi phiên đăng nhập khác của bạn sẽ kết thúc. Thiết bị này vẫn giữ đăng nhập.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Đăng xuất",
+      cancelButtonText: "Huỷ",
+      customClass: {
+        confirmButton: "btn btn-danger",
+        cancelButton: "btn btn-outline-secondary ms-1",
+      },
+      buttonsStyling: false,
+    }).then((result) => {
+      if (!result.isConfirmed) return;
+
+      setIsLoggingOutOthers(true);
+      dispatch(logoutOtherDevices())
+        .unwrap()
+        .then((res) => {
+          const count = res?.data?.revoked_sessions ?? 0;
+          toast.success(
+            <ToastComponent
+              title="Đã đăng xuất các thiết bị khác"
+              color="success"
+              message={
+                count > 0
+                  ? `Đã kết thúc ${count} phiên đăng nhập`
+                  : "Không có thiết bị nào khác đang đăng nhập"
+              }
+              icon={<Check />}
+            />,
+            toastOptions(2500)
+          );
+        })
+        .catch((err) => {
+          toast.error(
+            <ToastComponent
+              title="Có lỗi xảy ra"
+              color="warning"
+              message={err?.error ?? "Đã có lỗi xảy ra"}
+              icon={<Check />}
+            />,
+            toastOptions(3000)
+          );
+        })
+        .finally(() => setIsLoggingOutOthers(false));
+    });
   };
 
   return (
@@ -210,6 +273,27 @@ const AccountSettings = () => {
                   </Button>
                 </div>
               </Form>
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle tag="h4">Phiên đăng nhập</CardTitle>
+            </CardHeader>
+            <CardBody>
+              <p className="mb-2">
+                Đăng xuất tài khoản của bạn trên mọi điện thoại, máy tính khác.
+                Thiết bị bạn đang dùng vẫn giữ đăng nhập.
+              </p>
+              <Button
+                color="danger"
+                outline
+                disabled={isLoggingOutOthers}
+                onClick={onLogoutOtherDevices}
+              >
+                {isLoggingOutOthers && <Spinner size="sm" className="me-50" />}
+                Đăng xuất khỏi các thiết bị khác
+              </Button>
             </CardBody>
           </Card>
         </Col>
